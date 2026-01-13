@@ -575,8 +575,8 @@ if check_login():
             st.markdown("#### Condiciones Financieras")
             col_A, col_B = st.columns(2)
             with col_A:
-                monto = st.number_input("Capital a Prestar (S/)", min_value=0.0, step=50.0)
-                fecha_inicio = st.date_input("Fecha Desembolso", datetime.now())
+                monto = st.number_input("Monto a Prestar (S/)", min_value=0.0, step=50.0)
+                fecha_inicio = st.date_input("Fecha del Préstamo", datetime.now())
             with col_B:
                 tasa = st.number_input("Tasa Interés Mensual (%)", value=15.0)
                 obs = st.text_area("Observaciones", placeholder="Ej: Negocio propio, paga puntual...")
@@ -616,7 +616,7 @@ if check_login():
                 datos, sha = cargar_datos()
                 datos.append(nuevo)
                 if guardar_datos(datos, sha, f"Nuevo prestamo: {cliente}"):
-                    registrar_auditoria("CREACIÓN CRÉDITO", f"Desembolso de S/ {monto}", cliente=cliente)
+                    registrar_auditoria("CREACIÓN CRÉDITO", f"Préstamo de S/ {monto}", cliente=cliente)
                     st.success("✅ Préstamo registrado correctamente.")
                     time.sleep(1)
                     st.session_state.guardando_prestamo = False # Liberar
@@ -998,6 +998,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
