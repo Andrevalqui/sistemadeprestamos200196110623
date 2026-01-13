@@ -30,20 +30,35 @@ st.markdown("""
     h1, h2, h3, h4, h5, h6, .stMarkdown, p {
         text-align: center !important;
     }
-    
-    /* Centrar métricas nativas de Streamlit */
+  
+    /* --- MÉTRICAS DORADAS EJECUTIVAS --- */
     [data-testid="stMetric"] {
-        justify-content: center;
-        text-align: center;
-        margin: auto;
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%) !important;
+        border: 2px solid #996515 !important;
+        border-radius: 15px !important;
+        padding: 15px !important;
+        box-shadow: 0 8px 15px rgba(0,0,0,0.2) !important;
     }
-    [data-testid="stMetricLabel"] {
-        justify-content: center;
-        width: 100%;
+    
+    /* Color de los títulos de las métricas (Labels) */
+    [data-testid="stMetricLabel"] div p {
+        color: #1C1C1C !important;
+        font-weight: 800 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1px !important;
     }
-    [data-testid="stMetricValue"] {
-        justify-content: center;
-        width: 100%;
+
+    /* Color de los números de las métricas (Values) */
+    [data-testid="stMetricValue"] div {
+        color: #1C1C1C !important;
+        font-weight: 700 !important;
+    }
+    
+    /* Color de la flechita de variación (Delta) */
+    [data-testid="stMetricDelta"] div {
+        background-color: rgba(28, 28, 28, 0.1) !important;
+        border-radius: 5px;
+        padding: 2px 5px;
     }
     
     /* --- ESTILOS DE LOGIN --- */
@@ -284,7 +299,10 @@ def check_login():
                 if usuario in creds and creds[usuario] == password:
                     st.session_state.update({'logged_in': True, 'usuario': usuario})
                     st.session_state['rol'] = 'Admin' if usuario in st.secrets["config"]["admins"] else 'Visor'
-                    registrar_auditoria("INICIO DE SESIÓN", f"El usuario {usuario} ingresó al sistema")
+                    
+                    # LOG DE AUDITORÍA DE ACCESO
+                    registrar_auditoria("INICIO DE SESIÓN", f"El usuario {usuario} accedió al portal con perfil {st.session_state['rol']}")
+                    
                     st.toast(f"¡Bienvenido, {usuario.title()}!", icon="👋")
                     st.query_params["user"] = usuario
                     st.query_params["rol"] = st.session_state['rol']
@@ -396,12 +414,18 @@ if check_login():
         k3.markdown(f'<div class="metric-card" style="border-left-color:#F39C12"><div class="metric-title">1er Vencimiento</div><div class="metric-value">{fecha_bonita}</div></div>', unsafe_allow_html=True)
         
         st.write("")
-        if st.button("💾 GUARDAR OPERACIÓN"):
+        
+        if 'guardando_prestamo' not in st.session_state:
+            st.session_state.guardando_prestamo = False
+
+        if st.button("💾 GUARDAR OPERACIÓN", disabled=st.session_state.guardando_prestamo):
             if cliente and monto > 0:
+                st.session_state.guardando_prestamo = True # Bloquear el botón
+                
                 nuevo = {
                     "Cliente": cliente, "DNI": dni, "Telefono": telefono,
                     "Fecha_Prestamo": str(fecha_inicio),
-                    "Fecha_Proximo_Pago": prox_pago, # Guardamos la fecha EXACTA
+                    "Fecha_Proximo_Pago": prox_pago,
                     "Monto_Capital": monto, "Tasa_Interes": tasa,
                     "Pago_Mensual_Interes": interes, "Estado": "Activo",
                     "Observaciones": obs
@@ -412,6 +436,7 @@ if check_login():
                     registrar_auditoria("CREACIÓN CRÉDITO", f"Desembolso de S/ {monto}", cliente=cliente)
                     st.success("✅ Préstamo registrado correctamente.")
                     time.sleep(1)
+                    st.session_state.guardando_prestamo = False # Liberar
                     st.rerun()
             else:
                 st.warning("⚠️ Complete Nombre y Monto.")
@@ -508,6 +533,9 @@ if check_login():
                 """, unsafe_allow_html=True)
                 
             st.write("")
+            if 'procesando_pago' not in st.session_state:
+                st.session_state.procesando_pago = False
+                
             if st.button("💾 PROCESAR PAGO"):
                 data['Monto_Capital'] = nuevo_capital
                 data['Pago_Mensual_Interes'] = nueva_cuota
@@ -524,6 +552,7 @@ if check_login():
                     registrar_auditoria("COBRO", f"Pago Recibido: Interés S/ {pago_interes}, Capital S/ {pago_capital}", cliente=data['Cliente'])
                     st.success("✅ Cartera actualizada correctamente.")
                     time.sleep(2)
+                    st.session_state.procesando_pago = False # Liberar
                     st.rerun()
 
     # 3. DASHBOARD GERENCIAL
@@ -648,3 +677,4 @@ if check_login():
             st.dataframe(df_audit, use_container_width=True, hide_index=True)
         else:
             st.info("No hay movimientos registrados en la bitácora.")
+
