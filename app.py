@@ -120,21 +120,22 @@ st.markdown("""
         text-align: center;
     }
     
-    /* --- BOTONES PERSONALIZADOS --- */
-    div.stButton > button {
-        background: linear-gradient(90deg, #1A5276 0%, #2980B9 100%);
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 8px;
-        font-weight: 600;
-        text-transform: uppercase;
-        width: 100%;
-        transition: all 0.3s ease;
+    /* --- ESTILO UNIFICADO PARA TODOS LOS BOTONES DE ACCIÓN --- */
+    div.stButton > button, div.stForm > div > div > button {
+        background: linear-gradient(90deg, #D4AF37 0%, #B8860B 100%) !important;
+        color: #1C1C1C !important; /* Letras negro/marrón ejecutivo */
+        border: 1px solid #996515 !important;
+        border-radius: 10px !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1px !important;
+        padding: 12px 24px !important;
+        transition: all 0.3s ease !important;
     }
     div.stButton > button:hover {
-        background: linear-gradient(90deg, #154360 0%, #2471A3 100%);
-        box-shadow: 0 4px 12px rgba(41, 128, 185, 0.4);
+        transform: scale(1.02) !important;
+        box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4) !important;
+        background: linear-gradient(90deg, #B8860B 0%, #D4AF37 100%) !important;
     }
     
     /* --- BOTÓN WHATSAPP PREMIUM --- */
@@ -487,15 +488,15 @@ if check_login():
             if dias_restantes <= 0:
                 color_texto = "#943126"  # Rojo Oscuro (Mora/Hoy)
                 txt_venc = "Vence HOY" if dias_restantes == 0 else f"Vencido hace {abs(dias_restantes)} días"
-                flecha_dir = "inverse"   # Flecha roja
+                flecha_dir = "inverse"
             elif dias_restantes <= 5:
-                color_texto = "#996515"  # Ocre/Amarillo Oscuro (Cercano)
+                color_texto = "#5D4037"  # MARRÓN CHOCOLATE (Cercano)
                 txt_venc = f"En {dias_restantes} días"
-                flecha_dir = "off"       # Neutral
+                flecha_dir = "off"       
             else:
                 color_texto = "#145A32"  # Verde Oscuro (Al día)
                 txt_venc = f"En {dias_restantes} días"
-                flecha_dir = "normal"    # Flecha verde
+                flecha_dir = "normal"
 
             # Inyectamos CSS específico para centrar y dar color a la tarjeta de vencimiento
             st.markdown(f"""
@@ -617,9 +618,10 @@ if check_login():
     # 3. DASHBOARD GERENCIAL
     elif menu == "📊 Dashboard General":
         st.markdown("""<div class="header-box">
-                    <h1>📊 RESUMEN EJECUTIVO</h1>
-                    <p style="color:#D4AF37;">Visión general del capital activo y estado de cobranzas.</p>
-                   </div>""", unsafe_allow_html=True)
+                <h1>📊 RESUMEN EJECUTIVO</h1>
+                <p style="color:#D4AF37;">Visión general del capital activo y gestión de cobranza.</p>
+               </div>""", unsafe_allow_html=True)
+        
         datos, _ = cargar_datos()
         
         if datos:
@@ -627,103 +629,88 @@ if check_login():
             df = df[df['Estado'] == 'Activo']
             hoy = datetime.now().date()
             
-            c1, c2 = st.columns([2, 1])
-            
-            with c1:
-                total = df['Monto_Capital'].sum()
-                ganancia = df['Pago_Mensual_Interes'].sum()
+            # --- KPIs SUPERIORES ---
+            k1, k2, k3 = st.columns(3)
+            total = df['Monto_Capital'].sum()
+            ganancia = df['Pago_Mensual_Interes'].sum()
+            k1.metric("CAPITAL ACTIVO", f"S/ {total:,.2f}")
+            k2.metric("FLUJO MENSUAL", f"S/ {ganancia:,.2f}")
+            k3.metric("CLIENTES ACTIVOS", f"{len(df)}")
+
+            st.write("")
+
+            # --- SUBMÓDULOS DEL DASHBOARD ---
+            tab1, tab2, tab3 = st.tabs(["🔔 ACCIONES DE COBRO PRIORITARIAS", "📲 CENTRO DE NOTIFICACIONES", "📋 CARTERA DE CLIENTES"])
+
+            with tab1:
+                st.markdown("### 🔔 ALERTAS DE COBRANZA")
                 
-                k1, k2, k3 = st.columns(3)
-                k1.markdown(f'<div class="metric-card"><div class="metric-title">Capital Activo</div><div class="metric-value">S/ {total:,.2f}</div></div>', unsafe_allow_html=True)
-                k2.markdown(f'<div class="metric-card" style="border-left-color:#27AE60"><div class="metric-title">Flujo Mensual</div><div class="metric-value" style="color:#27AE60">S/ {ganancia:,.2f}</div></div>', unsafe_allow_html=True)
-                k3.markdown(f'<div class="metric-card" style="border-left-color:#8E44AD"><div class="metric-title">Clientes</div><div class="metric-value">{len(df)}</div></div>', unsafe_allow_html=True)
-            
-            with c2:
-                st.markdown("##### 📅 Estado de Cobranza")
-                alertas = []
+                # Columnas para organizar las alertas visuales
+                col_alert1, col_alert2 = st.columns([1, 1])
+                
+                avisos_hoy = []
+                avisos_mora = []
+                alertas_proximas = []
+                
                 for _, r in df.iterrows():
-                    venc = datetime.strptime(r['Fecha_Proximo_Pago'], "%Y-%m-%d").date()
-                    dias = (venc - hoy).days
+                    venc_dt = datetime.strptime(r['Fecha_Proximo_Pago'], "%Y-%m-%d").date()
+                    dias = (venc_dt - hoy).days
                     
                     if dias < 0:
-                        alertas.append(f"<div class='alert-box alert-danger'>🚨 {r['Cliente']} (Hace {abs(dias)} días)</div>")
+                        avisos_mora.append(f"<div class='alert-box alert-danger'>🚨 MORA: {r['Cliente']} (Hace {abs(dias)} días)</div>")
                     elif dias == 0:
-                        alertas.append(f"<div class='alert-box alert-warning'>⚠️ {r['Cliente']} paga HOY</div>")
-                    elif dias <= 3:
-                        alertas.append(f"<div class='alert-box alert-success'>🕒 {r['Cliente']} en {dias} días</div>")
+                        avisos_hoy.append(f"<div class='alert-box alert-warning'>⚠️ COBRAR HOY: {r['Cliente']} - S/ {r['Pago_Mensual_Interes']:,.2f}</div>")
+                    elif dias <= 5:
+                        # COLOR MARRÓN PARA < 5 DÍAS
+                        alertas_proximas.append(f"<div class='alert-box' style='background-color:#EFEBE9; color:#5D4037; border:1px solid #5D4037;'>🕒 PRÓXIMO: {r['Cliente']} (En {dias} días)</div>")
+
+                with col_alert1:
+                    if avisos_mora or avisos_hoy:
+                        for a in avisos_mora: st.markdown(a, unsafe_allow_html=True)
+                        for a in avisos_hoy: st.markdown(a, unsafe_allow_html=True)
+                    else: st.success("✅ Todo al día para hoy.")
+
+                with col_alert2:
+                    if alertas_proximas:
+                        for a in alertas_proximas: st.markdown(a, unsafe_allow_html=True)
+                    else: st.caption("No hay vencimientos cercanos (< 5 días).")
+
+            with tab2:
+                st.markdown("### 📲 CENTRO DE NOTIFICACIONES PREMIUM")
+                n1, n2, n3 = st.columns(3)
+                vencidos_list, hoy_list, proximos_list = [], [], []
                 
-                if alertas:
-                    for a in alertas: st.markdown(a, unsafe_allow_html=True)
-                else: st.caption("Todo al día.")
-
-            st.markdown("---")
-            st.markdown("### 🔔 ACCIONES DE COBRO PRIORITARIAS")
-            
-            avisos_hoy = []
-            avisos_mora = []
-            
-            for _, r in df.iterrows():
-                venc_dt = datetime.strptime(r['Fecha_Proximo_Pago'], "%Y-%m-%d").date()
-                if venc_dt == hoy:
-                    avisos_hoy.append(f"💰 **COBRAR A {r['Cliente'].upper()}**: S/ {r['Pago_Mensual_Interes']:,.2f} (Vence Hoy)")
-                elif venc_dt < hoy:
-                    dias_atraso = (hoy - venc_dt).days
-                    avisos_mora.append(f"🚨 **URGENTE: COBRAR MORA A {r['Cliente'].upper()}** | S/ {r['Pago_Mensual_Interes']:,.2f} | ({dias_atraso} días de atraso)")
-
-            if not avisos_hoy and not avisos_mora:
-                st.success("✅ Excelente: No hay cobros pendientes para el día de hoy.")
-            else:
-                col_avisos1, col_avisos2 = st.columns(2)
-                with col_avisos1:
-                    for a in avisos_hoy: st.warning(a)
-                with col_avisos2:
-                    for a in avisos_mora: st.error(a)
-
-            st.markdown("---")
-            st.markdown("### 📲 Centro de Notificaciones Premium")
-            notif_1, notif_2, notif_3 = st.columns(3)
-            
-            vencidos_list, hoy_list, proximos_list = [], [], []
-            for _, r in df.iterrows():
-                venc_f = datetime.strptime(r['Fecha_Proximo_Pago'], "%Y-%m-%d").date()
-                d_diff = (venc_f - hoy).days
-                info_cli = {"nombre": r['Cliente'], "tel": r['Telefono'], "monto": r['Pago_Mensual_Interes'], "fecha": venc_f.strftime("%d/%m/%Y")}
+                for _, r in df.iterrows():
+                    venc_f = datetime.strptime(r['Fecha_Proximo_Pago'], "%Y-%m-%d").date()
+                    d_diff = (venc_f - hoy).days
+                    info = {"nombre": r['Cliente'], "tel": r['Telefono'], "monto": r['Pago_Mensual_Interes'], "fecha": venc_f.strftime("%d/%m/%Y")}
+                    
+                    if d_diff < 0: vencidos_list.append(info)
+                    elif d_diff == 0: hoy_list.append(info)
+                    elif 0 < d_diff <= 3: proximos_list.append(info)
                 
-                if d_diff < 0: vencidos_list.append(info_cli)
-                elif d_diff == 0: hoy_list.append(info_cli)
-                elif 0 < d_diff <= 3: proximos_list.append(info_cli)
-            
-            with notif_1:
-                st.markdown("⚠️ **En Mora**")
-                if vencidos_list:
+                with n1:
+                    st.markdown("##### ⚠️ En Mora")
                     for c in vencidos_list:
                         link = generar_link_whatsapp(c['tel'], c['nombre'], c['monto'], c['fecha'], "mora")
-                        st.markdown(f"""<a href="{link}" target="_blank" class="wa-button">🔔 {c['nombre']}</a>""", unsafe_allow_html=True)
-                else: st.caption("Sin moras.")
-
-            with notif_2:
-                st.markdown("📅 **Vencen HOY**")
-                if hoy_list:
+                        st.markdown(f'<a href="{link}" target="_blank" class="wa-button">📲 Notificar {c["nombre"]}</a>', unsafe_allow_html=True)
+                with n2:
+                    st.markdown("##### 📅 Vencen Hoy")
                     for c in hoy_list:
                         link = generar_link_whatsapp(c['tel'], c['nombre'], c['monto'], c['fecha'], "hoy")
-                        st.markdown(f"""<a href="{link}" target="_blank" class="wa-button">💰 {c['nombre']}</a>""", unsafe_allow_html=True)
-                else: st.caption("Nada hoy.")
-
-            with notif_3:
-                st.markdown("⏳ **Próximos (3 días)**")
-                if proximos_list:
+                        st.markdown(f'<a href="{link}" target="_blank" class="wa-button">📲 Notificar {c["nombre"]}</a>', unsafe_allow_html=True)
+                with n3:
+                    st.markdown("##### ⏳ Recordatorios")
                     for c in proximos_list:
                         link = generar_link_whatsapp(c['tel'], c['nombre'], c['monto'], c['fecha'], "recordatorio")
-                        st.markdown(f"""<a href="{link}" target="_blank" class="wa-button">📝 {c['nombre']}</a>""", unsafe_allow_html=True)
-                else: st.caption("Sin vencimientos cercanos.")
+                        st.markdown(f'<a href="{link}" target="_blank" class="wa-button">📲 Notificar {c["nombre"]}</a>', unsafe_allow_html=True)
 
-            st.markdown("---")
-            st.markdown("### 📋 Cartera de Clientes")
-            df['Vence'] = pd.to_datetime(df['Fecha_Proximo_Pago']).dt.strftime('%d/%m/%Y')
-            tabla_view = df[["Cliente", "Telefono", "Monto_Capital", "Pago_Mensual_Interes", "Vence", "Observaciones"]]
-            st.dataframe(tabla_view, use_container_width=True, hide_index=True)
+            with tab3:
+                st.markdown("### 📋 CARTERA DE CLIENTES ACTIVA")
+                df['Vence'] = pd.to_datetime(df['Fecha_Proximo_Pago']).dt.strftime('%d/%m/%Y')
+                st.dataframe(df[["Cliente", "Telefono", "Monto_Capital", "Pago_Mensual_Interes", "Vence", "Observaciones"]], use_container_width=True, hide_index=True)
         else:
-            st.info("No hay datos registrados en el sistema.")
+            st.info("No hay datos registrados.")
 
     # 4. ADMINISTRACIÓN Y EDICIÓN (Módulo Nuevo)
     elif menu == "🛠️ Administrar Cartera":
@@ -822,3 +809,4 @@ if check_login():
             st.dataframe(df_audit, use_container_width=True, hide_index=True)
         else:
             st.info("No hay movimientos registrados en la bitácora.")
+
