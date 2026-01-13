@@ -1,1 +1,13 @@
-[]
+[
+    {
+        "Cliente": "Andr\u00e9 Valqui",
+        "DNI": "70895739",
+        "Fecha": "2026-01-13",
+        "Monto": 10000.0,
+        "Tasa": 18.0,
+        "Plazo": 12,
+        "Total_Pagar": 31600.0,
+        "Ganancia": 21600.0,
+        "Estado": "Activo"
+    }
+]
