@@ -5,6 +5,7 @@ import time
 from datetime import datetime
 import calendar # Importamos calendario para calcular días exactos
 from github import Github
+import urllib.parse # NUEVO: Para codificar mensajes de WhatsApp
 
 # --- 1. CONFIGURACIÓN INICIAL ---
 st.set_page_config(
@@ -103,6 +104,28 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(41, 128, 185, 0.4);
     }
     
+    /* --- BOTÓN WHATSAPP PREMIUM --- */
+    .wa-button {
+        background-color: #25D366;
+        color: white !important;
+        padding: 10px 20px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: bold;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
+        transition: 0.3s;
+        width: 100%;
+        margin-top: 5px;
+    }
+    .wa-button:hover {
+        background-color: #128C7E;
+        transform: scale(1.02);
+    }
+    
     /* --- TABLAS DE DATOS --- */
     [data-testid="stDataFrame"] {
         background-color: white;
@@ -150,6 +173,23 @@ def sumar_un_mes(fecha_str):
     dia_nuevo = min(fecha_dt.day, ult_dia_mes)
     
     return datetime(anio_nuevo, mes_nuevo, dia_nuevo).strftime("%Y-%m-%d")
+
+# --- NUEVA FUNCIÓN: GENERAR LINK WHATSAPP ---
+def generar_link_whatsapp(telefono, cliente, monto, fecha, tipo):
+    # Limpiar el teléfono de espacios o caracteres
+    tel_limpio = "".join(filter(str.isdigit, str(telefono)))
+    # Añadir prefijo de país si no lo tiene (Ejemplo 51 para Perú, cámbialo si es otro país)
+    if len(tel_limpio) == 9: tel_limpio = "51" + tel_limpio
+    
+    if tipo == "recordatorio":
+        mensaje = f"Hola *{cliente}* 👋, te recordamos que tu cuota de *S/ {monto:,.2f}* vence el próximo *{fecha}*. ¡Que tengas un gran día!"
+    elif tipo == "hoy":
+        mensaje = f"Hola *{cliente}* 🔔, te informamos que *hoy* vence tu cuota de *S/ {monto:,.2f}*. Por favor, realiza el pago para evitar recargos. Gracias."
+    elif tipo == "mora":
+        mensaje = f"Estimado(a) *{cliente}* ⚠️, tu cuota de *S/ {monto:,.2f}* presenta un retraso. Por favor, comunícate con nosotros lo antes posible para regularizar tu situación."
+    
+    msg_encoded = urllib.parse.quote(mensaje)
+    return f"https://wa.me/{tel_limpio}?text={msg_encoded}"
 
 # --- 4. GESTIÓN DE SESIÓN Y GITHUB ---
 def check_login():
@@ -436,7 +476,54 @@ if check_login():
                     for a in alertas: st.markdown(a, unsafe_allow_html=True)
                 else: st.caption("Todo al día.")
 
+            # --- NUEVA SECCIÓN: GESTIÓN DE NOTIFICACIONES WHATSAPP ---
+            st.markdown("---")
+            st.markdown("### 📲 Centro de Notificaciones Premium")
+            st.caption("Envía recordatorios directos a tus clientes por WhatsApp sin salir del sistema.")
+            
+            notif_1, notif_2, notif_3 = st.columns(3)
+            
+            # Clasificar clientes para notificar
+            vencidos_list = []
+            hoy_list = []
+            proximos_list = []
+            
+            for _, r in df.iterrows():
+                venc_f = datetime.strptime(r['Fecha_Proximo_Pago'], "%Y-%m-%d").date()
+                d_diff = (venc_f - hoy).days
+                
+                info_cli = {"nombre": r['Cliente'], "tel": r['Telefono'], "monto": r['Pago_Mensual_Interes'], "fecha": venc_f.strftime("%d/%m/%Y")}
+                
+                if d_diff < 0: vencidos_list.append(info_cli)
+                elif d_diff == 0: hoy_list.append(info_cli)
+                elif 0 < d_diff <= 3: proximos_list.append(info_cli)
+            
+            with notif_1:
+                st.markdown("⚠️ **En Mora**")
+                if vencidos_list:
+                    for c in vencidos_list:
+                        link = generar_link_whatsapp(c['tel'], c['nombre'], c['monto'], c['fecha'], "mora")
+                        st.markdown(f"""<a href="{link}" target="_blank" class="wa-button">🔔 {c['nombre']}</a>""", unsafe_allow_html=True)
+                else: st.caption("Sin moras pendientes.")
+
+            with notif_2:
+                st.markdown("📅 **Vencen HOY**")
+                if hoy_list:
+                    for c in hoy_list:
+                        link = generar_link_whatsapp(c['tel'], c['nombre'], c['monto'], c['fecha'], "hoy")
+                        st.markdown(f"""<a href="{link}" target="_blank" class="wa-button">💰 {c['nombre']}</a>""", unsafe_allow_html=True)
+                else: st.caption("No hay vencimientos hoy.")
+
+            with notif_3:
+                st.markdown("⏳ **Próximos (3 días)**")
+                if proximos_list:
+                    for c in proximos_list:
+                        link = generar_link_whatsapp(c['tel'], c['nombre'], c['monto'], c['fecha'], "recordatorio")
+                        st.markdown(f"""<a href="{link}" target="_blank" class="wa-button">📝 {c['nombre']}</a>""", unsafe_allow_html=True)
+                else: st.caption("No hay vencimientos cercanos.")
+
             # --- TABLA BONITA ---
+            st.markdown("---")
             st.markdown("### 📋 Cartera de Clientes")
             
             # Convertir fecha a formato legible para la tabla
