@@ -201,15 +201,22 @@ st.markdown("""
         90% { opacity: 1; }
         100% { opacity: 0; }
     }
+    
+    /* --- CSS PARA ELIMINAR FANTASMAS --- */
     .splash-overlay {
         position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background-color: #0E1117;
-        display: flex; flex-direction: column;
-        justify-content: center; align-items: center;
-        z-index: 99999;
-        animation: fade-out 3s forwards;
+        top: 0;
+        left: 0;
+        width: 100vw; /* Cubre todo el ancho del navegador */
+        height: 100vh; /* Cubre todo el alto del navegador */
+        background-color: #0E1117 !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999999 !important; /* Capa superior absoluta */
     }
+    
     .gif-container {
         width: 300px;
         height: 300px;
@@ -291,8 +298,7 @@ def registrar_auditoria(accion, detalle, cliente="-"):
         
 def mostrar_splash_salida():
     placeholder = st.empty()
-    # Obtenemos el nombre antes de borrar la sesión
-    nombre_usuario = st.session_state.get('usuario', '').upper()
+    nombre = st.session_state.get('usuario', '').upper()
     
     with placeholder.container():
         st.markdown(f"""
@@ -303,27 +309,27 @@ def mostrar_splash_salida():
                     </iframe>
                 </div>
                 <h2 style="color:#D4AF37; margin-top:30px; font-family:'Playfair Display', serif;">
-                    HASTA LUEGO ESTIMADO {nombre_usuario}...
+                    HASTA LUEGO ESTIMAD@ {nombre}...
                 </h2>
-                <p style="color:white;">Cerrando sesión de forma segura</p>
+                <p style="color:white; text-align:center;">Cerrando sesión de forma segura</p>
             </div>
         """, unsafe_allow_html=True)
-        time.sleep(3.5)
+        time.sleep(3.0)
     
-    # AHORA SÍ: Limpiamos todo después de mostrar el mensaje
+    # LIMPIEZA ANTES DE SALIR
     st.query_params.clear()
     for key in list(st.session_state.keys()):
         del st.session_state[key]
     
     placeholder.empty()
-    st.rerun()
+    st.rerun() # Al volver, ya no habrá sidebar porque no hay sesión
     
 # --- 4. GESTIÓN DE SESIÓN Y GITHUB ---
 def check_login():
     # --- A. SI ESTAMOS SALIENDO ---
     if st.session_state.get('saliendo'):
         mostrar_splash_salida()
-        return False
+        return False # No deja pasar al resto del código
 
     # --- B. PERSISTENCIA F5 ---
     q = st.query_params
@@ -335,9 +341,9 @@ def check_login():
         else:
             st.session_state.update({'logged_in': False, 'usuario': '', 'rol': ''})
 
-    # --- C. SI YA ESTÁ LOGUEADO (ESTO EVITA EL FLASHEO) ---
+    # --- C. MANEJO DE SESIÓN ACTIVA ---
     if st.session_state['logged_in']:
-        # Splash de entrada si no se ha visto
+        # Si NO ha visto el splash, lo mostramos y detenemos ejecución
         if not st.session_state.get('splash_visto'):
             placeholder = st.empty()
             with placeholder.container():
@@ -349,36 +355,34 @@ def check_login():
                             </iframe>
                         </div>
                         <h2 style="color:#D4AF37; margin-top:30px; font-family:'Playfair Display', serif;">
-                            INICIANDO SISTEMA FINANCIERO...
+                            BIENVENID@ {nombre} AL SISTEMA DE PRÉSTAMOS...
                         </h2>
                     </div>
                 """, unsafe_allow_html=True)
-                time.sleep(3.8)
-            placeholder.empty()
+                time.sleep(3.5)
             st.session_state['splash_visto'] = True
+            placeholder.empty()
+            st.rerun() # RECARGA para limpiar el splash y dibujar el portal limpio
         
-        # AL RETORNAR TRUE AQUÍ, STREAMLIT SALTA EL CÓDIGO DEL LOGIN DE ABAJO
-        return True
+        return True # Solo llega aquí si ya está logueado Y terminó el splash
 
-    # --- D. PANTALLA DE LOGIN (Solo se ejecuta si NO está logueado) ---
+    # --- D. PANTALLA DE LOGIN ---
+    # (Tu código de login normal aquí...)
     c1, c2, c3 = st.columns([1, 1.5, 1])
     with c2:
         st.markdown('<div class="login-container">', unsafe_allow_html=True)
         st.title("🔒 Acceso Seguro")
         with st.form("login_form"):
-            usuario = st.text_input("Usuario", placeholder="Ingrese su usuario")
-            password = st.text_input("Contraseña", type="password", placeholder="••••••")
-            submit_button = st.form_submit_button("INICIAR SESIÓN")
-
-        if submit_button:
+            usuario = st.text_input("Usuario")
+            password = st.text_input("Contraseña", type="password")
+            submit = st.form_submit_button("INICIAR SESIÓN")
+        if submit:
             creds = st.secrets["credenciales"]
             if usuario in creds and creds[usuario] == password:
                 st.session_state.update({
-                    'logged_in': True, 
-                    'usuario': usuario,
+                    'logged_in': True, 'usuario': usuario,
                     'rol': 'Admin' if usuario in st.secrets["config"]["admins"] else 'Visor'
                 })
-                registrar_auditoria("INICIO DE SESIÓN", f"El usuario {usuario} ingresó al sistema")
                 st.query_params["user"] = usuario
                 st.query_params["rol"] = st.session_state['rol']
                 st.rerun()
@@ -414,8 +418,8 @@ def guardar_datos(datos, sha, mensaje):
 if check_login():
     # --- SIDEBAR (Menú Lateral) ---
     with st.sidebar:
-        st.markdown(f"<h2 style='text-align: center;'>👤 {st.session_state['usuario'].title()}</h2>", unsafe_allow_html=True)
-        st.markdown(f"<p style='text-align: center; color: gray;'>Perfil: {st.session_state['rol']}</p>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='text-align: center;'>👤 {st.session_state['usuario'].upper()}</h2>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align: center; color: #D4AF37;'>Perfil: {st.session_state['rol']}</p>", unsafe_allow_html=True)
         st.markdown("---")
         
         opciones = ["📊 Dashboard General"]
@@ -845,6 +849,7 @@ if check_login():
             st.dataframe(df_audit, use_container_width=True, hide_index=True)
         else:
             st.info("No hay movimientos registrados en la bitácora.")
+
 
 
 
