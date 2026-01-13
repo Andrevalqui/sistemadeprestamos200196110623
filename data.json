@@ -1,14 +1,1 @@
-[
-    {
-        "Cliente": "Andr\u00e9 Valqui",
-        "DNI": "99999999",
-        "Telefono": "999999999",
-        "Fecha_Prestamo": "2026-01-13",
-        "Dia_Cobro": 13,
-        "Monto_Capital": 5000.0,
-        "Tasa_Interes": 18.0,
-        "Pago_Mensual_Interes": 900.0,
-        "Estado": "Activo",
-        "Observaciones": ""
-    }
-]
+[]
