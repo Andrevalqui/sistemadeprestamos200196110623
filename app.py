@@ -79,15 +79,84 @@ st.markdown("""
         font-weight: 700 !important;
     }
     
-    /* --- ESTILOS DE LOGIN --- */
+    /* --- DISEÑO DE LOGIN EXCLUSIVO: MIDNIGHT GOLD --- */
+    
+    /* Fondo General del Login */
+    [data-testid="stAppViewRoot"] {
+        background: radial-gradient(circle at center, #1C1C1C 0%, #050505 100%) !important;
+    }
+
     .login-container {
-        background-color: white;
-        padding: 40px;
-        border-radius: 15px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        background: rgba(28, 28, 28, 0.6) !important;
+        backdrop-filter: blur(20px); /* Efecto de cristal esmerilado */
+        padding: 60px;
+        border-radius: 25px;
+        border: 1px solid rgba(212, 175, 55, 0.3); /* Borde dorado tenue */
+        box-shadow: 0 25px 50px rgba(0,0,0,0.5);
         text-align: center;
-        margin-top: 50px;
-        margin-bottom: 50px;
+        max-width: 450px;
+        margin: auto;
+    }
+
+    /* Título Acceso Seguro */
+    .login-title {
+        font-family: 'Playfair Display', serif;
+        color: #D4AF37;
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+    }
+
+    .login-subtitle {
+        color: #888;
+        font-size: 14px;
+        margin-bottom: 30px;
+        letter-spacing: 1px;
+    }
+
+    /* Personalización de los Campos de Texto */
+    div[data-baseweb="input"] {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(212, 175, 55, 0.2) !important;
+        border-radius: 12px !important;
+        color: white !important;
+        transition: all 0.3s ease;
+    }
+
+    div[data-baseweb="input"]:focus-within {
+        border: 1px solid #D4AF37 !important;
+        box-shadow: 0 0 10px rgba(212, 175, 55, 0.2) !important;
+    }
+
+    label p {
+        color: #D4AF37 !important;
+        font-weight: 600 !important;
+        font-size: 13px !important;
+        text-transform: uppercase;
+        margin-bottom: 8px !important;
+    }
+
+    /* El Botón de Inicio de Sesión */
+    div.stButton > button {
+        background: linear-gradient(135deg, #D4AF37 0%, #996515 100%) !important;
+        color: #000 !important; /* Texto negro para contraste premium */
+        border: none !important;
+        padding: 15px 0px !important;
+        border-radius: 12px !important;
+        font-size: 16px !important;
+        font-weight: 800 !important;
+        width: 100% !important;
+        margin-top: 20px !important;
+        box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2) !important;
+        transition: all 0.4s ease !important;
+    }
+
+    div.stButton > button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 15px 30px rgba(212, 175, 55, 0.4) !important;
+        filter: brightness(1.1);
     }
     
     /* --- TARJETAS DE MÉTRICAS (KPIs) --- */
@@ -371,29 +440,43 @@ def check_login():
         
         return True # Entra al portal
 
-    # 4. PANTALLA DE LOGIN
-    c1, c2, c3 = st.columns([1, 1.5, 1])
+    # --- 4. PANTALLA DE LOGIN (REDiseño Exclusivo) ---
+    st.write("") # Espaciado superior
+    st.write("")
+    c1, c2, c3 = st.columns([1, 1.8, 1])
     with c2:
-        st.markdown('<div class="login-container">', unsafe_allow_html=True)
-        st.title("🔒 Acceso Seguro")
+        st.markdown(f"""
+            <div class="login-container">
+                <div style="font-size: 50px; margin-bottom: 10px;">🔒</div>
+                <div class="login-title">Acceso Seguro</div>
+                <div class="login-subtitle">GESTIÓN DE ACTIVOS & CRÉDITOS</div>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        # El formulario ahora vive "encima" del contenedor transparente
         with st.form("login_form"):
-            usuario = st.text_input("Usuario")
-            password = st.text_input("Contraseña", type="password")
-            submit = st.form_submit_button("INICIAR SESIÓN")
-        if submit:
+            usuario = st.text_input("Usuario Master", placeholder="Ingrese su credencial")
+            password = st.text_input("Contraseña", type="password", placeholder="••••••••")
+            st.write("")
+            submit_button = st.form_submit_button("INICIAR SESIÓN DE ALTA DIRECCIÓN")
+
+        if submit_button:
             creds = st.secrets["credenciales"]
             if usuario in creds and creds[usuario] == password:
                 st.session_state.update({
-                    'logged_in': True, 'usuario': usuario,
+                    'logged_in': True, 
+                    'usuario': usuario,
                     'rol': 'Admin' if usuario in st.secrets["config"]["admins"] else 'Visor'
                 })
-                registrar_auditoria("INICIO DE SESIÓN", f"El usuario {usuario} ingresó al sistema")
+                registrar_auditoria("INICIO DE SESIÓN", f"Acceso exitoso al portal")
                 st.query_params["user"] = usuario
                 st.query_params["rol"] = st.session_state['rol']
                 st.rerun()
             else:
-                st.error("Credenciales incorrectas.")
-        st.markdown('</div>', unsafe_allow_html=True)
+                st.error("Credenciales no autorizadas para este nivel de acceso.")
+    
+    # Footer sutil fuera del contenedor
+    st.markdown("<p style='color: #444; font-size: 11px; margin-top: 50px;'>NOVA CREDIT SYSTEM v2.0 | ENCRIPTACIÓN DE GRADO BANCARIO</p>", unsafe_allow_html=True)
     return False
 
 def logout():
@@ -880,3 +963,4 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
