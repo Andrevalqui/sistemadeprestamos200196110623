@@ -54,5 +54,13 @@
         "Operaci\u00f3n": "CREACI\u00d3N CR\u00c9DITO",
         "Cliente Afectado": "Lucciano Valqui",
         "Detalle del Movimiento": "Desembolso de S/ 5000.0"
+    },
+    {
+        "Fecha/Hora": "13/01/2026 21:48:30",
+        "Usuario": "Pierajuarez",
+        "Perfil": "Admin",
+        "Operaci\u00f3n": "EDICI\u00d3N MANUAL",
+        "Cliente Afectado": "Andr\u00e9 Valqui",
+        "Detalle del Movimiento": "Cambio Capital a S/ 5000.0 y Vencimiento a 2026-02-12"
     }
 ]
