@@ -1,28 +1,64 @@
 import streamlit as st
 import pandas as pd
+import json
 from datetime import datetime
-from streamlit_gsheets import GSheetsConnection
+from github import Github
 
-# --- CONFIGURACIÓN DE PÁGINA ---
+# --- CONFIGURACIÓN ---
 st.set_page_config(page_title="Gestor Financiero", layout="wide", page_icon="🏦")
 
-# --- CSS PREMIUM / GERENCIAL ---
+# --- CONEXIÓN A GITHUB (TU BASE DE DATOS GRATIS) ---
+def get_repo():
+    """Conecta con GitHub usando el Token secreto"""
+    token = st.secrets["GITHUB_TOKEN"]
+    g = Github(token)
+    return g.get_repo(st.secrets["REPO_NAME"])
+
+def cargar_datos():
+    """Descarga el archivo JSON desde GitHub"""
+    try:
+        repo = get_repo()
+        contents = repo.get_contents("data.json")
+        datos = json.loads(contents.decoded_content.decode())
+        if not datos:
+            return pd.DataFrame()
+        return pd.DataFrame(datos)
+    except Exception as e:
+        st.error(f"Error cargando datos: {e}")
+        return pd.DataFrame()
+
+def guardar_nuevo_prestamo(nuevo_registro):
+    """Sube el nuevo dato a GitHub"""
+    try:
+        repo = get_repo()
+        contents = repo.get_contents("data.json")
+        
+        # Descargar datos actuales
+        datos_actuales = json.loads(contents.decoded_content.decode())
+        
+        # Agregar el nuevo
+        datos_actuales.append(nuevo_registro)
+        
+        # Convertir a JSON bonito
+        json_data = json.dumps(datos_actuales, indent=4)
+        
+        # Subir actualización a GitHub
+        repo.update_file(
+            path=contents.path,
+            message="Nuevo préstamo registrado desde Web",
+            content=json_data,
+            sha=contents.sha
+        )
+        return True
+    except Exception as e:
+        st.error(f"No se pudo guardar: {e}")
+        return False
+
+# --- CSS PREMIUM ---
 st.markdown("""
     <style>
-    /* Importar fuente moderna */
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
-
-    html, body, [class*="css"] {
-        font-family: 'Roboto', sans-serif;
-    }
-
-    /* Estilo del Contenedor Principal */
-    .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-    }
-
-    /* Tarjetas de Métricas (KPIs) */
+    html, body, [class*="css"] { font-family: 'Roboto', sans-serif; }
     .metric-card {
         background-color: #ffffff;
         border-left: 5px solid #2E86C1;
@@ -30,83 +66,18 @@ st.markdown("""
         border-radius: 10px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         text-align: center;
-        transition: transform 0.3s ease;
     }
-    .metric-card:hover {
-        transform: translateY(-5px);
-    }
-    .metric-title {
-        color: #7f8c8d;
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 5px;
-    }
-    .metric-value {
-        color: #2c3e50;
-        font-size: 1.8rem;
-        font-weight: 700;
-    }
+    .metric-title { color: #7f8c8d; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 5px; }
+    .metric-value { color: #2c3e50; font-size: 1.8rem; font-weight: 700; }
     .metric-positive { color: #27AE60; }
-    
-    /* Inputs y Formularios */
-    .stTextInput>div>div>input, .stNumberInput>div>div>input {
-        background-color: #ffffff;
-        border: 1px solid #dcdce6;
-        border-radius: 5px;
-        color: #2c3e50;
-    }
-    
-    /* Botón Principal */
     div.stButton > button {
         background: linear-gradient(90deg, #1A5276 0%, #2E86C1 100%);
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        border-radius: 8px;
-        width: 100%;
-        transition: all 0.3s;
-    }
-    div.stButton > button:hover {
-        box-shadow: 0 5px 15px rgba(46, 134, 193, 0.4);
-    }
-
-    /* Tablas */
-    div[data-testid="stDataFrame"] {
-        background-color: white;
-        padding: 10px;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        color: white; border: none; padding: 12px 24px; border-radius: 8px; width: 100%;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# --- CONEXIÓN GOOGLE SHEETS ---
-conn = st.connection("gsheets", type=GSheetsConnection)
-
-def cargar_datos():
-    try:
-        df = conn.read(worksheet="Hoja 1", ttl=0)
-        df = df.dropna(how="all")
-        return df
-    except:
-        return pd.DataFrame()
-
-def guardar_nuevo_prestamo(data):
-    try:
-        df_actual = cargar_datos()
-        df_nuevo = pd.DataFrame([data])
-        df_final = pd.concat([df_actual, df_nuevo], ignore_index=True)
-        conn.update(worksheet="Hoja 1", data=df_final)
-        st.cache_data.clear()
-        return True
-    except Exception as e:
-        st.error(f"Error: {e}")
-        return False
-
+# --- LÓGICA ---
 def calcular(monto, tasa, plazo):
     interes = monto * (tasa/100) * plazo
     total = monto + interes
@@ -115,77 +86,61 @@ def calcular(monto, tasa, plazo):
 
 # --- UI PRINCIPAL ---
 st.title("🏦 Dashboard Financiero")
-st.markdown("### Gestión de Créditos Personales")
 
-menu = st.sidebar.selectbox("Menú Principal", ["📝 Nuevo Préstamo", "📊 Panel Gerencial"])
+# Menú
+menu = st.sidebar.radio("Navegación", ["📝 Nuevo Préstamo", "📊 Panel Gerencial"])
 
 if menu == "📝 Nuevo Préstamo":
+    st.markdown("### Registrar Operación")
     with st.container():
-        st.markdown("#### Información del Cliente")
         c1, c2 = st.columns(2)
-        cliente = c1.text_input("Nombre Completo")
-        dni = c2.text_input("DNI / Identificación")
+        cliente = c1.text_input("Nombre Cliente")
+        dni = c2.text_input("DNI / ID")
         
-        st.markdown("#### Detalles del Crédito")
         c3, c4, c5 = st.columns(3)
-        monto = c3.number_input("Monto Solicitado ($)", min_value=0.0, step=100.0)
-        tasa = c4.number_input("Tasa Interés (%)", value=5.0)
-        plazo = c5.number_input("Plazo (Meses)", value=12)
+        monto = c3.number_input("Monto ($)", min_value=0.0, step=100.0)
+        tasa = c4.number_input("Tasa %", value=5.0)
+        plazo = c5.number_input("Meses", value=12)
 
     total, ganancia, cuota = calcular(monto, tasa, plazo)
 
-    # Vista previa estilo tarjeta
     st.markdown("---")
-    col1, col2, col3 = st.columns(3)
-    col1.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-title">Cuota Mensual</div>
-            <div class="metric-value">${cuota:,.2f}</div>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    col2.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-title">Total a Cobrar</div>
-            <div class="metric-value">${total:,.2f}</div>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    col3.markdown(f"""
-        <div class="metric-card" style="border-left: 5px solid #27AE60;">
-            <div class="metric-title">Ganancia Neta</div>
-            <div class="metric-value metric-positive">+${ganancia:,.2f}</div>
-        </div>
-    """, unsafe_allow_html=True)
+    k1, k2, k3 = st.columns(3)
+    k1.markdown(f'<div class="metric-card"><div class="metric-title">Cuota</div><div class="metric-value">${cuota:,.2f}</div></div>', unsafe_allow_html=True)
+    k2.markdown(f'<div class="metric-card"><div class="metric-title">Total</div><div class="metric-value">${total:,.2f}</div></div>', unsafe_allow_html=True)
+    k3.markdown(f'<div class="metric-card" style="border-color:#27AE60"><div class="metric-title">Ganancia</div><div class="metric-value metric-positive">${ganancia:,.2f}</div></div>', unsafe_allow_html=True)
 
-    st.write("") # Espacio
-    if st.button("CONFIRMAR Y GUARDAR OPERACIÓN"):
+    st.write("")
+    if st.button("💾 GUARDAR OPERACIÓN"):
         if cliente and monto > 0:
             reg = {
                 "Cliente": cliente, "DNI": dni, "Fecha": str(datetime.now().date()),
                 "Monto": monto, "Tasa": tasa, "Plazo": plazo,
                 "Total_Pagar": total, "Ganancia": ganancia, "Estado": "Activo"
             }
-            if guardar_nuevo_prestamo(reg):
-                st.success("Operación registrada correctamente en la base de datos.")
+            with st.spinner("Guardando en base de datos..."):
+                if guardar_nuevo_prestamo(reg):
+                    st.success("¡Guardado exitoso! La página se recargará en unos segundos...")
+                    st.rerun()
         else:
-            st.warning("Complete los campos obligatorios.")
+            st.warning("Completa los datos principales")
 
 elif menu == "📊 Panel Gerencial":
+    st.markdown("### Estado de la Cartera")
     df = cargar_datos()
     
     if not df.empty:
-        # KPIs Superiores
-        total_calle = df["Monto"].sum()
-        utilidad = df["Ganancia"].sum()
-        tickets = len(df)
+        # Tarjetas KPI
+        tot = df["Monto"].sum()
+        gan = df["Ganancia"].sum()
+        cnt = len(df)
         
-        k1, k2, k3 = st.columns(3)
-        k1.markdown(f"""<div class="metric-card"><div class="metric-title">Capital Colocado</div><div class="metric-value">${total_calle:,.2f}</div></div>""", unsafe_allow_html=True)
-        k2.markdown(f"""<div class="metric-card" style="border-left: 5px solid #27AE60;"><div class="metric-title">Utilidad Proyectada</div><div class="metric-value metric-positive">${utilidad:,.2f}</div></div>""", unsafe_allow_html=True)
-        k3.markdown(f"""<div class="metric-card"><div class="metric-title">Créditos Activos</div><div class="metric-value">{tickets}</div></div>""", unsafe_allow_html=True)
+        c1, c2, c3 = st.columns(3)
+        c1.markdown(f'<div class="metric-card"><div class="metric-title">Capital Prestado</div><div class="metric-value">${tot:,.2f}</div></div>', unsafe_allow_html=True)
+        c2.markdown(f'<div class="metric-card" style="border-color:#27AE60"><div class="metric-title">Utilidad Neta</div><div class="metric-value metric-positive">${gan:,.2f}</div></div>', unsafe_allow_html=True)
+        c3.markdown(f'<div class="metric-card"><div class="metric-title">Préstamos</div><div class="metric-value">{cnt}</div></div>', unsafe_allow_html=True)
         
-        st.markdown("### 📑 Base de Datos de Clientes")
+        st.write("---")
         st.dataframe(df, use_container_width=True, hide_index=True)
     else:
-        st.info("No hay datos para mostrar.")
+        st.info("La base de datos está vacía. Registra el primer préstamo.")
