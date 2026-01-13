@@ -110,7 +110,7 @@ st.markdown("""
     }
 
     .login-subtitle {
-        color: #888;
+        color: #003366;
         font-size: 14px;
         margin-bottom: 30px;
         letter-spacing: 1px;
@@ -291,14 +291,49 @@ st.markdown("""
         height: 300px;
     }
 
+    /* --- ENCABEZADOS DE ALTA GAMA --- */
     .header-box {
-        background-color: #1C1C1C;
-        border: 2px solid #D4AF37;
-        padding: 25px;
-        border-radius: 15px;
-        margin-bottom: 30px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        background: linear-gradient(145deg, #1C1C1C, #0A0A0A);
+        border: 1px solid rgba(212, 175, 55, 0.4);
+        padding: 40px 20px;
+        border-radius: 20px;
+        margin-bottom: 40px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.4);
         text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Efecto de brillo sutil en el fondo del cuadro */
+    .header-box::after {
+        content: '';
+        position: absolute;
+        top: -50%; left: -50%; width: 200%; height: 200%;
+        background: radial-gradient(circle, rgba(212,175,55,0.05) 0%, transparent 70%);
+    }
+
+    .luxury-title {
+        font-family: 'Playfair Display', serif !important;
+        font-weight: 900 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 5px !important;
+        font-size: 38px !important;
+        /* Efecto de Oro Metálico */
+        background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 10px !important;
+        filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+    }
+
+    .luxury-subtitle {
+        font-family: 'Roboto', sans-serif !important;
+        color: #888 !important;
+        font-size: 14px !important;
+        font-weight: 300 !important;
+        letter-spacing: 3px !important;
+        text-transform: uppercase !important;
+        margin-top: 5px !important;
     }
     
     </style>
@@ -963,5 +998,6 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
