@@ -151,6 +151,27 @@ st.markdown("""
     
     /* Eliminar borde feo del formulario de Streamlit */
     [data-testid="stForm"] { border: none; padding: 0; }
+
+    /* --- CAMBIO A DORADO EJECUTIVO --- */
+    :root { --gold: #D4AF37; --dark: #1C1C1C; }
+    h1, h2, h3, .stMarkdown h1, .stMarkdown h2 { color: #D4AF37 !important; font-family: 'Playfair Display', serif; }
+    div.stButton > button {
+        background: linear-gradient(90deg, #D4AF37 0%, #996515 100%) !important;
+        border: 1px solid #C5A059 !important;
+    }
+    [data-testid="stMetric"] { border: 1px solid #D4AF37; border-radius: 10px; background: #1C1C1C; }
+
+    /* --- ANIMACIÓN SPLASH SCREEN --- */
+    @keyframes rocket-launch {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(-1000px); }
+    }
+    .splash-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background-color: #0E1117; display: flex; flex-direction: column;
+        justify-content: center; align-items: center; z-index: 99999;
+    }
+    .rocket-icon { font-size: 80px; animation: rocket-launch 2s ease-in forwards; }
     
     </style>
 """, unsafe_allow_html=True)
@@ -191,10 +212,35 @@ def generar_link_whatsapp(telefono, cliente, monto, fecha, tipo):
     msg_encoded = urllib.parse.quote(mensaje)
     return f"https://wa.me/{tel_limpio}?text={msg_encoded}"
 
+def registrar_auditoria(accion, detalle):
+    try:
+        repo = get_repo()
+        try:
+            c = repo.get_contents("audit.json")
+            logs = json.loads(c.decoded_content.decode())
+            sha = c.sha
+        except:
+            logs = []; sha = None
+        
+        logs.append({
+            "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "usuario": st.session_state.get('usuario', 'Desconocido'),
+            "accion": accion, "detalle": detalle
+        })
+        
+        if sha: repo.update_file("audit.json", f"Audit: {accion}", json.dumps(logs, indent=4), sha)
+        else: repo.create_file("audit.json", "Init Audit", json.dumps(logs, indent=4))
+    except: pass
+        
 # --- 4. GESTIÓN DE SESIÓN Y GITHUB ---
 def check_login():
+    # --- PERSISTENCIA F5 ---
+    q = st.query_params
     if 'logged_in' not in st.session_state:
-        st.session_state.update({'logged_in': False, 'usuario': '', 'rol': ''})
+        if "user" in q:
+            st.session_state.update({'logged_in': True, 'usuario': q["user"], 'rol': q["rol"], 'splash_visto': True})
+        else:
+            st.session_state.update({'logged_in': False, 'usuario': '', 'rol': ''})
 
     if not st.session_state['logged_in']:
         # Diseño de Login Centrado
@@ -216,6 +262,8 @@ def check_login():
                     st.session_state.update({'logged_in': True, 'usuario': usuario})
                     st.session_state['rol'] = 'Admin' if usuario in st.secrets["config"]["admins"] else 'Visor'
                     st.toast(f"¡Bienvenido, {usuario.title()}!", icon="👋")
+                    st.query_params["user"] = usuario
+                    st.query_params["rol"] = st.session_state['rol']
                     time.sleep(1)
                     st.rerun()
                 else:
@@ -223,6 +271,16 @@ def check_login():
             
             st.markdown('</div>', unsafe_allow_html=True)
         return False
+
+    # --- SPLASH SCREEN COHETE ---
+    if 'splash_visto' not in st.session_state:
+        placeholder = st.empty()
+        with placeholder.container():
+            st.markdown('<div class="splash-overlay"><div class="rocket-icon">🚀</div><h2 style="color:#D4AF37">CARGANDO PORTAL...</h2></div>', unsafe_allow_html=True)
+            time.sleep(2)
+        placeholder.empty()
+        st.session_state['splash_visto'] = True
+
     return True
 
 def logout():
@@ -232,9 +290,9 @@ def logout():
 def get_repo():
     return Github(st.secrets["GITHUB_TOKEN"]).get_repo(st.secrets["REPO_NAME"])
 
-def cargar_datos():
+def cargar_datos(file="data.json"):
     try:
-        c = get_repo().get_contents("data.json")
+        c = get_repo().get_contents(file)
         return json.loads(c.decoded_content.decode()), c.sha
     except: return [], None
 
@@ -257,7 +315,7 @@ if check_login():
         
         opciones = ["📊 Dashboard General"]
         if st.session_state['rol'] == 'Admin':
-            opciones = ["📝 Nuevo Préstamo", "💸 Registrar Pago"] + opciones
+            opciones = ["📝 Nuevo Préstamo", "💸 Registrar Pago", "📜 Auditoría"] + opciones
         
         menu = st.radio("Navegación", opciones)
         
@@ -330,7 +388,6 @@ if check_login():
         activos = [d for d in datos if d.get('Estado') == 'Activo']
         
         if activos:
-            # Mostramos el cliente y cuándo vence
             mapa = {f"{d['Cliente']} | Vence: {d.get('Fecha_Proximo_Pago', 'N/A')}": i for i, d in enumerate(datos) if d.get('Estado') == 'Activo'}
             col_sel1, col_sel2, col_sel3 = st.columns([1, 2, 1])
             with col_sel2:
@@ -339,7 +396,6 @@ if check_login():
             idx = mapa[seleccion]
             data = datos[idx]
             
-            # Cálculo de días para vencer
             fecha_venc_dt = datetime.strptime(data['Fecha_Proximo_Pago'], "%Y-%m-%d").date()
             hoy = datetime.now().date()
             dias_restantes = (fecha_venc_dt - hoy).days
@@ -351,7 +407,6 @@ if check_login():
                 c_info1.metric("Deuda Capital", f"S/ {data['Monto_Capital']:,.2f}")
                 c_info2.metric("Cuota Interés", f"S/ {data['Pago_Mensual_Interes']:,.2f}")
                 
-                # Lógica visual de vencimiento
                 color_delta = "normal"
                 txt_venc = f"En {dias_restantes} días"
                 if dias_restantes < 0: 
@@ -375,20 +430,16 @@ if check_login():
                 pago_capital = st.number_input("2. ¿Cuánto pagó de CAPITAL?", 
                                                min_value=0.0, value=0.0, step=50.0)
 
-            # --- OPCIÓN DE RENOVAR MES ---
             st.write("")
             col_chk1, col_chk2 = st.columns([1, 3])
             with col_chk2:
-                # Si paga casi todo el interés, sugerimos renovar
                 sugerir_renovar = (pago_interes >= (data['Pago_Mensual_Interes'] - 5))
-                renovar = st.checkbox("📅 **¿Renovar vencimiento al próximo mes?**", value=sugerir_renovar, help="Si marcas esto, la fecha de cobro pasará al mes siguiente automáticamente.")
+                renovar = st.checkbox("📅 **¿Renovar vencimiento al próximo mes?**", value=sugerir_renovar)
 
-            # --- LÓGICA DE NEGOCIO ---
             interes_pendiente = data['Pago_Mensual_Interes'] - pago_interes
             nuevo_capital = data['Monto_Capital'] - pago_capital + interes_pendiente
             nueva_cuota = nuevo_capital * (data['Tasa_Interes'] / 100)
             
-            # Calcular nueva fecha solo si se renueva
             nueva_fecha_pago = data['Fecha_Proximo_Pago']
             txt_fecha_nueva = "Se mantiene igual"
             if renovar:
@@ -401,7 +452,7 @@ if check_login():
             col_res1, col_res2 = st.columns(2)
             with col_res1:
                 if interes_pendiente > 0:
-                    st.warning(f"⚠️ **Faltan S/ {interes_pendiente:,.2f}** de interés (Suma al Capital).")
+                    st.warning(f"⚠️ **Faltan S/ {interes_pendiente:,.2f}** de interés.")
                 else:
                     st.success("✅ Interés cubierto.")
                 if pago_capital > 0:
@@ -420,7 +471,7 @@ if check_login():
             if st.button("💾 PROCESAR PAGO"):
                 data['Monto_Capital'] = nuevo_capital
                 data['Pago_Mensual_Interes'] = nueva_cuota
-                data['Fecha_Proximo_Pago'] = nueva_fecha_pago # Guardamos la nueva fecha
+                data['Fecha_Proximo_Pago'] = nueva_fecha_pago
                 
                 if nuevo_capital <= 0:
                     data['Estado'] = "Pagado"
@@ -444,11 +495,9 @@ if check_login():
             df = df[df['Estado'] == 'Activo']
             hoy = datetime.now().date()
             
-            # --- NOTIFICACIONES ---
             c1, c2 = st.columns([2, 1])
             
             with c1:
-                # KPIs Principales
                 total = df['Monto_Capital'].sum()
                 ganancia = df['Pago_Mensual_Interes'].sum()
                 
@@ -458,7 +507,6 @@ if check_login():
                 k3.markdown(f'<div class="metric-card" style="border-left-color:#8E44AD"><div class="metric-title">Clientes</div><div class="metric-value">{len(df)}</div></div>', unsafe_allow_html=True)
             
             with c2:
-                # Alertas Inteligentes (Basadas en FECHAS reales)
                 st.markdown("##### 📅 Estado de Cobranza")
                 alertas = []
                 for _, r in df.iterrows():
@@ -476,22 +524,37 @@ if check_login():
                     for a in alertas: st.markdown(a, unsafe_allow_html=True)
                 else: st.caption("Todo al día.")
 
-            # --- NUEVA SECCIÓN: GESTIÓN DE NOTIFICACIONES WHATSAPP ---
+            st.markdown("---")
+            st.markdown("### 🔔 ACCIONES DE COBRO PRIORITARIAS")
+            
+            avisos_hoy = []
+            avisos_mora = []
+            
+            for _, r in df.iterrows():
+                venc_dt = datetime.strptime(r['Fecha_Proximo_Pago'], "%Y-%m-%d").date()
+                if venc_dt == hoy:
+                    avisos_hoy.append(f"💰 **COBRAR A {r['Cliente'].upper()}**: S/ {r['Pago_Mensual_Interes']:,.2f} (Vence Hoy)")
+                elif venc_dt < hoy:
+                    dias_atraso = (hoy - venc_dt).days
+                    avisos_mora.append(f"🚨 **URGENTE: COBRAR MORA A {r['Cliente'].upper()}** | S/ {r['Pago_Mensual_Interes']:,.2f} | ({dias_atraso} días de atraso)")
+
+            if not avisos_hoy and not avisos_mora:
+                st.success("✅ Excelente: No hay cobros pendientes para el día de hoy.")
+            else:
+                col_avisos1, col_avisos2 = st.columns(2)
+                with col_avisos1:
+                    for a in avisos_hoy: st.warning(a)
+                with col_avisos2:
+                    for a in avisos_mora: st.error(a)
+
             st.markdown("---")
             st.markdown("### 📲 Centro de Notificaciones Premium")
-            st.caption("Envía recordatorios directos a tus clientes por WhatsApp sin salir del sistema.")
-            
             notif_1, notif_2, notif_3 = st.columns(3)
             
-            # Clasificar clientes para notificar
-            vencidos_list = []
-            hoy_list = []
-            proximos_list = []
-            
+            vencidos_list, hoy_list, proximos_list = [], [], []
             for _, r in df.iterrows():
                 venc_f = datetime.strptime(r['Fecha_Proximo_Pago'], "%Y-%m-%d").date()
                 d_diff = (venc_f - hoy).days
-                
                 info_cli = {"nombre": r['Cliente'], "tel": r['Telefono'], "monto": r['Pago_Mensual_Interes'], "fecha": venc_f.strftime("%d/%m/%Y")}
                 
                 if d_diff < 0: vencidos_list.append(info_cli)
@@ -504,7 +567,7 @@ if check_login():
                     for c in vencidos_list:
                         link = generar_link_whatsapp(c['tel'], c['nombre'], c['monto'], c['fecha'], "mora")
                         st.markdown(f"""<a href="{link}" target="_blank" class="wa-button">🔔 {c['nombre']}</a>""", unsafe_allow_html=True)
-                else: st.caption("Sin moras pendientes.")
+                else: st.caption("Sin moras.")
 
             with notif_2:
                 st.markdown("📅 **Vencen HOY**")
@@ -512,7 +575,7 @@ if check_login():
                     for c in hoy_list:
                         link = generar_link_whatsapp(c['tel'], c['nombre'], c['monto'], c['fecha'], "hoy")
                         st.markdown(f"""<a href="{link}" target="_blank" class="wa-button">💰 {c['nombre']}</a>""", unsafe_allow_html=True)
-                else: st.caption("No hay vencimientos hoy.")
+                else: st.caption("Nada hoy.")
 
             with notif_3:
                 st.markdown("⏳ **Próximos (3 días)**")
@@ -520,29 +583,21 @@ if check_login():
                     for c in proximos_list:
                         link = generar_link_whatsapp(c['tel'], c['nombre'], c['monto'], c['fecha'], "recordatorio")
                         st.markdown(f"""<a href="{link}" target="_blank" class="wa-button">📝 {c['nombre']}</a>""", unsafe_allow_html=True)
-                else: st.caption("No hay vencimientos cercanos.")
+                else: st.caption("Sin vencimientos cercanos.")
 
-            # --- TABLA BONITA ---
             st.markdown("---")
             st.markdown("### 📋 Cartera de Clientes")
-            
-            # Convertir fecha a formato legible para la tabla
             df['Vence'] = pd.to_datetime(df['Fecha_Proximo_Pago']).dt.strftime('%d/%m/%Y')
-            
             tabla_view = df[["Cliente", "Telefono", "Monto_Capital", "Pago_Mensual_Interes", "Vence", "Observaciones"]]
-            
-            st.dataframe(
-                tabla_view,
-                use_container_width=True,
-                hide_index=True,
-                column_config={
-                    "Cliente": st.column_config.TextColumn("Cliente", width="medium"),
-                    "Telefono": st.column_config.TextColumn("Contacto", width="small"),
-                    "Monto_Capital": st.column_config.NumberColumn("Deuda Capital", format="S/ %.2f"),
-                    "Pago_Mensual_Interes": st.column_config.NumberColumn("Cuota Interés", format="S/ %.2f"),
-                    "Vence": st.column_config.TextColumn("Próx. Vencimiento", width="small"),
-                    "Observaciones": st.column_config.TextColumn("Notas", width="large"),
-                }
-            )
+            st.dataframe(tabla_view, use_container_width=True, hide_index=True)
         else:
             st.info("No hay datos registrados en el sistema.")
+
+    # 4. AUDITORÍA
+    elif menu == "📜 Auditoría":
+        st.markdown("## 📜 Historial de Auditoría")
+        logs, _ = cargar_datos("audit.json")
+        if logs:
+            st.dataframe(pd.DataFrame(logs).sort_values(by="fecha", ascending=False), use_container_width=True)
+        else:
+            st.info("No hay registros de movimientos aún.")
