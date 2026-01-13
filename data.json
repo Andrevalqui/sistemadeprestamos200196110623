@@ -10,5 +10,17 @@
         "Pago_Mensual_Interes": 900.0,
         "Estado": "Activo",
         "Observaciones": ""
+    },
+    {
+        "Cliente": "Piera Juarez",
+        "DNI": "47730848",
+        "Telefono": "999999999",
+        "Fecha_Prestamo": "2026-01-10",
+        "Fecha_Proximo_Pago": "2026-02-10",
+        "Monto_Capital": 2500.0,
+        "Tasa_Interes": 18.0,
+        "Pago_Mensual_Interes": 450.0,
+        "Estado": "Activo",
+        "Observaciones": ""
     }
 ]
