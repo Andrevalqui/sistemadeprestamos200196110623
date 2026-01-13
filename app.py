@@ -166,36 +166,73 @@ if check_login():
         
         # Solo mostrar clientes activos
         activos = [d for d in datos if d.get('Estado') == 'Activo']
-        nombres = [f"{d['Cliente']} (Deuda: S/{d['Monto_Capital']})" for d in activos]
-        
         if activos:
-            seleccion = st.selectbox("Seleccionar Cliente a Cobrar", nombres)
-            index_real = datos.index(activos[nombres.index(seleccion)])
+            # Crear lista legible para el selector
+            mapa_clientes = {f"{d['Cliente']} | Deuda: S/{d['Monto_Capital']}": i for i, d in enumerate(datos) if d.get('Estado') == 'Activo'}
+            seleccion = st.selectbox("Seleccionar Cliente", list(mapa_clientes.keys()))
+            index_real = mapa_clientes[seleccion]
             cliente_data = datos[index_real]
             
-            st.markdown(f"""
-                <div style="background-color:#F2F3F4; padding:15px; border-radius:10px;">
-                    <h3>👤 {cliente_data['Cliente']}</h3>
-                    <p><b>Deuda Capital Actual:</b> S/ {cliente_data['Monto_Capital']:,.2f}</p>
-                    <p><b>Interés Mensual Pactado:</b> S/ {cliente_data['Pago_Mensual_Interes']:,.2f}</p>
-                </div>
-            """, unsafe_allow_html=True)
+            # Tarjeta de Información del Cliente
+            st.info(f"""
+            👤 **Cliente:** {cliente_data['Cliente']}
+            💰 **Deuda Capital Actual:** S/ {cliente_data['Monto_Capital']:,.2f}
+            📅 **Interés Mensual a Pagar:** S/ {cliente_data['Pago_Mensual_Interes']:,.2f}
+            """)
             
-            st.write("")
-            tipo_pago = st.radio("¿Qué está pagando?", ["Pago Interés Mensual", "Abono a Capital"])
+            st.markdown("---")
+            st.markdown("### ¿Qué operación vas a realizar?")
             
-            monto_recibido = st.number_input("Dinero Recibido (S/)", min_value=0.0, step=10.0)
+            opcion = st.radio("Tipo de Cobro:", 
+                            ["✅ Cobrar solo Interés Mensual", 
+                             "📉 Amortizar Capital (Bajar Deuda)"])
             
-            if st.button("PROCESAR PAGO"):
-                if monto_recibido > 0:
-                    with st.spinner("Actualizando préstamo..."):
-                        ok, msg = procesar_pago(index_real, tipo_pago, monto_recibido)
-                        if ok:
-                            st.success(f"✅ {msg}")
-                            time.sleep(3)
-                            st.rerun()
-                else:
-                    st.warning("Ingrese un monto válido.")
+            if opcion == "✅ Cobrar solo Interés Mensual":
+                st.write(f"Vas a registrar que **{cliente_data['Cliente']}** pagó su interés de **S/ {cliente_data['Pago_Mensual_Interes']:.2f}**.")
+                st.caption("La deuda de capital se mantiene igual para el próximo mes.")
+                confirmar = st.button("CONFIRMAR COBRO DE INTERÉS")
+                if confirmar:
+                    # Lógica simple: No movemos capital, solo registramos log (futuro)
+                    st.success(f"Cobro de S/ {cliente_data['Pago_Mensual_Interes']:.2f} registrado exitosamente.")
+                    time.sleep(2)
+                    st.rerun()
+
+            elif opcion == "📉 Amortizar Capital (Bajar Deuda)":
+                st.warning("⚠️ Aquí registras dinero que BAJA la deuda (Capital).")
+                
+                col_a, col_b = st.columns(2)
+                monto_amortizar = col_a.number_input("¿Cuánto capital devuelve? (S/)", min_value=0.0, max_value=float(cliente_data['Monto_Capital']), step=50.0)
+                
+                # Checkbox para confirmar que TAMBIÉN pagó el interés
+                pago_interes = col_b.checkbox(f"¿Pagó también sus S/ {cliente_data['Pago_Mensual_Interes']:.2f} de interés?", value=True)
+                
+                nuevo_capital = cliente_data['Monto_Capital'] - monto_amortizar
+                nuevo_interes = nuevo_capital * (cliente_data['Tasa_Interes'] / 100)
+                
+                if monto_amortizar > 0:
+                    st.markdown(f"""
+                        **Simulación del cambio:**
+                        *   Deuda Anterior: S/ {cliente_data['Monto_Capital']:,.2f}
+                        *   **Nueva Deuda:** S/ {nuevo_capital:,.2f}
+                        *   **Nueva Cuota Interés (Próx. Mes):** S/ {nuevo_interes:,.2f}
+                    """)
+                    
+                    if st.button("PROCESAR AMORTIZACIÓN"):
+                        # Actualizamos datos
+                        cliente_data['Monto_Capital'] = nuevo_capital
+                        cliente_data['Pago_Mensual_Interes'] = nuevo_interes
+                        
+                        if nuevo_capital <= 0:
+                            cliente_data['Estado'] = "Pagado"
+                            msg = "¡Deuda cancelada en su totalidad!"
+                        else:
+                            msg = f"Capital reducido. Nueva cuota mensual: S/ {nuevo_interes:.2f}"
+                        
+                        # Guardamos en GitHub
+                        guardar_datos(datos, sha, f"Amortizacion {cliente_data['Cliente']}")
+                        st.success(f"✅ Operación Exitosa. {msg}")
+                        time.sleep(3)
+                        st.rerun()
         else:
             st.info("No hay clientes con deuda activa.")
 
@@ -254,3 +291,4 @@ if check_login():
             st.dataframe(df_activos[cols].rename(columns={"Monto_Capital": "Deuda Actual", "Pago_Mensual_Interes": "Cuota Interés", "Dia_Cobro": "Día Pago"}), use_container_width=True, hide_index=True)
         else:
             st.info("No hay datos.")
+
