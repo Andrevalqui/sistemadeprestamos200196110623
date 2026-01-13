@@ -161,17 +161,35 @@ st.markdown("""
     }
     [data-testid="stMetric"] { border: 1px solid #D4AF37; border-radius: 10px; background: #1C1C1C; }
 
-    /* --- ANIMACIÓN SPLASH SCREEN --- */
-    @keyframes rocket-launch {
-        0% { transform: translateY(0); }
-        100% { transform: translateY(-1000px); }
+    /* --- ACTUALIZACIÓN SPLASH SCREEN CON GIF --- */
+    @keyframes fade-out {
+        0% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { opacity: 0; }
     }
     .splash-overlay {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background-color: #0E1117; display: flex; flex-direction: column;
-        justify-content: center; align-items: center; z-index: 99999;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-color: #0E1117;
+        display: flex; flex-direction: column;
+        justify-content: center; align-items: center;
+        z-index: 99999;
+        animation: fade-out 3s forwards;
     }
-    .rocket-icon { font-size: 80px; animation: rocket-launch 2s ease-in forwards; }
+    .gif-container {
+        width: 300px;
+        height: 300px;
+    }
+
+    .header-box {
+        background-color: #1C1C1C;
+        border: 2px solid #D4AF37;
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        text-align: center;
+    }
     
     </style>
 """, unsafe_allow_html=True)
@@ -212,7 +230,7 @@ def generar_link_whatsapp(telefono, cliente, monto, fecha, tipo):
     msg_encoded = urllib.parse.quote(mensaje)
     return f"https://wa.me/{tel_limpio}?text={msg_encoded}"
 
-def registrar_auditoria(accion, detalle):
+def registrar_auditoria(accion, detalle, cliente="-"):
     try:
         repo = get_repo()
         try:
@@ -222,15 +240,20 @@ def registrar_auditoria(accion, detalle):
         except:
             logs = []; sha = None
         
-        logs.append({
-            "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "usuario": st.session_state.get('usuario', 'Desconocido'),
-            "accion": accion, "detalle": detalle
-        })
+        nuevo_log = {
+            "Fecha/Hora": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+            "Usuario": st.session_state.get('usuario', 'Sistema').title(),
+            "Perfil": st.session_state.get('rol', '-'),
+            "Operación": accion,
+            "Cliente Afectado": cliente,
+            "Detalle del Movimiento": detalle
+        }
+        logs.append(nuevo_log)
         
-        if sha: repo.update_file("audit.json", f"Audit: {accion}", json.dumps(logs, indent=4), sha)
+        if sha: repo.update_file("audit.json", f"Log: {accion}", json.dumps(logs, indent=4), sha)
         else: repo.create_file("audit.json", "Init Audit", json.dumps(logs, indent=4))
-    except: pass
+    except Exception as e:
+        print(f"Error Auditoría: {e}")
         
 # --- 4. GESTIÓN DE SESIÓN Y GITHUB ---
 def check_login():
@@ -261,6 +284,7 @@ def check_login():
                 if usuario in creds and creds[usuario] == password:
                     st.session_state.update({'logged_in': True, 'usuario': usuario})
                     st.session_state['rol'] = 'Admin' if usuario in st.secrets["config"]["admins"] else 'Visor'
+                    registrar_auditoria("INICIO DE SESIÓN", f"El usuario {usuario} ingresó al sistema")
                     st.toast(f"¡Bienvenido, {usuario.title()}!", icon="👋")
                     st.query_params["user"] = usuario
                     st.query_params["rol"] = st.session_state['rol']
@@ -272,12 +296,21 @@ def check_login():
             st.markdown('</div>', unsafe_allow_html=True)
         return False
 
-    # --- SPLASH SCREEN COHETE ---
+    # --- SPLASH SCREEN CON GIF DE ALIEN ---
     if 'splash_visto' not in st.session_state:
         placeholder = st.empty()
         with placeholder.container():
-            st.markdown('<div class="splash-overlay"><div class="rocket-icon">🚀</div><h2 style="color:#D4AF37">CARGANDO PORTAL...</h2></div>', unsafe_allow_html=True)
-            time.sleep(2)
+            st.markdown(f"""
+                <div class="splash-overlay">
+                    <div class="gif-container">
+                        <iframe src="https://tenor.com/embed/1281825661231862493" 
+                                width="100%" height="100%" frameborder="0" allowfullscreen>
+                        </iframe>
+                    </div>
+                    <h2 style="color:#D4AF37; margin-top:20px;">INICIANDO SISTEMA FINANCIERO...</h2>
+                </div>
+            """, unsafe_allow_html=True)
+            time.sleep(3.5) # Tiempo suficiente para ver la animación
         placeholder.empty()
         st.session_state['splash_visto'] = True
 
@@ -326,8 +359,10 @@ if check_login():
 
     # 1. REGISTRAR NUEVO PRÉSTAMO
     if menu == "📝 Nuevo Préstamo":
-        st.markdown("## 📝 Solicitud de Crédito")
-        st.markdown("Ingrese los datos del nuevo cliente.")
+        st.markdown("""<div class="header-box">
+                    <h1>📝 SOLICITUD DE CRÉDITO</h1>
+                    <p style="color:#D4AF37;">Ingrese los datos del nuevo cliente para la emisión del préstamo.</p>
+                   </div>""", unsafe_allow_html=True)
         
         with st.container(border=True):
             st.markdown("#### Datos Personales")
@@ -374,6 +409,7 @@ if check_login():
                 datos, sha = cargar_datos()
                 datos.append(nuevo)
                 if guardar_datos(datos, sha, f"Nuevo prestamo: {cliente}"):
+                    registrar_auditoria("CREACIÓN CRÉDITO", f"Desembolso de S/ {monto}", cliente=cliente)
                     st.success("✅ Préstamo registrado correctamente.")
                     time.sleep(1)
                     st.rerun()
@@ -382,7 +418,11 @@ if check_login():
 
     # 2. CAJA Y PAGOS
     elif menu == "💸 Registrar Pago":
-        st.markdown("## 💸 Gestión de Cobranza")
+        st.markdown("""<div class="header-box">
+                    <h1>💸 GESTIÓN DE COBRANZA</h1>
+                    <p style="color:#D4AF37;">Registre los ingresos de capital e intereses de la cartera activa.</p>
+                   </div>""", unsafe_allow_html=True)
+
         datos, sha = cargar_datos()
         
         activos = [d for d in datos if d.get('Estado') == 'Activo']
@@ -481,13 +521,17 @@ if check_login():
                     msg_log = f"Pago registrado. Vence: {nueva_fecha_pago}"
                 
                 if guardar_datos(datos, sha, f"Actualizacion {data['Cliente']} - {msg_log}"):
+                    registrar_auditoria("COBRO", f"Pago Recibido: Interés S/ {pago_interes}, Capital S/ {pago_capital}", cliente=data['Cliente'])
                     st.success("✅ Cartera actualizada correctamente.")
                     time.sleep(2)
                     st.rerun()
 
     # 3. DASHBOARD GERENCIAL
     elif menu == "📊 Dashboard General":
-        st.markdown("## 📊 Resumen Ejecutivo")
+        st.markdown("""<div class="header-box">
+                <h1>📊 RESUMEN EJECUTIVO</h1>
+                <p style="color:#D4AF37;">Visión general del capital activo y estado de cobranzas.</p>
+               </div>""", unsafe_allow_html=True)
         datos, _ = cargar_datos()
         
         if datos:
@@ -595,9 +639,12 @@ if check_login():
 
     # 4. AUDITORÍA
     elif menu == "📜 Auditoría":
-        st.markdown("## 📜 Historial de Auditoría")
+        st.markdown("""<div class="header-box"><h1>📜 BITÁCORA DE AUDITORÍA</h1></div>""", unsafe_allow_html=True)
         logs, _ = cargar_datos("audit.json")
         if logs:
-            st.dataframe(pd.DataFrame(logs).sort_values(by="fecha", ascending=False), use_container_width=True)
+            df_audit = pd.DataFrame(logs)
+            # Ordenar por el más reciente arriba
+            df_audit = df_audit.iloc[::-1]
+            st.dataframe(df_audit, use_container_width=True, hide_index=True)
         else:
-            st.info("No hay registros de movimientos aún.")
+            st.info("No hay movimientos registrados en la bitácora.")
