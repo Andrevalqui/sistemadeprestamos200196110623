@@ -291,63 +291,67 @@ def registrar_auditoria(accion, detalle, cliente="-"):
         
 # --- 4. GESTIÓN DE SESIÓN Y GITHUB ---
 def check_login():
-    # --- PERSISTENCIA F5 ---
+    # --- 1. PERSISTENCIA F5 ---
     q = st.query_params
     if 'logged_in' not in st.session_state:
-        if "user" in q:
-            st.session_state.update({'logged_in': True, 'usuario': q["user"], 'rol': q["rol"], 'splash_visto': True})
+        if "user" in q and "rol" in q:
+            st.session_state.update({
+                'logged_in': True, 
+                'usuario': q["user"], 
+                'rol': q["rol"], 
+                'splash_visto': True # En F5 ya no mostramos el splash
+            })
         else:
             st.session_state.update({'logged_in': False, 'usuario': '', 'rol': ''})
 
+    # --- 2. PANTALLA DE LOGIN ---
     if not st.session_state['logged_in']:
-        # Diseño de Login Centrado
         c1, c2, c3 = st.columns([1, 1.5, 1])
         with c2:
             st.markdown('<div class="login-container">', unsafe_allow_html=True)
             st.title("🔒 Acceso Seguro")
-            st.caption("Sistema de Gestión de Créditos")
-            
             with st.form("login_form"):
-                usuario = st.text_input("Usuario", placeholder="Ingrese su usuario")
-                password = st.text_input("Contraseña", type="password", placeholder="••••••")
-                st.write("")
-                submit_button = st.form_submit_button("INICIAR SESIÓN", type="primary")
+                usuario = st.text_input("Usuario")
+                password = st.text_input("Contraseña", type="password")
+                submit_button = st.form_submit_button("INICIAR SESIÓN")
 
             if submit_button:
                 creds = st.secrets["credenciales"]
                 if usuario in creds and creds[usuario] == password:
-                    st.session_state.update({'logged_in': True, 'usuario': usuario})
-                    st.session_state['rol'] = 'Admin' if usuario in st.secrets["config"]["admins"] else 'Visor'
-                    
-                    # LOG DE AUDITORÍA DE ACCESO
-                    registrar_auditoria("INICIO DE SESIÓN", f"El usuario {usuario} accedió al portal con perfil {st.session_state['rol']}")
-                    
-                    st.toast(f"¡Bienvenido, {usuario.title()}!", icon="👋")
+                    st.session_state.update({
+                        'logged_in': True, 
+                        'usuario': usuario,
+                        'rol': 'Admin' if usuario in st.secrets["config"]["admins"] else 'Visor'
+                    })
+                    # Registro de auditoría
+                    registrar_auditoria("INICIO DE SESIÓN", f"El usuario {usuario} ingresó al sistema")
+                    # Guardar parámetros para F5
                     st.query_params["user"] = usuario
                     st.query_params["rol"] = st.session_state['rol']
-                    time.sleep(1)
+                    # NO marcamos splash_visto aquí para que se dispare al recargar
                     st.rerun()
                 else:
-                    st.error("Credenciales incorrectas, contáctese con el administrador del portal.")
-            
+                    st.error("Credenciales incorrectas.")
             st.markdown('</div>', unsafe_allow_html=True)
         return False
 
-    # --- SPLASH SCREEN CON GIF DE ALIEN ---
-    if 'splash_visto' not in st.session_state:
+    # --- 3. SPLASH SCREEN CON EL ALIEN (GIF DE TENOR) ---
+    if 'splash_visto' not in st.session_state or st.session_state['splash_visto'] == False:
         placeholder = st.empty()
         with placeholder.container():
             st.markdown(f"""
                 <div class="splash-overlay">
-                    <div class="gif-container">
+                    <div style="width: 300px; height: 300px;">
                         <iframe src="https://tenor.com/embed/1281825661231862493" 
                                 width="100%" height="100%" frameborder="0" allowfullscreen>
                         </iframe>
                     </div>
-                    <h2 style="color:#D4AF37; margin-top:20px;">INICIANDO SISTEMA FINANCIERO...</h2>
+                    <h2 style="color:#D4AF37; margin-top:30px; font-family:'Playfair Display', serif;">
+                        INICIANDO SISTEMA FINANCIERO...
+                    </h2>
                 </div>
             """, unsafe_allow_html=True)
-            time.sleep(3.5) # Tiempo suficiente para ver la animación
+            time.sleep(3.8) # Tiempo para ver el GIF completo
         placeholder.empty()
         st.session_state['splash_visto'] = True
 
@@ -809,4 +813,5 @@ if check_login():
             st.dataframe(df_audit, use_container_width=True, hide_index=True)
         else:
             st.info("No hay movimientos registrados en la bitácora.")
+
 
