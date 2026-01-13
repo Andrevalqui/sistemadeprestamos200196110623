@@ -70,5 +70,13 @@
         "Operaci\u00f3n": "INICIO DE SESI\u00d3N",
         "Cliente Afectado": "-",
         "Detalle del Movimiento": "El usuario BrunoTapia accedi\u00f3 al portal con perfil Visor"
+    },
+    {
+        "Fecha/Hora": "13/01/2026 21:50:45",
+        "Usuario": "Pierajuarez",
+        "Perfil": "Admin",
+        "Operaci\u00f3n": "INICIO DE SESI\u00d3N",
+        "Cliente Afectado": "-",
+        "Detalle del Movimiento": "El usuario PieraJuarez accedi\u00f3 al portal con perfil Admin"
     }
 ]
