@@ -291,15 +291,16 @@ def registrar_auditoria(accion, detalle, cliente="-"):
         
 # --- 4. GESTIÓN DE SESIÓN Y GITHUB ---
 def check_login():
-    # --- 1. PERSISTENCIA F5 ---
+    # --- PERSISTENCIA F5 ---
     q = st.query_params
     if 'logged_in' not in st.session_state:
+        # Solo si existen AMBOS parámetros en la URL intentamos loguear
         if "user" in q and "rol" in q:
             st.session_state.update({
                 'logged_in': True, 
                 'usuario': q["user"], 
                 'rol': q["rol"], 
-                'splash_visto': True # En F5 ya no mostramos el splash
+                'splash_visto': True
             })
         else:
             st.session_state.update({'logged_in': False, 'usuario': '', 'rol': ''})
@@ -358,7 +359,14 @@ def check_login():
     return True
 
 def logout():
-    st.session_state.update({'logged_in': False, 'usuario': '', 'rol': ''})
+    # 1. Limpiamos toda la memoria de la sesión
+    for key in st.session_state.keys():
+        del st.session_state[key]
+    
+    # 2. Limpiamos los parámetros de la URL (esto quita el ?user=...&rol=...)
+    st.query_params.clear()
+    
+    # 3. Forzamos el reinicio para volver al login limpio
     st.rerun()
 
 def get_repo():
@@ -813,6 +821,7 @@ if check_login():
             st.dataframe(df_audit, use_container_width=True, hide_index=True)
         else:
             st.info("No hay movimientos registrados en la bitácora.")
+
 
 
 
