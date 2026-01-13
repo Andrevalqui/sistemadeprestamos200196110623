@@ -331,7 +331,7 @@ def check_login():
                     # NO marcamos splash_visto aquí para que se dispare al recargar
                     st.rerun()
                 else:
-                    st.error("Credenciales incorrectas.")
+                    st.error("Credenciales incorrectas, contáctese con el administrador del portal.")
             st.markdown('</div>', unsafe_allow_html=True)
         return False
 
@@ -813,5 +813,6 @@ if check_login():
             st.dataframe(df_audit, use_container_width=True, hide_index=True)
         else:
             st.info("No hay movimientos registrados en la bitácora.")
+
 
 
