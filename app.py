@@ -31,34 +31,52 @@ st.markdown("""
         text-align: center !important;
     }
   
-    /* --- MÉTRICAS DORADAS EJECUTIVAS --- */
+    /* --- MÉTRICAS DORADAS CENTRADAS --- */
     [data-testid="stMetric"] {
         background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%) !important;
         border: 2px solid #996515 !important;
         border-radius: 15px !important;
         padding: 15px !important;
-        box-shadow: 0 8px 15px rgba(0,0,0,0.2) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
     }
-    
-    /* Color de los títulos de las métricas (Labels) */
+
+    /* Centrar Título */
+    [data-testid="stMetricLabel"] {
+        display: flex !important;
+        justify-content: center !important;
+        width: 100% !important;
+    }
     [data-testid="stMetricLabel"] div p {
         color: #1C1C1C !important;
         font-weight: 800 !important;
         text-transform: uppercase !important;
-        letter-spacing: 1px !important;
+        text-align: center !important;
     }
 
-    /* Color de los números de las métricas (Values) */
+    /* Centrar Valor */
+    [data-testid="stMetricValue"] {
+        display: flex !important;
+        justify-content: center !important;
+        width: 100% !important;
+    }
     [data-testid="stMetricValue"] div {
         color: #1C1C1C !important;
         font-weight: 700 !important;
+        text-align: center !important;
     }
-    
-    /* Color de la flechita de variación (Delta) */
+
+    /* Centrar Flecha y Delta */
+    [data-testid="stMetricDelta"] {
+        display: flex !important;
+        justify-content: center !important;
+        width: 100% !important;
+    }
     [data-testid="stMetricDelta"] div {
-        background-color: rgba(28, 28, 28, 0.1) !important;
-        border-radius: 5px;
-        padding: 2px 5px;
+        font-weight: 700 !important;
     }
     
     /* --- ESTILOS DE LOGIN --- */
@@ -366,7 +384,7 @@ if check_login():
         
         opciones = ["📊 Dashboard General"]
         if st.session_state['rol'] == 'Admin':
-            opciones = ["📝 Nuevo Préstamo", "💸 Registrar Pago", "📜 Auditoría"] + opciones
+            opciones = ["📝 Nuevo Préstamo", "💸 Registrar Pago", "🛠️ Administrar Cartera", "📜 Auditoría"] + opciones
         
         menu = st.radio("Navegación", opciones)
         
@@ -465,23 +483,64 @@ if check_login():
             hoy = datetime.now().date()
             dias_restantes = (fecha_venc_dt - hoy).days
 
+            # --- LÓGICA DE COLORES DINÁMICOS ---
+            if dias_restantes <= 0:
+                color_texto = "#943126"  # Rojo Oscuro (Mora/Hoy)
+                txt_venc = "Vence HOY" if dias_restantes == 0 else f"Vencido hace {abs(dias_restantes)} días"
+                flecha_dir = "inverse"   # Flecha roja
+            elif dias_restantes <= 5:
+                color_texto = "#996515"  # Ocre/Amarillo Oscuro (Cercano)
+                txt_venc = f"En {dias_restantes} días"
+                flecha_dir = "off"       # Neutral
+            else:
+                color_texto = "#145A32"  # Verde Oscuro (Al día)
+                txt_venc = f"En {dias_restantes} días"
+                flecha_dir = "normal"    # Flecha verde
+
+            # Inyectamos CSS específico para centrar y dar color a la tarjeta de vencimiento
+            st.markdown(f"""
+                <style>
+                /* Centrado general de métricas */
+                [data-testid="stMetric"] {{
+                    display: flex !important;
+                    flex-direction: column !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    text-align: center !important;
+                }}
+                [data-testid="stMetricLabel"] {{ display: flex !important; justify-content: center !important; width: 100% !important; }}
+                [data-testid="stMetricValue"] {{ display: flex !important; justify-content: center !important; width: 100% !important; }}
+                [data-testid="stMetricDelta"] {{ display: flex !important; justify-content: center !important; width: 100% !important; }}
+
+                /* Color dinámico SOLO para la métrica de vencimiento (la tercera en la fila) */
+                [data-testid="stHorizontalBlock"] > div:nth-child(3) [data-testid="stMetricValue"] div {{
+                    color: {color_texto} !important;
+                }}
+                [data-testid="stHorizontalBlock"] > div:nth-child(3) [data-testid="stMetricDelta"] div {{
+                    color: {color_texto} !important;
+                }}
+                [data-testid="stHorizontalBlock"] > div:nth-child(3) [data-testid="stMetricDelta"] svg {{
+                    fill: {color_texto} !important;
+                }}
+                </style>
+            """, unsafe_allow_html=True)
+
             with st.container(border=True):
                 st.markdown(f"### 👤 {data['Cliente']}")
                 
                 c_info1, c_info2, c_info3 = st.columns(3)
+                
+                # Las dos primeras métricas (Negro Ejecutivo)
                 c_info1.metric("Deuda Capital", f"S/ {data['Monto_Capital']:,.2f}")
                 c_info2.metric("Cuota Interés", f"S/ {data['Pago_Mensual_Interes']:,.2f}")
                 
-                color_delta = "normal"
-                txt_venc = f"En {dias_restantes} días"
-                if dias_restantes < 0: 
-                    txt_venc = f"Vencido hace {abs(dias_restantes)} días"
-                    color_delta = "inverse"
-                elif dias_restantes == 0:
-                    txt_venc = "Vence HOY"
-                    color_delta = "off"
-
-                c_info3.metric("Vencimiento", fecha_venc_dt.strftime("%d/%m/%Y"), delta=txt_venc, delta_color=color_delta)
+                # La tercera métrica con color dinámico
+                c_info3.metric(
+                    label="Vencimiento", 
+                    value=fecha_venc_dt.strftime("%d/%m/%Y"), 
+                    delta=txt_venc, 
+                    delta_color=flecha_dir
+                )
 
             st.write("")
             st.markdown("### 💰 Ingreso de Dinero")
@@ -558,9 +617,9 @@ if check_login():
     # 3. DASHBOARD GERENCIAL
     elif menu == "📊 Dashboard General":
         st.markdown("""<div class="header-box">
-                <h1>📊 RESUMEN EJECUTIVO</h1>
-                <p style="color:#D4AF37;">Visión general del capital activo y estado de cobranzas.</p>
-               </div>""", unsafe_allow_html=True)
+                    <h1>📊 RESUMEN EJECUTIVO</h1>
+                    <p style="color:#D4AF37;">Visión general del capital activo y estado de cobranzas.</p>
+                   </div>""", unsafe_allow_html=True)
         datos, _ = cargar_datos()
         
         if datos:
@@ -666,7 +725,93 @@ if check_login():
         else:
             st.info("No hay datos registrados en el sistema.")
 
-    # 4. AUDITORÍA
+    # 4. ADMINISTRACIÓN Y EDICIÓN (Módulo Nuevo)
+    elif menu == "🛠️ Administrar Cartera":
+        st.markdown("""<div class="header-box">
+                    <h1>🛠️ ADMINISTRACIÓN DE CARTERA</h1>
+                    <p style="color:#D4AF37;">Edite montos, corrija fechas o elimine registros duplicados.</p>
+                   </div>""", unsafe_allow_html=True)
+        
+        datos, sha = cargar_datos()
+        
+        if datos:
+            # Crear una lista de nombres con índice para identificar duplicados exactos
+            lista_edicion = [f"{i} | {d['Cliente']} (Capital: S/ {d['Monto_Capital']})" for i, d in enumerate(datos)]
+            
+            col_sel1, col_sel2 = st.columns([2, 1])
+            with col_sel1:
+                seleccion_edit = st.selectbox("Seleccione el registro exacto a modificar o eliminar:", lista_edicion)
+            
+            # Extraer el índice original
+            idx_orig = int(seleccion_edit.split(" | ")[0])
+            item = datos[idx_orig]
+
+            st.markdown("---")
+            
+            tab_edit, tab_del = st.tabs(["✏️ Editar Datos", "🗑️ Eliminar Registro"])
+
+            with tab_edit:
+                with st.form(f"form_edit_{idx_orig}"):
+                    st.markdown("### Modificar Información")
+                    c_ed1, c_ed2 = st.columns(2)
+                    
+                    nuevo_nombre = c_ed1.text_input("Nombre del Cliente", value=item['Cliente'])
+                    nuevo_dni = c_ed2.text_input("DNI / CE", value=item.get('DNI', ''))
+                    
+                    nuevo_cap = c_ed1.number_input("Deuda Capital Actual (S/)", value=float(item['Monto_Capital']), step=50.0)
+                    nueva_fecha_venc = c_ed2.date_input("Próximo Vencimiento", value=datetime.strptime(item['Fecha_Proximo_Pago'], "%Y-%m-%d"))
+                    
+                    nueva_tasa = c_ed1.number_input("Tasa de Interés (%)", value=float(item['Tasa_Interes']))
+                    nuevo_estado = c_ed2.selectbox("Estado del Crédito", ["Activo", "Pagado"], index=0 if item['Estado'] == "Activo" else 1)
+
+                    st.write("")
+                    btn_save_edit = st.form_submit_button("💾 GUARDAR CAMBIOS")
+
+                if btn_save_edit:
+                    # Recalcular interés basado en el nuevo capital
+                    nuevo_interes = nuevo_cap * (nueva_tasa / 100)
+                    
+                    # Actualizar datos
+                    datos[idx_orig].update({
+                        "Cliente": nuevo_nombre,
+                        "DNI": nuevo_dni,
+                        "Monto_Capital": nuevo_cap,
+                        "Fecha_Proximo_Pago": str(nueva_fecha_venc),
+                        "Tasa_Interes": nueva_tasa,
+                        "Pago_Mensual_Interes": nuevo_interes,
+                        "Estado": nuevo_estado
+                    })
+                    
+                    if guardar_datos(datos, sha, f"Edicion manual: {nuevo_nombre}"):
+                        registrar_auditoria("EDICIÓN MANUAL", f"Cambio Capital a S/ {nuevo_cap} y Vencimiento a {nueva_fecha_venc}", cliente=nuevo_nombre)
+                        st.success("✅ Cambios aplicados correctamente.")
+                        time.sleep(1)
+                        st.rerun()
+
+            with tab_del:
+                st.warning(f"⚠️ **ATENCIÓN:** Está a punto de eliminar permanentemente el registro de **{item['Cliente']}** con capital de S/ {item['Monto_Capital']}.")
+                st.write("Esta acción no se puede deshacer y se usa principalmente para corregir duplicados.")
+                
+                confirmar_borrado = st.text_input(f"Para confirmar, escriba el nombre del cliente ({item['Cliente']}):")
+                
+                if st.button("🗑️ ELIMINAR REGISTRO DEFINITIVAMENTE"):
+                    if confirmar_borrado == item['Cliente']:
+                        # Eliminar el elemento por índice
+                        cliente_eliminado = item['Cliente']
+                        cap_eliminado = item['Monto_Capital']
+                        datos.pop(idx_orig)
+                        
+                        if guardar_datos(datos, sha, f"Eliminacion de registro: {cliente_eliminado}"):
+                            registrar_auditoria("ELIMINACIÓN", f"Se eliminó préstamo duplicado/erróneo de S/ {cap_eliminado}", cliente=cliente_eliminado)
+                            st.success(f"🗑️ Registro de {cliente_eliminado} eliminado.")
+                            time.sleep(1)
+                            st.rerun()
+                    else:
+                        st.error("❌ El nombre no coincide. No se eliminó nada.")
+        else:
+            st.info("No hay datos para administrar.")
+
+    # 5. AUDITORÍA
     elif menu == "📜 Auditoría":
         st.markdown("""<div class="header-box"><h1>📜 BITÁCORA DE AUDITORÍA</h1></div>""", unsafe_allow_html=True)
         logs, _ = cargar_datos("audit.json")
@@ -677,4 +822,3 @@ if check_login():
             st.dataframe(df_audit, use_container_width=True, hide_index=True)
         else:
             st.info("No hay movimientos registrados en la bitácora.")
-
