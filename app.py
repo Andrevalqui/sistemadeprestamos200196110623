@@ -3,6 +3,7 @@ import pandas as pd
 import json
 import time
 from datetime import datetime
+import calendar # Importamos calendario para calcular días exactos
 from github import Github
 
 # --- 1. CONFIGURACIÓN INICIAL ---
@@ -25,7 +26,7 @@ st.markdown("""
     }
     
     /* --- CENTRADO GLOBAL FORZADO --- */
-    h1, h2, h3, h4, h5, h6 {
+    h1, h2, h3, h4, h5, h6, .stMarkdown, p {
         text-align: center !important;
     }
     
@@ -84,12 +85,6 @@ st.markdown("""
         font-weight: 700;
         text-align: center;
     }
-    .metric-sub {
-        font-size: 0.85rem;
-        color: #95A5A6;
-        margin-top: 5px;
-        text-align: center;
-    }
     
     /* --- BOTONES PERSONALIZADOS --- */
     div.stButton > button {
@@ -129,17 +124,34 @@ st.markdown("""
     }
     .alert-danger { background-color: #FDEDEC; color: #E74C3C; border: 1px solid #FADBD8; }
     .alert-warning { background-color: #FEF9E7; color: #F1C40F; border: 1px solid #FCF3CF; }
+    .alert-success { background-color: #E8F8F5; color: #186A3B; border: 1px solid #A9DFBF; }
     
     /* Eliminar borde feo del formulario de Streamlit */
-    [data-testid="stForm"] {
-        border: none;
-        padding: 0;
-    }
+    [data-testid="stForm"] { border: none; padding: 0; }
     
     </style>
 """, unsafe_allow_html=True)
 
-# --- 3. GESTIÓN DE SESIÓN Y GITHUB ---
+# --- 3. FUNCIONES DE LÓGICA DE CALENDARIO ---
+def sumar_un_mes(fecha_str):
+    """Suma 1 mes exacto respetando si el mes siguiente tiene menos días (ej: 31 Enero -> 28 Febrero)"""
+    fecha_dt = datetime.strptime(fecha_str, "%Y-%m-%d")
+    mes_nuevo = fecha_dt.month + 1
+    anio_nuevo = fecha_dt.year
+    
+    if mes_nuevo > 12:
+        mes_nuevo = 1
+        anio_nuevo += 1
+    
+    # Obtener el último día del nuevo mes
+    _, ult_dia_mes = calendar.monthrange(anio_nuevo, mes_nuevo)
+    
+    # Si el día original es 31, pero el nuevo mes tiene 28, usamos 28.
+    dia_nuevo = min(fecha_dt.day, ult_dia_mes)
+    
+    return datetime(anio_nuevo, mes_nuevo, dia_nuevo).strftime("%Y-%m-%d")
+
+# --- 4. GESTIÓN DE SESIÓN Y GITHUB ---
 def check_login():
     if 'logged_in' not in st.session_state:
         st.session_state.update({'logged_in': False, 'usuario': '', 'rol': ''})
@@ -152,13 +164,10 @@ def check_login():
             st.title("🔒 Acceso Seguro")
             st.caption("Sistema de Gestión de Créditos")
             
-            # USAMOS UN FORMULARIO PARA QUE EL ENTER FUNCIONE
             with st.form("login_form"):
                 usuario = st.text_input("Usuario", placeholder="Ingrese su usuario")
                 password = st.text_input("Contraseña", type="password", placeholder="••••••")
-                
-                st.write("") # Espacio
-                # El botón dentro del form envía al presionar Enter
+                st.write("")
                 submit_button = st.form_submit_button("INICIAR SESIÓN", type="primary")
 
             if submit_button:
@@ -198,7 +207,7 @@ def guardar_datos(datos, sha, mensaje):
         st.error(f"Error de conexión: {e}")
         return False
 
-# --- 4. INTERFAZ PRINCIPAL ---
+# --- 5. INTERFAZ PRINCIPAL ---
 if check_login():
     # --- SIDEBAR (Menú Lateral) ---
     with st.sidebar:
@@ -233,26 +242,33 @@ if check_login():
             col_A, col_B = st.columns(2)
             with col_A:
                 monto = st.number_input("Capital a Prestar (S/)", min_value=0.0, step=50.0)
-                fecha = st.date_input("Fecha Desembolso", datetime.now())
+                fecha_inicio = st.date_input("Fecha Desembolso", datetime.now())
             with col_B:
                 tasa = st.number_input("Tasa Interés Mensual (%)", value=15.0)
                 obs = st.text_area("Observaciones", placeholder="Ej: Negocio propio, paga puntual...")
 
-        # Cálculos
+        # Cálculos Avanzados
         interes = monto * (tasa/100)
         
+        # Calcular la PRIMERA fecha de pago (Mes exacto siguiente)
+        fecha_inicio_str = str(fecha_inicio)
+        prox_pago = sumar_un_mes(fecha_inicio_str)
+        # Formato bonito para mostrar
+        fecha_bonita = datetime.strptime(prox_pago, "%Y-%m-%d").strftime("%d/%m/%Y")
+
         st.markdown("---")
         k1, k2, k3 = st.columns(3)
         k1.markdown(f'<div class="metric-card"><div class="metric-title">Monto Capital</div><div class="metric-value">S/ {monto:,.2f}</div></div>', unsafe_allow_html=True)
-        k2.markdown(f'<div class="metric-card" style="border-left-color:#27AE60"><div class="metric-title">Cuota Interés Mensual</div><div class="metric-value" style="color:#27AE60">S/ {interes:,.2f}</div><div class="metric-sub">Cobrar día {fecha.day} de cada mes</div></div>', unsafe_allow_html=True)
-        k3.markdown(f'<div class="metric-card" style="border-left-color:#F39C12"><div class="metric-title">Tasa Aplicada</div><div class="metric-value">{tasa}%</div></div>', unsafe_allow_html=True)
+        k2.markdown(f'<div class="metric-card" style="border-left-color:#27AE60"><div class="metric-title">Cuota Interés Mensual</div><div class="metric-value" style="color:#27AE60">S/ {interes:,.2f}</div></div>', unsafe_allow_html=True)
+        k3.markdown(f'<div class="metric-card" style="border-left-color:#F39C12"><div class="metric-title">1er Vencimiento</div><div class="metric-value">{fecha_bonita}</div></div>', unsafe_allow_html=True)
         
         st.write("")
         if st.button("💾 GUARDAR OPERACIÓN"):
             if cliente and monto > 0:
                 nuevo = {
                     "Cliente": cliente, "DNI": dni, "Telefono": telefono,
-                    "Fecha_Prestamo": str(fecha), "Dia_Cobro": fecha.day,
+                    "Fecha_Prestamo": str(fecha_inicio),
+                    "Fecha_Proximo_Pago": prox_pago, # Guardamos la fecha EXACTA
                     "Monto_Capital": monto, "Tasa_Interes": tasa,
                     "Pago_Mensual_Interes": interes, "Estado": "Activo",
                     "Observaciones": obs
@@ -274,8 +290,8 @@ if check_login():
         activos = [d for d in datos if d.get('Estado') == 'Activo']
         
         if activos:
-            mapa = {f"{d['Cliente']} | Deuda: S/{d['Monto_Capital']}": i for i, d in enumerate(datos) if d.get('Estado') == 'Activo'}
-            # Centrar el selector
+            # Mostramos el cliente y cuándo vence
+            mapa = {f"{d['Cliente']} | Vence: {d.get('Fecha_Proximo_Pago', 'N/A')}": i for i, d in enumerate(datos) if d.get('Estado') == 'Activo'}
             col_sel1, col_sel2, col_sel3 = st.columns([1, 2, 1])
             with col_sel2:
                 seleccion = st.selectbox("Buscar Cliente", list(mapa.keys()))
@@ -283,80 +299,95 @@ if check_login():
             idx = mapa[seleccion]
             data = datos[idx]
             
+            # Cálculo de días para vencer
+            fecha_venc_dt = datetime.strptime(data['Fecha_Proximo_Pago'], "%Y-%m-%d").date()
+            hoy = datetime.now().date()
+            dias_restantes = (fecha_venc_dt - hoy).days
+
             with st.container(border=True):
                 st.markdown(f"### 👤 {data['Cliente']}")
-                st.caption(f"📞 Teléfono: {data.get('Telefono', 'No registrado')}")
                 
-                c_info1, c_info2 = st.columns(2)
-                c_info1.metric("Deuda Capital Actual", f"S/ {data['Monto_Capital']:,.2f}")
-                c_info2.metric("Interés que DEBE pagar", f"S/ {data['Pago_Mensual_Interes']:,.2f}")
+                c_info1, c_info2, c_info3 = st.columns(3)
+                c_info1.metric("Deuda Capital", f"S/ {data['Monto_Capital']:,.2f}")
+                c_info2.metric("Cuota Interés", f"S/ {data['Pago_Mensual_Interes']:,.2f}")
+                
+                # Lógica visual de vencimiento
+                color_delta = "normal"
+                txt_venc = f"En {dias_restantes} días"
+                if dias_restantes < 0: 
+                    txt_venc = f"Vencido hace {abs(dias_restantes)} días"
+                    color_delta = "inverse"
+                elif dias_restantes == 0:
+                    txt_venc = "Vence HOY"
+                    color_delta = "off"
+
+                c_info3.metric("Vencimiento", fecha_venc_dt.strftime("%d/%m/%Y"), delta=txt_venc, delta_color=color_delta)
 
             st.write("")
             st.markdown("### 💰 Ingreso de Dinero")
             st.caption("Ingresa los montos exactos que recibiste.")
 
             col_pago1, col_pago2 = st.columns(2)
-            
             with col_pago1:
                 pago_interes = st.number_input("1. ¿Cuánto pagó de INTERÉS?", 
-                                               min_value=0.0, 
-                                               value=float(data['Pago_Mensual_Interes']), 
-                                               step=10.0,
-                                               help="Si paga menos de lo que debe, la diferencia aumenta la deuda.")
-            
+                                               min_value=0.0, value=float(data['Pago_Mensual_Interes']), step=10.0)
             with col_pago2:
                 pago_capital = st.number_input("2. ¿Cuánto pagó de CAPITAL?", 
-                                               min_value=0.0, 
-                                               value=0.0, 
-                                               step=50.0,
-                                               help="Dinero extra para bajar la deuda.")
+                                               min_value=0.0, value=0.0, step=50.0)
+
+            # --- OPCIÓN DE RENOVAR MES ---
+            st.write("")
+            col_chk1, col_chk2 = st.columns([1, 3])
+            with col_chk2:
+                # Si paga casi todo el interés, sugerimos renovar
+                sugerir_renovar = (pago_interes >= (data['Pago_Mensual_Interes'] - 5))
+                renovar = st.checkbox("📅 **¿Renovar vencimiento al próximo mes?**", value=sugerir_renovar, help="Si marcas esto, la fecha de cobro pasará al mes siguiente automáticamente.")
 
             # --- LÓGICA DE NEGOCIO ---
             interes_pendiente = data['Pago_Mensual_Interes'] - pago_interes
             nuevo_capital = data['Monto_Capital'] - pago_capital + interes_pendiente
             nueva_cuota = nuevo_capital * (data['Tasa_Interes'] / 100)
+            
+            # Calcular nueva fecha solo si se renueva
+            nueva_fecha_pago = data['Fecha_Proximo_Pago']
+            txt_fecha_nueva = "Se mantiene igual"
+            if renovar:
+                nueva_fecha_pago = sumar_un_mes(data['Fecha_Proximo_Pago'])
+                txt_fecha_nueva = datetime.strptime(nueva_fecha_pago, "%Y-%m-%d").strftime("%d/%m/%Y")
 
             st.markdown("---")
-            st.markdown("#### 📊 Resultado de la Operación")
+            st.markdown("#### 📊 Simulación")
             
             col_res1, col_res2 = st.columns(2)
-            
             with col_res1:
                 if interes_pendiente > 0:
-                    st.warning(f"⚠️ **Pago Incompleto:** Faltaron S/ {interes_pendiente:,.2f} de interés.")
-                    st.markdown(f"👉 Esos **S/ {interes_pendiente:,.2f}** se sumarán a la deuda de Capital.")
-                elif interes_pendiente < 0:
-                     st.success(f"🎉 **Pago Extra:** Pagó S/ {abs(interes_pendiente):,.2f} de más en intereses.")
-                     st.markdown("👉 Este excedente restará la deuda de Capital.")
+                    st.warning(f"⚠️ **Faltan S/ {interes_pendiente:,.2f}** de interés (Suma al Capital).")
                 else:
-                    st.success("✅ Interés pagado completo.")
-
+                    st.success("✅ Interés cubierto.")
                 if pago_capital > 0:
-                    st.info(f"📉 **Amortización:** La deuda baja S/ {pago_capital:,.2f} adicionales.")
+                    st.info(f"📉 Capital baja S/ {pago_capital:,.2f}")
 
             with col_res2:
                 st.markdown(f"""
                 <div style="background-color:#EBF5FB; padding:15px; border-radius:10px; border:1px solid #AED6F1; text-align: center;">
-                    <h4 style="margin:0; color:#1B4F72;">Nueva Deuda Total: S/ {nuevo_capital:,.2f}</h4>
-                    <p style="margin:0; color:#5D6D7E; font-size:0.9em;">(Anterior: S/ {data['Monto_Capital']:,.2f})</p>
+                    <h4 style="margin:0; color:#1B4F72;">Nueva Deuda: S/ {nuevo_capital:,.2f}</h4>
                     <hr style="margin:10px 0;">
-                    <h4 style="margin:0; color:#186A3B;">Nueva Cuota Mensual: S/ {nueva_cuota:,.2f}</h4>
-                    <p style="margin:0; color:#5D6D7E; font-size:0.9em;">(A cobrar el próximo mes)</p>
+                    <p style="margin:0; font-weight:bold;">Próx. Vencimiento: {txt_fecha_nueva}</p>
                 </div>
                 """, unsafe_allow_html=True)
                 
             st.write("")
-            if st.button("💾 PROCESAR Y ACTUALIZAR"):
+            if st.button("💾 PROCESAR PAGO"):
                 data['Monto_Capital'] = nuevo_capital
                 data['Pago_Mensual_Interes'] = nueva_cuota
+                data['Fecha_Proximo_Pago'] = nueva_fecha_pago # Guardamos la nueva fecha
                 
                 if nuevo_capital <= 0:
                     data['Estado'] = "Pagado"
                     data['Monto_Capital'] = 0
-                    data['Pago_Mensual_Interes'] = 0
-                    msg_log = "Deuda Cancelada Totalmente"
+                    msg_log = "Deuda Cancelada"
                 else:
-                    msg_log = f"Pago: Int S/{pago_interes} Cap S/{pago_capital}"
+                    msg_log = f"Pago registrado. Vence: {nueva_fecha_pago}"
                 
                 if guardar_datos(datos, sha, f"Actualizacion {data['Cliente']} - {msg_log}"):
                     st.success("✅ Cartera actualizada correctamente.")
@@ -371,9 +402,9 @@ if check_login():
         if datos:
             df = pd.DataFrame(datos)
             df = df[df['Estado'] == 'Activo']
+            hoy = datetime.now().date()
             
             # --- NOTIFICACIONES ---
-            hoy = datetime.now().day
             c1, c2 = st.columns([2, 1])
             
             with c1:
@@ -387,25 +418,31 @@ if check_login():
                 k3.markdown(f'<div class="metric-card" style="border-left-color:#8E44AD"><div class="metric-title">Clientes</div><div class="metric-value">{len(df)}</div></div>', unsafe_allow_html=True)
             
             with c2:
-                # Alertas Compactas
-                st.markdown("##### 📅 Vencimientos Próximos")
-                hay_alertas = False
-                for _, row in df.iterrows():
-                    dia = int(row['Dia_Cobro'])
-                    diff = dia - hoy
-                    if diff == 0:
-                        st.markdown(f"<div class='alert-box alert-danger'>🚨 {row['Cliente']} paga HOY</div>", unsafe_allow_html=True)
-                        hay_alertas = True
-                    elif 0 < diff <= 3:
-                        st.markdown(f"<div class='alert-box alert-warning'>⚠️ {row['Cliente']} paga en {diff} días</div>", unsafe_allow_html=True)
-                        hay_alertas = True
-                if not hay_alertas:
-                    st.caption("No hay cobros urgentes para los próximos 3 días.")
+                # Alertas Inteligentes (Basadas en FECHAS reales)
+                st.markdown("##### 📅 Estado de Cobranza")
+                alertas = []
+                for _, r in df.iterrows():
+                    venc = datetime.strptime(r['Fecha_Proximo_Pago'], "%Y-%m-%d").date()
+                    dias = (venc - hoy).days
+                    
+                    if dias < 0:
+                        alertas.append(f"<div class='alert-box alert-danger'>🚨 {r['Cliente']} (Hace {abs(dias)} días)</div>")
+                    elif dias == 0:
+                        alertas.append(f"<div class='alert-box alert-warning'>⚠️ {r['Cliente']} paga HOY</div>")
+                    elif dias <= 3:
+                        alertas.append(f"<div class='alert-box alert-success'>🕒 {r['Cliente']} en {dias} días</div>")
+                
+                if alertas:
+                    for a in alertas: st.markdown(a, unsafe_allow_html=True)
+                else: st.caption("Todo al día.")
 
             # --- TABLA BONITA ---
             st.markdown("### 📋 Cartera de Clientes")
             
-            tabla_view = df[["Cliente", "Telefono", "Monto_Capital", "Pago_Mensual_Interes", "Dia_Cobro", "Observaciones"]]
+            # Convertir fecha a formato legible para la tabla
+            df['Vence'] = pd.to_datetime(df['Fecha_Proximo_Pago']).dt.strftime('%d/%m/%Y')
+            
+            tabla_view = df[["Cliente", "Telefono", "Monto_Capital", "Pago_Mensual_Interes", "Vence", "Observaciones"]]
             
             st.dataframe(
                 tabla_view,
@@ -416,7 +453,7 @@ if check_login():
                     "Telefono": st.column_config.TextColumn("Contacto", width="small"),
                     "Monto_Capital": st.column_config.NumberColumn("Deuda Capital", format="S/ %.2f"),
                     "Pago_Mensual_Interes": st.column_config.NumberColumn("Cuota Interés", format="S/ %.2f"),
-                    "Dia_Cobro": st.column_config.NumberColumn("Día Pago", format="%d"),
+                    "Vence": st.column_config.TextColumn("Próx. Vencimiento", width="small"),
                     "Observaciones": st.column_config.TextColumn("Notas", width="large"),
                 }
             )
