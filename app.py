@@ -13,7 +13,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. ESTILOS CSS PREMIUM (DISEÑO TOTAL) ---
+# --- 2. ESTILOS CSS PREMIUM (DISEÑO TOTAL CENTRADO) ---
 st.markdown("""
     <style>
     /* Importar fuente profesional Roboto */
@@ -24,6 +24,26 @@ st.markdown("""
         background-color: #F0F2F6; /* Fondo gris muy suave */
     }
     
+    /* --- CENTRADO GLOBAL FORZADO --- */
+    h1, h2, h3, h4, h5, h6 {
+        text-align: center !important;
+    }
+    
+    /* Centrar métricas nativas de Streamlit */
+    [data-testid="stMetric"] {
+        justify-content: center;
+        text-align: center;
+        margin: auto;
+    }
+    [data-testid="stMetricLabel"] {
+        justify-content: center;
+        width: 100%;
+    }
+    [data-testid="stMetricValue"] {
+        justify-content: center;
+        width: 100%;
+    }
+    
     /* --- ESTILOS DE LOGIN --- */
     .login-container {
         background-color: white;
@@ -32,6 +52,7 @@ st.markdown("""
         box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         text-align: center;
         margin-top: 50px;
+        margin-bottom: 50px;
     }
     
     /* --- TARJETAS DE MÉTRICAS (KPIs) --- */
@@ -42,6 +63,7 @@ st.markdown("""
         border-left: 6px solid #154360; /* Azul Corporativo */
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         transition: transform 0.2s;
+        text-align: center; /* Centrar texto interno */
     }
     .metric-card:hover {
         transform: translateY(-3px);
@@ -54,16 +76,19 @@ st.markdown("""
         letter-spacing: 1px;
         font-weight: 600;
         margin-bottom: 8px;
+        text-align: center;
     }
     .metric-value {
         color: #154360;
         font-size: 1.8rem;
         font-weight: 700;
+        text-align: center;
     }
     .metric-sub {
         font-size: 0.85rem;
         color: #95A5A6;
         margin-top: 5px;
+        text-align: center;
     }
     
     /* --- BOTONES PERSONALIZADOS --- */
@@ -89,6 +114,7 @@ st.markdown("""
         border-radius: 10px;
         padding: 10px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin: auto; /* Centrar tabla si sobra espacio */
     }
     
     /* --- ALERTAS --- */
@@ -99,9 +125,16 @@ st.markdown("""
         font-weight: 500;
         display: flex;
         align-items: center;
+        justify-content: center; /* Centrar contenido de alerta */
     }
     .alert-danger { background-color: #FDEDEC; color: #E74C3C; border: 1px solid #FADBD8; }
     .alert-warning { background-color: #FEF9E7; color: #F1C40F; border: 1px solid #FCF3CF; }
+    
+    /* Eliminar borde feo del formulario de Streamlit */
+    [data-testid="stForm"] {
+        border: none;
+        padding: 0;
+    }
     
     </style>
 """, unsafe_allow_html=True)
@@ -119,11 +152,16 @@ def check_login():
             st.title("🔒 Acceso Seguro")
             st.caption("Sistema de Gestión de Créditos")
             
-            usuario = st.text_input("Usuario", placeholder="Ingrese su usuario")
-            password = st.text_input("Contraseña", type="password", placeholder="••••••")
-            
-            st.write("")
-            if st.button("INICIAR SESIÓN"):
+            # USAMOS UN FORMULARIO PARA QUE EL ENTER FUNCIONE
+            with st.form("login_form"):
+                usuario = st.text_input("Usuario", placeholder="Ingrese su usuario")
+                password = st.text_input("Contraseña", type="password", placeholder="••••••")
+                
+                st.write("") # Espacio
+                # El botón dentro del form envía al presionar Enter
+                submit_button = st.form_submit_button("INICIAR SESIÓN", type="primary")
+
+            if submit_button:
                 creds = st.secrets["credenciales"]
                 if usuario in creds and creds[usuario] == password:
                     st.session_state.update({'logged_in': True, 'usuario': usuario})
@@ -132,7 +170,8 @@ def check_login():
                     time.sleep(1)
                     st.rerun()
                 else:
-                    st.error("Credenciales incorrectas")
+                    st.error("Credenciales incorrectas, contáctese con el administrador del portal.")
+            
             st.markdown('</div>', unsafe_allow_html=True)
         return False
     return True
@@ -163,8 +202,8 @@ def guardar_datos(datos, sha, mensaje):
 if check_login():
     # --- SIDEBAR (Menú Lateral) ---
     with st.sidebar:
-        st.markdown(f"## 👤 {st.session_state['usuario'].title()}")
-        st.caption(f"Perfil: {st.session_state['rol']}")
+        st.markdown(f"<h2 style='text-align: center;'>👤 {st.session_state['usuario'].title()}</h2>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align: center; color: gray;'>Perfil: {st.session_state['rol']}</p>", unsafe_allow_html=True)
         st.markdown("---")
         
         opciones = ["📊 Dashboard General"]
@@ -180,8 +219,8 @@ if check_login():
 
     # 1. REGISTRAR NUEVO PRÉSTAMO
     if menu == "📝 Nuevo Préstamo":
-        st.subheader("📝 Solicitud de Crédito")
-        st.markdown("ingrese los datos del nuevo cliente.")
+        st.markdown("## 📝 Solicitud de Crédito")
+        st.markdown("Ingrese los datos del nuevo cliente.")
         
         with st.container(border=True):
             st.markdown("#### Datos Personales")
@@ -229,14 +268,18 @@ if check_login():
 
     # 2. CAJA Y PAGOS
     elif menu == "💸 Registrar Pago":
-        st.subheader("💸 Gestión de Cobranza")
+        st.markdown("## 💸 Gestión de Cobranza")
         datos, sha = cargar_datos()
         
         activos = [d for d in datos if d.get('Estado') == 'Activo']
         
         if activos:
             mapa = {f"{d['Cliente']} | Deuda: S/{d['Monto_Capital']}": i for i, d in enumerate(datos) if d.get('Estado') == 'Activo'}
-            seleccion = st.selectbox("Buscar Cliente", list(mapa.keys()))
+            # Centrar el selector
+            col_sel1, col_sel2, col_sel3 = st.columns([1, 2, 1])
+            with col_sel2:
+                seleccion = st.selectbox("Buscar Cliente", list(mapa.keys()))
+            
             idx = mapa[seleccion]
             data = datos[idx]
             
@@ -250,7 +293,7 @@ if check_login():
 
             st.write("")
             st.markdown("### 💰 Ingreso de Dinero")
-            st.caption("Ingresa los montos exactos que recibiste. El sistema ajustará la deuda automáticamente.")
+            st.caption("Ingresa los montos exactos que recibiste.")
 
             col_pago1, col_pago2 = st.columns(2)
             
@@ -270,10 +313,7 @@ if check_login():
 
             # --- LÓGICA DE NEGOCIO ---
             interes_pendiente = data['Pago_Mensual_Interes'] - pago_interes
-            # Regla: Nuevo Capital = Capital Anterior - Lo que amortizó + Lo que no pagó de interés
             nuevo_capital = data['Monto_Capital'] - pago_capital + interes_pendiente
-            
-            # Recalcular interés para el próximo mes
             nueva_cuota = nuevo_capital * (data['Tasa_Interes'] / 100)
 
             st.markdown("---")
@@ -282,7 +322,6 @@ if check_login():
             col_res1, col_res2 = st.columns(2)
             
             with col_res1:
-                # Análisis del pago de interés
                 if interes_pendiente > 0:
                     st.warning(f"⚠️ **Pago Incompleto:** Faltaron S/ {interes_pendiente:,.2f} de interés.")
                     st.markdown(f"👉 Esos **S/ {interes_pendiente:,.2f}** se sumarán a la deuda de Capital.")
@@ -292,13 +331,12 @@ if check_login():
                 else:
                     st.success("✅ Interés pagado completo.")
 
-                # Análisis del pago de capital
                 if pago_capital > 0:
                     st.info(f"📉 **Amortización:** La deuda baja S/ {pago_capital:,.2f} adicionales.")
 
             with col_res2:
                 st.markdown(f"""
-                <div style="background-color:#EBF5FB; padding:15px; border-radius:10px; border:1px solid #AED6F1;">
+                <div style="background-color:#EBF5FB; padding:15px; border-radius:10px; border:1px solid #AED6F1; text-align: center;">
                     <h4 style="margin:0; color:#1B4F72;">Nueva Deuda Total: S/ {nuevo_capital:,.2f}</h4>
                     <p style="margin:0; color:#5D6D7E; font-size:0.9em;">(Anterior: S/ {data['Monto_Capital']:,.2f})</p>
                     <hr style="margin:10px 0;">
@@ -309,11 +347,9 @@ if check_login():
                 
             st.write("")
             if st.button("💾 PROCESAR Y ACTUALIZAR"):
-                # Actualizamos el registro en memoria
                 data['Monto_Capital'] = nuevo_capital
                 data['Pago_Mensual_Interes'] = nueva_cuota
                 
-                # Si la deuda llega a cero o menos, se cancela
                 if nuevo_capital <= 0:
                     data['Estado'] = "Pagado"
                     data['Monto_Capital'] = 0
@@ -322,7 +358,6 @@ if check_login():
                 else:
                     msg_log = f"Pago: Int S/{pago_interes} Cap S/{pago_capital}"
                 
-                # Guardamos en GitHub
                 if guardar_datos(datos, sha, f"Actualizacion {data['Cliente']} - {msg_log}"):
                     st.success("✅ Cartera actualizada correctamente.")
                     time.sleep(2)
@@ -330,7 +365,7 @@ if check_login():
 
     # 3. DASHBOARD GERENCIAL
     elif menu == "📊 Dashboard General":
-        st.subheader("📊 Resumen Ejecutivo")
+        st.markdown("## 📊 Resumen Ejecutivo")
         datos, _ = cargar_datos()
         
         if datos:
@@ -370,7 +405,6 @@ if check_login():
             # --- TABLA BONITA ---
             st.markdown("### 📋 Cartera de Clientes")
             
-            # Preparar tabla para visualización
             tabla_view = df[["Cliente", "Telefono", "Monto_Capital", "Pago_Mensual_Interes", "Dia_Cobro", "Observaciones"]]
             
             st.dataframe(
