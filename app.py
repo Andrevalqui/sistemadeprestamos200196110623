@@ -455,10 +455,10 @@ def check_login():
         
         # El formulario ahora vive "encima" del contenedor transparente
         with st.form("login_form"):
-            usuario = st.text_input("Usuario Master", placeholder="Ingrese su credencial")
+            usuario = st.text_input("Usuario", placeholder="Ingrese su credencial")
             password = st.text_input("Contraseña", type="password", placeholder="••••••••")
             st.write("")
-            submit_button = st.form_submit_button("INICIAR SESIÓN DE ALTA DIRECCIÓN")
+            submit_button = st.form_submit_button("INICIAR SESIÓN")
 
         if submit_button:
             creds = st.secrets["credenciales"]
@@ -476,7 +476,7 @@ def check_login():
                 st.error("Credenciales no autorizadas para este nivel de acceso.")
     
     # Footer sutil fuera del contenedor
-    st.markdown("<p style='color: #444; font-size: 11px; margin-top: 50px;'>NOVA CREDIT SYSTEM v2.0 | ENCRIPTACIÓN DE GRADO BANCARIO</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #444; font-size: 11px; margin-top: 50px;'>ANDRE VALQUI SYSTEM v2.0 | ENCRIPTACIÓN DE GRADO BANCARIO</p>", unsafe_allow_html=True)
     return False
 
 def logout():
@@ -963,4 +963,5 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
