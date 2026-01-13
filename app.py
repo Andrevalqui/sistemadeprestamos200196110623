@@ -289,84 +289,107 @@ def registrar_auditoria(accion, detalle, cliente="-"):
     except Exception as e:
         print(f"Error Auditoría: {e}")
         
+def mostrar_splash_salida():
+    placeholder = st.empty()
+    # Obtenemos el nombre antes de borrar la sesión
+    nombre_usuario = st.session_state.get('usuario', '').upper()
+    
+    with placeholder.container():
+        st.markdown(f"""
+            <div class="splash-overlay">
+                <div style="width: 300px; height: 300px;">
+                    <iframe src="https://tenor.com/embed/1281825661231862493" 
+                            width="100%" height="100%" frameborder="0" allowfullscreen>
+                    </iframe>
+                </div>
+                <h2 style="color:#D4AF37; margin-top:30px; font-family:'Playfair Display', serif;">
+                    HASTA LUEGO ESTIMADO {nombre_usuario}...
+                </h2>
+                <p style="color:white;">Cerrando sesión de forma segura</p>
+            </div>
+        """, unsafe_allow_html=True)
+        time.sleep(3.5)
+    
+    # AHORA SÍ: Limpiamos todo después de mostrar el mensaje
+    st.query_params.clear()
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+    
+    placeholder.empty()
+    st.rerun()
+    
 # --- 4. GESTIÓN DE SESIÓN Y GITHUB ---
 def check_login():
-    # --- PERSISTENCIA F5 ---
+    # --- A. SI ESTAMOS SALIENDO ---
+    if st.session_state.get('saliendo'):
+        mostrar_splash_salida()
+        return False
+
+    # --- B. PERSISTENCIA F5 ---
     q = st.query_params
     if 'logged_in' not in st.session_state:
-        # Solo si existen AMBOS parámetros en la URL intentamos loguear
         if "user" in q and "rol" in q:
             st.session_state.update({
-                'logged_in': True, 
-                'usuario': q["user"], 
-                'rol': q["rol"], 
-                'splash_visto': True
+                'logged_in': True, 'usuario': q["user"], 'rol': q["rol"], 'splash_visto': True
             })
         else:
             st.session_state.update({'logged_in': False, 'usuario': '', 'rol': ''})
 
-    # --- 2. PANTALLA DE LOGIN ---
-    if not st.session_state['logged_in']:
-        c1, c2, c3 = st.columns([1, 1.5, 1])
-        with c2:
-            st.markdown('<div class="login-container">', unsafe_allow_html=True)
-            st.title("🔒 Acceso Seguro")
-            with st.form("login_form"):
-                usuario = st.text_input("Usuario")
-                password = st.text_input("Contraseña", type="password")
-                submit_button = st.form_submit_button("INICIAR SESIÓN")
-
-            if submit_button:
-                creds = st.secrets["credenciales"]
-                if usuario in creds and creds[usuario] == password:
-                    st.session_state.update({
-                        'logged_in': True, 
-                        'usuario': usuario,
-                        'rol': 'Admin' if usuario in st.secrets["config"]["admins"] else 'Visor'
-                    })
-                    # Registro de auditoría
-                    registrar_auditoria("INICIO DE SESIÓN", f"El usuario {usuario} ingresó al sistema")
-                    # Guardar parámetros para F5
-                    st.query_params["user"] = usuario
-                    st.query_params["rol"] = st.session_state['rol']
-                    # NO marcamos splash_visto aquí para que se dispare al recargar
-                    st.rerun()
-                else:
-                    st.error("Credenciales incorrectas, contáctese con el administrador del portal.")
-            st.markdown('</div>', unsafe_allow_html=True)
-        return False
-
-    # --- 3. SPLASH SCREEN CON EL ALIEN (GIF DE TENOR) ---
-    if 'splash_visto' not in st.session_state or st.session_state['splash_visto'] == False:
-        placeholder = st.empty()
-        with placeholder.container():
-            st.markdown(f"""
-                <div class="splash-overlay">
-                    <div style="width: 300px; height: 300px;">
-                        <iframe src="https://tenor.com/embed/1281825661231862493" 
-                                width="100%" height="100%" frameborder="0" allowfullscreen>
-                        </iframe>
+    # --- C. SI YA ESTÁ LOGUEADO (ESTO EVITA EL FLASHEO) ---
+    if st.session_state['logged_in']:
+        # Splash de entrada si no se ha visto
+        if not st.session_state.get('splash_visto'):
+            placeholder = st.empty()
+            with placeholder.container():
+                st.markdown(f"""
+                    <div class="splash-overlay">
+                        <div style="width: 300px; height: 300px;">
+                            <iframe src="https://tenor.com/embed/1281825661231862493" 
+                                    width="100%" height="100%" frameborder="0" allowfullscreen>
+                            </iframe>
+                        </div>
+                        <h2 style="color:#D4AF37; margin-top:30px; font-family:'Playfair Display', serif;">
+                            INICIANDO SISTEMA FINANCIERO...
+                        </h2>
                     </div>
-                    <h2 style="color:#D4AF37; margin-top:30px; font-family:'Playfair Display', serif;">
-                        INICIANDO SISTEMA FINANCIERO...
-                    </h2>
-                </div>
-            """, unsafe_allow_html=True)
-            time.sleep(3.8) # Tiempo para ver el GIF completo
-        placeholder.empty()
-        st.session_state['splash_visto'] = True
+                """, unsafe_allow_html=True)
+                time.sleep(3.8)
+            placeholder.empty()
+            st.session_state['splash_visto'] = True
+        
+        # AL RETORNAR TRUE AQUÍ, STREAMLIT SALTA EL CÓDIGO DEL LOGIN DE ABAJO
+        return True
 
-    return True
+    # --- D. PANTALLA DE LOGIN (Solo se ejecuta si NO está logueado) ---
+    c1, c2, c3 = st.columns([1, 1.5, 1])
+    with c2:
+        st.markdown('<div class="login-container">', unsafe_allow_html=True)
+        st.title("🔒 Acceso Seguro")
+        with st.form("login_form"):
+            usuario = st.text_input("Usuario", placeholder="Ingrese su usuario")
+            password = st.text_input("Contraseña", type="password", placeholder="••••••")
+            submit_button = st.form_submit_button("INICIAR SESIÓN")
+
+        if submit_button:
+            creds = st.secrets["credenciales"]
+            if usuario in creds and creds[usuario] == password:
+                st.session_state.update({
+                    'logged_in': True, 
+                    'usuario': usuario,
+                    'rol': 'Admin' if usuario in st.secrets["config"]["admins"] else 'Visor'
+                })
+                registrar_auditoria("INICIO DE SESIÓN", f"El usuario {usuario} ingresó al sistema")
+                st.query_params["user"] = usuario
+                st.query_params["rol"] = st.session_state['rol']
+                st.rerun()
+            else:
+                st.error("Credenciales incorrectas.")
+        st.markdown('</div>', unsafe_allow_html=True)
+    return False
 
 def logout():
-    # 1. Limpiamos toda la memoria de la sesión
-    for key in st.session_state.keys():
-        del st.session_state[key]
-    
-    # 2. Limpiamos los parámetros de la URL (esto quita el ?user=...&rol=...)
-    st.query_params.clear()
-    
-    # 3. Forzamos el reinicio para volver al login limpio
+    # Activamos el estado de salida para que check_login lo detecte
+    st.session_state['saliendo'] = True
     st.rerun()
 
 def get_repo():
@@ -402,7 +425,8 @@ if check_login():
         menu = st.radio("Navegación", opciones)
         
         st.markdown("---")
-        if st.button("Cerrar Sesión"): logout()
+        if st.button("Cerrar Sesión", use_container_width=True):
+            logout()
 
     # --- LÓGICA DE PÁGINAS ---
 
@@ -821,6 +845,7 @@ if check_login():
             st.dataframe(df_audit, use_container_width=True, hide_index=True)
         else:
             st.info("No hay movimientos registrados en la bitácora.")
+
 
 
 
