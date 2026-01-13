@@ -326,12 +326,12 @@ def mostrar_splash_salida():
     
 # --- 4. GESTIÓN DE SESIÓN Y GITHUB ---
 def check_login():
-    # --- A. SI ESTAMOS SALIENDO ---
+    # 1. DETECTAR SI ESTAMOS SALIENDO
     if st.session_state.get('saliendo'):
         mostrar_splash_salida()
-        return False # No deja pasar al resto del código
+        return False
 
-    # --- B. PERSISTENCIA F5 ---
+    # 2. PERSISTENCIA F5
     q = st.query_params
     if 'logged_in' not in st.session_state:
         if "user" in q and "rol" in q:
@@ -341,10 +341,12 @@ def check_login():
         else:
             st.session_state.update({'logged_in': False, 'usuario': '', 'rol': ''})
 
-    # --- C. MANEJO DE SESIÓN ACTIVA ---
+    # 3. SI YA ESTÁ LOGUEADO (MANEJO DE SPLASH DE ENTRADA)
     if st.session_state['logged_in']:
-        # Si NO ha visto el splash, lo mostramos y detenemos ejecución
         if not st.session_state.get('splash_visto'):
+            # --- SOLUCIÓN AL ERROR: DEFINIR VARIABLE NOMBRE ---
+            nombre = st.session_state.get('usuario', '').upper()
+            
             placeholder = st.empty()
             with placeholder.container():
                 st.markdown(f"""
@@ -359,15 +361,14 @@ def check_login():
                         </h2>
                     </div>
                 """, unsafe_allow_html=True)
-                time.sleep(3.5)
+                time.sleep(3.8)
             st.session_state['splash_visto'] = True
             placeholder.empty()
-            st.rerun() # RECARGA para limpiar el splash y dibujar el portal limpio
+            st.rerun()
         
-        return True # Solo llega aquí si ya está logueado Y terminó el splash
+        return True # Entra al portal
 
-    # --- D. PANTALLA DE LOGIN ---
-    # (Tu código de login normal aquí...)
+    # 4. PANTALLA DE LOGIN
     c1, c2, c3 = st.columns([1, 1.5, 1])
     with c2:
         st.markdown('<div class="login-container">', unsafe_allow_html=True)
@@ -383,6 +384,7 @@ def check_login():
                     'logged_in': True, 'usuario': usuario,
                     'rol': 'Admin' if usuario in st.secrets["config"]["admins"] else 'Visor'
                 })
+                registrar_auditoria("INICIO DE SESIÓN", f"El usuario {usuario} ingresó al sistema")
                 st.query_params["user"] = usuario
                 st.query_params["rol"] = st.session_state['rol']
                 st.rerun()
@@ -849,6 +851,7 @@ if check_login():
             st.dataframe(df_audit, use_container_width=True, hide_index=True)
         else:
             st.info("No hay movimientos registrados en la bitácora.")
+
 
 
 
