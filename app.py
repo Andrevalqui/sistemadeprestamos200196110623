@@ -2,10 +2,10 @@ import streamlit as st
 import pandas as pd
 import json
 import time
-from datetime import datetime
-import calendar # Importamos calendario para calcular días exactos
+from datetime import datetime, timedelta, timezone
+import calendar
 from github import Github
-import urllib.parse # NUEVO: Para codificar mensajes de WhatsApp
+import urllib.parse
 
 # --- 1. CONFIGURACIÓN INICIAL ---
 st.set_page_config(
@@ -281,9 +281,12 @@ def registrar_auditoria(accion, detalle, cliente="-"):
         except:
             logs = []; sha = None
         
+        # --- CÁLCULO HORA PERÚ (UTC-5) ---
+        hora_peru = datetime.now(timezone(timedelta(hours=-5))).strftime("%d/%m/%Y %H:%M:%S")
+        
         nuevo_log = {
-            "Fecha/Hora": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
-            "Usuario": st.session_state.get('usuario', 'Sistema').title(),
+            "Fecha/Hora": hora_peru,
+            "Usuario": st.session_state.get('usuario', 'Sistema').upper(),
             "Perfil": st.session_state.get('rol', '-'),
             "Operación": accion,
             "Cliente Afectado": cliente,
@@ -394,6 +397,7 @@ def check_login():
     return False
 
 def logout():
+    registrar_auditoria("CIERRE DE SESIÓN", f"El usuario {st.session_state.get('usuario')} cerró su sesión")
     # Activamos el estado de salida para que check_login lo detecte
     st.session_state['saliendo'] = True
     st.rerun()
@@ -842,19 +846,37 @@ if check_login():
 
     # 5. AUDITORÍA
     elif menu == "📜 Auditoría":
-        st.markdown("""<div class="header-box"><h1>📜 BITÁCORA DE AUDITORÍA</h1></div>""", unsafe_allow_html=True)
+        st.markdown("""<div class="header-box">
+                        <h1>📜 AUDITORIA DE LA PLATAFORMA</h1>
+                        <p style="color:#D4AF37;">Registro histórico de movimientos y accesos (Hora Perú UTC-5).</p>
+                       </div>""", unsafe_allow_html=True)
+        
         logs, _ = cargar_datos("audit.json")
         if logs:
             df_audit = pd.DataFrame(logs)
             # Ordenar por el más reciente arriba
             df_audit = df_audit.iloc[::-1]
-            st.dataframe(df_audit, use_container_width=True, hide_index=True)
+            
+            # CONFIGURACIÓN DE CENTRADO TOTAL
+            st.dataframe(
+                df_audit,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Fecha/Hora": st.column_config.TextColumn("Fecha/Hora", width="medium", help="Hora exacta Perú"),
+                    "Usuario": st.column_config.TextColumn("Usuario", width="small"),
+                    "Perfil": st.column_config.TextColumn("Perfil", width="small"),
+                    "Operación": st.column_config.TextColumn("Operación", width="medium"),
+                    "Cliente Afectado": st.column_config.TextColumn("Cliente Afectado", width="medium"),
+                    "Detalle del Movimiento": st.column_config.TextColumn("Detalle del Movimiento", width="large"),
+                }
+            )
+            # CSS Adicional para centrar el texto dentro de las celdas de la tabla
+            st.markdown("""
+                <style>
+                [data-testid="stTable"] td, [data-testid="stTable"] th { text-align: center !important; }
+                [data-testid="stDataFrame"] div[data-testid="stHorizontalBlock"] { justify-content: center; }
+                </style>
+            """, unsafe_allow_html=True)
         else:
-            st.info("No hay movimientos registrados en la bitácora.")
-
-
-
-
-
-
-
+            st.info("No hay movimientos registrados en la plataforma.")
