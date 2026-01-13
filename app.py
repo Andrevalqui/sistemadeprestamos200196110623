@@ -463,7 +463,7 @@ def check_login():
                                     width="100%" height="100%" frameborder="0" allowfullscreen>
                             </iframe>
                         </div>
-                        <h2 style="color:#D4AF37; margin-top:30px; font-family:'Playfair Display', serif;">
+                        <h2 style="color:#D4AF37; margin-top:30px; font-family:'Playfair Display', serif; letter-spacing:4px; text-transform:uppercase; font-size:22px;">
                             BIENVENID@ {nombre} AL SISTEMA DE PRÉSTAMOS...
                         </h2>
                     </div>
@@ -561,8 +561,8 @@ if check_login():
     # 1. REGISTRAR NUEVO PRÉSTAMO
     if menu == "📝 Nuevo Préstamo":
         st.markdown("""<div class="header-box">
-                    <h1>📝 SOLICITUD DE CRÉDITO</h1>
-                    <p style="color:#D4AF37;">Ingrese los datos del nuevo cliente para la emisión del préstamo.</p>
+                    <div class="luxury-title">📝 Solicitud de Crédito</div>
+                    <div class="luxury-subtitle">Ingrese los datos del nuevo cliente para la emisión del préstamo.</div>
                    </div>""", unsafe_allow_html=True)
         
         with st.container(border=True):
@@ -627,8 +627,8 @@ if check_login():
     # 2. CAJA Y PAGOS
     elif menu == "💸 Registrar Pago":
         st.markdown("""<div class="header-box">
-                    <h1>💸 GESTIÓN DE COBRANZA</h1>
-                    <p style="color:#D4AF37;">Registre los ingresos de capital e intereses de la cartera activa.</p>
+                    <div class="luxury-title">💸 Gestión de Cobranza</div>
+                    <div class="luxury-subtitle">Registre los ingresos de capital e intereses de la cartera activa.</div>
                    </div>""", unsafe_allow_html=True)
 
         datos, sha = cargar_datos()
@@ -782,8 +782,8 @@ if check_login():
     # 3. DASHBOARD GERENCIAL
     elif menu == "📊 Dashboard General":
         st.markdown("""<div class="header-box">
-                <h1>📊 RESUMEN EJECUTIVO</h1>
-                <p style="color:#D4AF37;">Visión general del capital activo y gestión de cobranza.</p>
+                <div class="luxury-title">📊 Resumen Estratégico</div>
+                <div class="luxury-subtitle">Inteligencia de Datos, Control de Activos y Gestión de Cobranza.</div>
                </div>""", unsafe_allow_html=True)
         
         datos, _ = cargar_datos()
@@ -879,8 +879,8 @@ if check_login():
     # 4. ADMINISTRACIÓN Y EDICIÓN (Módulo Nuevo)
     elif menu == "🛠️ Administrar Cartera":
         st.markdown("""<div class="header-box">
-                    <h1>🛠️ ADMINISTRACIÓN DE CARTERA</h1>
-                    <p style="color:#D4AF37;">Edite montos, corrija fechas o elimine registros duplicados.</p>
+                    <div class="luxury-title">🛠️ Administración de Cartera</div>
+                    <div class="luxury-subtitle">Control de Registros y Ajustes de Cartera</div>
                    </div>""", unsafe_allow_html=True)
         
         datos, sha = cargar_datos()
@@ -965,8 +965,8 @@ if check_login():
     # 5. AUDITORÍA
     elif menu == "📜 Auditoría":
         st.markdown("""<div class="header-box">
-                        <h1>📜 AUDITORIA DE LA PLATAFORMA</h1>
-                        <p style="color:#D4AF37;">Registro histórico de movimientos y accesos (Hora Perú UTC-5).</p>
+                        <div class="luxury-title">📜 Auditoría del Sistema</div>
+                        <div class="luxury-subtitle">Registro histórico de movimientos y accesos</div>
                        </div>""", unsafe_allow_html=True)
         
         logs, _ = cargar_datos("audit.json")
@@ -998,6 +998,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
