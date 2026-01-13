@@ -241,49 +241,92 @@ if check_login():
             data = datos[idx]
             
             with st.container(border=True):
-                c1, c2 = st.columns([2, 1])
-                with c1:
-                    st.markdown(f"### 👤 {data['Cliente']}")
-                    st.markdown(f"📞 **Teléfono:** {data.get('Telefono', 'No registrado')}")
-                with c2:
-                    st.metric("Deuda Capital", f"S/ {data['Monto_Capital']:,.2f}")
-                    st.metric("Cuota Interés", f"S/ {data['Pago_Mensual_Interes']:,.2f}")
+                st.markdown(f"### 👤 {data['Cliente']}")
+                st.caption(f"📞 Teléfono: {data.get('Telefono', 'No registrado')}")
+                
+                c_info1, c_info2 = st.columns(2)
+                c_info1.metric("Deuda Capital Actual", f"S/ {data['Monto_Capital']:,.2f}")
+                c_info2.metric("Interés que DEBE pagar", f"S/ {data['Pago_Mensual_Interes']:,.2f}")
 
             st.write("")
-            modo = st.radio("Tipo de Operación", ["✅ Pago SOLO Interés", "📉 Amortizar Capital + Interés"], horizontal=True)
+            st.markdown("### 💰 Ingreso de Dinero")
+            st.caption("Ingresa los montos exactos que recibiste. El sistema ajustará la deuda automáticamente.")
+
+            col_pago1, col_pago2 = st.columns(2)
             
-            if modo == "✅ Pago SOLO Interés":
-                st.info(f"El cliente paga **S/ {data['Pago_Mensual_Interes']:.2f}**. El capital se mantiene igual.")
-                if st.button("CONFIRMAR COBRO"):
-                    st.success("Cobro registrado.")
-                    time.sleep(1)
+            with col_pago1:
+                pago_interes = st.number_input("1. ¿Cuánto pagó de INTERÉS?", 
+                                               min_value=0.0, 
+                                               value=float(data['Pago_Mensual_Interes']), 
+                                               step=10.0,
+                                               help="Si paga menos de lo que debe, la diferencia aumenta la deuda.")
+            
+            with col_pago2:
+                pago_capital = st.number_input("2. ¿Cuánto pagó de CAPITAL?", 
+                                               min_value=0.0, 
+                                               value=0.0, 
+                                               step=50.0,
+                                               help="Dinero extra para bajar la deuda.")
+
+            # --- LÓGICA DE NEGOCIO ---
+            interes_pendiente = data['Pago_Mensual_Interes'] - pago_interes
+            # Regla: Nuevo Capital = Capital Anterior - Lo que amortizó + Lo que no pagó de interés
+            nuevo_capital = data['Monto_Capital'] - pago_capital + interes_pendiente
+            
+            # Recalcular interés para el próximo mes
+            nueva_cuota = nuevo_capital * (data['Tasa_Interes'] / 100)
+
+            st.markdown("---")
+            st.markdown("#### 📊 Resultado de la Operación")
+            
+            col_res1, col_res2 = st.columns(2)
+            
+            with col_res1:
+                # Análisis del pago de interés
+                if interes_pendiente > 0:
+                    st.warning(f"⚠️ **Pago Incompleto:** Faltaron S/ {interes_pendiente:,.2f} de interés.")
+                    st.markdown(f"👉 Esos **S/ {interes_pendiente:,.2f}** se sumarán a la deuda de Capital.")
+                elif interes_pendiente < 0:
+                     st.success(f"🎉 **Pago Extra:** Pagó S/ {abs(interes_pendiente):,.2f} de más en intereses.")
+                     st.markdown("👉 Este excedente restará la deuda de Capital.")
+                else:
+                    st.success("✅ Interés pagado completo.")
+
+                # Análisis del pago de capital
+                if pago_capital > 0:
+                    st.info(f"📉 **Amortización:** La deuda baja S/ {pago_capital:,.2f} adicionales.")
+
+            with col_res2:
+                st.markdown(f"""
+                <div style="background-color:#EBF5FB; padding:15px; border-radius:10px; border:1px solid #AED6F1;">
+                    <h4 style="margin:0; color:#1B4F72;">Nueva Deuda Total: S/ {nuevo_capital:,.2f}</h4>
+                    <p style="margin:0; color:#5D6D7E; font-size:0.9em;">(Anterior: S/ {data['Monto_Capital']:,.2f})</p>
+                    <hr style="margin:10px 0;">
+                    <h4 style="margin:0; color:#186A3B;">Nueva Cuota Mensual: S/ {nueva_cuota:,.2f}</h4>
+                    <p style="margin:0; color:#5D6D7E; font-size:0.9em;">(A cobrar el próximo mes)</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+            st.write("")
+            if st.button("💾 PROCESAR Y ACTUALIZAR"):
+                # Actualizamos el registro en memoria
+                data['Monto_Capital'] = nuevo_capital
+                data['Pago_Mensual_Interes'] = nueva_cuota
+                
+                # Si la deuda llega a cero o menos, se cancela
+                if nuevo_capital <= 0:
+                    data['Estado'] = "Pagado"
+                    data['Monto_Capital'] = 0
+                    data['Pago_Mensual_Interes'] = 0
+                    msg_log = "Deuda Cancelada Totalmente"
+                else:
+                    msg_log = f"Pago: Int S/{pago_interes} Cap S/{pago_capital}"
+                
+                # Guardamos en GitHub
+                if guardar_datos(datos, sha, f"Actualizacion {data['Cliente']} - {msg_log}"):
+                    st.success("✅ Cartera actualizada correctamente.")
+                    time.sleep(2)
                     st.rerun()
-            else:
-                st.warning("El cliente devuelve parte del dinero prestado.")
-                colA, colB = st.columns(2)
-                amort = colA.number_input("Monto que devuelve al Capital (S/)", min_value=0.0, max_value=float(data['Monto_Capital']))
-                colB.write(f"Además, ¿pagó su interés de S/ {data['Pago_Mensual_Interes']:.2f}?")
-                check = colB.checkbox("Sí, pagó interés completo", value=True)
-                
-                nuevo_cap = data['Monto_Capital'] - amort
-                nueva_cuota = nuevo_cap * (data['Tasa_Interes']/100)
-                
-                if amort > 0:
-                    st.markdown(f"""
-                        <div style="background-color:#E8F8F5; padding:10px; border-radius:5px; border:1px solid #27AE60;">
-                            <b>📉 Nueva Deuda:</b> S/ {nuevo_cap:,.2f} <br>
-                            <b>📅 Nueva Cuota Mensual:</b> S/ {nueva_cuota:,.2f}
-                        </div>
-                    """, unsafe_allow_html=True)
-                    
-                    if st.button("PROCESAR AMORTIZACIÓN"):
-                        data['Monto_Capital'] = nuevo_cap
-                        data['Pago_Mensual_Interes'] = nueva_cuota
-                        if nuevo_cap <= 0: data['Estado'] = "Pagado"
-                        guardar_datos(datos, sha, f"Amortiza {data['Cliente']}")
-                        st.success("Capital actualizado.")
-                        time.sleep(2)
-                        st.rerun()
 
     # 3. DASHBOARD GERENCIAL
     elif menu == "📊 Dashboard General":
