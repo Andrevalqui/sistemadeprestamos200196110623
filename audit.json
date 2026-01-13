@@ -14,5 +14,13 @@
         "Operaci\u00f3n": "INICIO DE SESI\u00d3N",
         "Cliente Afectado": "-",
         "Detalle del Movimiento": "El usuario PieraJuarez ingres\u00f3 al sistema"
+    },
+    {
+        "Fecha/Hora": "13/01/2026 17:25:31",
+        "Usuario": "PIERAJUAREZ",
+        "Perfil": "Admin",
+        "Operaci\u00f3n": "CIERRE DE SESI\u00d3N",
+        "Cliente Afectado": "-",
+        "Detalle del Movimiento": "El usuario PieraJuarez cerr\u00f3 su sesi\u00f3n"
     }
 ]
