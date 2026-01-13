@@ -5,54 +5,135 @@ import time
 from datetime import datetime
 from github import Github
 
-# --- CONFIGURACIÓN ---
-st.set_page_config(page_title="Gestor de Préstamos", layout="wide", page_icon="💰")
+# --- 1. CONFIGURACIÓN INICIAL ---
+st.set_page_config(
+    page_title="Sistema Financiero", 
+    layout="wide", 
+    page_icon="🏦",
+    initial_sidebar_state="expanded"
+)
 
-# --- ESTILOS CSS ---
+# --- 2. ESTILOS CSS PREMIUM (DISEÑO TOTAL) ---
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
-    html, body, [class*="css"] { font-family: 'Roboto', sans-serif; }
+    /* Importar fuente profesional Roboto */
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
     
-    .metric-card {
-        background-color: #ffffff;
-        border-left: 5px solid #1A5276;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    html, body, [class*="css"] {
+        font-family: 'Roboto', sans-serif;
+        background-color: #F0F2F6; /* Fondo gris muy suave */
+    }
+    
+    /* --- ESTILOS DE LOGIN --- */
+    .login-container {
+        background-color: white;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         text-align: center;
+        margin-top: 50px;
     }
-    .metric-title { color: #7f8c8d; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 5px; font-weight: bold;}
-    .metric-value { color: #2c3e50; font-size: 1.6rem; font-weight: 700; }
-    .alert-card { background-color: #FDEDEC; border: 1px solid #E74C3C; padding: 10px; border-radius: 8px; color: #922B21; margin-bottom: 10px;}
-    .warning-card { background-color: #FEF9E7; border: 1px solid #F1C40F; padding: 10px; border-radius: 8px; color: #9A7D0A; margin-bottom: 10px;}
     
-    div.stButton > button {
-        background: linear-gradient(90deg, #117864 0%, #1ABC9C 100%);
-        color: white; border: none; padding: 12px 24px; border-radius: 8px; width: 100%;
-        font-weight: bold; text-transform: uppercase;
+    /* --- TARJETAS DE MÉTRICAS (KPIs) --- */
+    .metric-card {
+        background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
+        border-radius: 12px;
+        padding: 20px;
+        border-left: 6px solid #154360; /* Azul Corporativo */
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transition: transform 0.2s;
     }
+    .metric-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    }
+    .metric-title {
+        color: #7F8C8D;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+    .metric-value {
+        color: #154360;
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+    .metric-sub {
+        font-size: 0.85rem;
+        color: #95A5A6;
+        margin-top: 5px;
+    }
+    
+    /* --- BOTONES PERSONALIZADOS --- */
+    div.stButton > button {
+        background: linear-gradient(90deg, #1A5276 0%, #2980B9 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-transform: uppercase;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+    div.stButton > button:hover {
+        background: linear-gradient(90deg, #154360 0%, #2471A3 100%);
+        box-shadow: 0 4px 12px rgba(41, 128, 185, 0.4);
+    }
+    
+    /* --- TABLAS DE DATOS --- */
+    [data-testid="stDataFrame"] {
+        background-color: white;
+        border-radius: 10px;
+        padding: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    /* --- ALERTAS --- */
+    .alert-box {
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+    }
+    .alert-danger { background-color: #FDEDEC; color: #E74C3C; border: 1px solid #FADBD8; }
+    .alert-warning { background-color: #FEF9E7; color: #F1C40F; border: 1px solid #FCF3CF; }
+    
     </style>
 """, unsafe_allow_html=True)
 
-# --- LOGIN ---
+# --- 3. GESTIÓN DE SESIÓN Y GITHUB ---
 def check_login():
     if 'logged_in' not in st.session_state:
         st.session_state.update({'logged_in': False, 'usuario': '', 'rol': ''})
 
     if not st.session_state['logged_in']:
-        c1, c2, c3 = st.columns([1,2,1])
+        # Diseño de Login Centrado
+        c1, c2, c3 = st.columns([1, 1.5, 1])
         with c2:
-            st.markdown("### 🔐 Acceso al Sistema")
-            u = st.text_input("Usuario")
-            p = st.text_input("Contraseña", type="password")
-            if st.button("Ingresar"):
+            st.markdown('<div class="login-container">', unsafe_allow_html=True)
+            st.title("🔒 Acceso Seguro")
+            st.caption("Sistema de Gestión de Créditos")
+            
+            usuario = st.text_input("Usuario", placeholder="Ingrese su usuario")
+            password = st.text_input("Contraseña", type="password", placeholder="••••••")
+            
+            st.write("")
+            if st.button("INICIAR SESIÓN"):
                 creds = st.secrets["credenciales"]
-                if u in creds and creds[u] == p:
-                    st.session_state.update({'logged_in': True, 'usuario': u})
-                    st.session_state['rol'] = 'Admin' if u in st.secrets["config"]["admins"] else 'Visor'
+                if usuario in creds and creds[usuario] == password:
+                    st.session_state.update({'logged_in': True, 'usuario': usuario})
+                    st.session_state['rol'] = 'Admin' if usuario in st.secrets["config"]["admins"] else 'Visor'
+                    st.toast(f"¡Bienvenido, {usuario.title()}!", icon="👋")
+                    time.sleep(1)
                     st.rerun()
-                else: st.error("Acceso denegado")
+                else:
+                    st.error("Credenciales incorrectas")
+            st.markdown('</div>', unsafe_allow_html=True)
         return False
     return True
 
@@ -60,7 +141,6 @@ def logout():
     st.session_state.update({'logged_in': False, 'usuario': '', 'rol': ''})
     st.rerun()
 
-# --- BASE DE DATOS GITHUB ---
 def get_repo():
     return Github(st.secrets["GITHUB_TOKEN"]).get_repo(st.secrets["REPO_NAME"])
 
@@ -76,219 +156,192 @@ def guardar_datos(datos, sha, mensaje):
         repo.update_file("data.json", mensaje, json.dumps(datos, indent=4), sha)
         return True
     except Exception as e:
-        st.error(f"Error: {e}")
+        st.error(f"Error de conexión: {e}")
         return False
 
-# --- LÓGICA DE NEGOCIO ---
-def procesar_pago(idx, tipo_pago, monto_pagado):
-    datos, sha = cargar_datos()
-    prestamo = datos[idx]
-    
-    mensaje_historial = ""
-    
-    if tipo_pago == "Pago Interés Mensual":
-        # Solo paga interés, el capital sigue igual
-        # Asumimos que pagó el mes, "renovamos" para el siguiente
-        pass # No cambiamos montos, solo registramos que pagó (podríamos guardar log)
-        mensaje_historial = f"Pago de interés S/{monto_pagado}. Capital se mantiene."
-
-    elif tipo_pago == "Abono a Capital":
-        # Restamos al capital
-        nuevo_capital = prestamo['Monto_Capital'] - monto_pagado
-        if nuevo_capital <= 0:
-            prestamo['Estado'] = "Pagado"
-            prestamo['Monto_Capital'] = 0
-            prestamo['Pago_Mensual_Interes'] = 0
-            mensaje_historial = "Deuda Cancelada Totalmente."
-        else:
-            # RECALCULO AUTOMÁTICO: Nuevo Capital -> Nuevo Interés
-            prestamo['Monto_Capital'] = nuevo_capital
-            # Recalculamos el interés mensual basado en la misma tasa
-            nueva_cuota = new_interes = nuevo_capital * (prestamo['Tasa_Interes'] / 100)
-            prestamo['Pago_Mensual_Interes'] = nueva_cuota
-            mensaje_historial = f"Abono S/{monto_pagado}. Nuevo Capital: S/{nuevo_capital}. Nueva Cuota Interés: S/{nueva_cuota:.2f}"
-    
-    # Guardamos cambios
-    if guardar_datos(datos, sha, f"Pago registrado: {prestamo['Cliente']}"):
-        return True, mensaje_historial
-    return False, "Error al guardar"
-
-# --- INTERFAZ PRINCIPAL ---
+# --- 4. INTERFAZ PRINCIPAL ---
 if check_login():
-    st.sidebar.title(f"👤 {st.session_state['usuario'].title()}")
-    st.sidebar.caption(f"Rol: {st.session_state['rol']}")
-    if st.sidebar.button("Cerrar Sesión"): logout()
-    st.sidebar.markdown("---")
-    
-    opciones = ["📊 Dashboard de Préstamos"]
-    if st.session_state['rol'] == 'Admin':
-        opciones = ["📝 Registrar Operación", "💸 Registrar Pago"] + opciones
+    # --- SIDEBAR (Menú Lateral) ---
+    with st.sidebar:
+        st.markdown(f"## 👤 {st.session_state['usuario'].title()}")
+        st.caption(f"Perfil: {st.session_state['rol']}")
+        st.markdown("---")
         
-    menu = st.sidebar.radio("Menú", opciones)
-    
-    # --- 1. REGISTRAR PRÉSTAMO ---
-    if menu == "📝 Registrar Operación":
-        st.title("💰 Nuevo Préstamo")
-        with st.container():
-            c1, c2 = st.columns(2)
-            cliente = c1.text_input("Cliente")
-            dni = c2.text_input("DNI / C.E.")
-            
-            c3, c4, c5 = st.columns(3)
-            monto = c3.number_input("Capital (S/)", min_value=0.0, step=50.0)
-            tasa = c4.number_input("Tasa %", value=15.0)
-            fecha = c5.date_input("Fecha Inicio", datetime.now())
-            
-            obs = st.text_area("Observaciones")
+        opciones = ["📊 Dashboard General"]
+        if st.session_state['rol'] == 'Admin':
+            opciones = ["📝 Nuevo Préstamo", "💸 Registrar Pago"] + opciones
+        
+        menu = st.radio("Navegación", opciones)
+        
+        st.markdown("---")
+        if st.button("Cerrar Sesión"): logout()
 
+    # --- LÓGICA DE PÁGINAS ---
+
+    # 1. REGISTRAR NUEVO PRÉSTAMO
+    if menu == "📝 Nuevo Préstamo":
+        st.subheader("📝 Solicitud de Crédito")
+        st.markdown("ingrese los datos del nuevo cliente.")
+        
+        with st.container(border=True):
+            st.markdown("#### Datos Personales")
+            c1, c2, c3 = st.columns(3)
+            cliente = c1.text_input("Nombre Completo")
+            dni = c2.text_input("DNI / C.E.")
+            telefono = c3.text_input("Teléfono / Celular")
+            
+            st.markdown("#### Condiciones Financieras")
+            col_A, col_B = st.columns(2)
+            with col_A:
+                monto = st.number_input("Capital a Prestar (S/)", min_value=0.0, step=50.0)
+                fecha = st.date_input("Fecha Desembolso", datetime.now())
+            with col_B:
+                tasa = st.number_input("Tasa Interés Mensual (%)", value=15.0)
+                obs = st.text_area("Observaciones", placeholder="Ej: Negocio propio, paga puntual...")
+
+        # Cálculos
         interes = monto * (tasa/100)
         
-        st.info(f"💡 El cliente pagará **S/ {interes:.2f}** de interés cada día **{fecha.day}** del mes.")
+        st.markdown("---")
+        k1, k2, k3 = st.columns(3)
+        k1.markdown(f'<div class="metric-card"><div class="metric-title">Monto Capital</div><div class="metric-value">S/ {monto:,.2f}</div></div>', unsafe_allow_html=True)
+        k2.markdown(f'<div class="metric-card" style="border-left-color:#27AE60"><div class="metric-title">Cuota Interés Mensual</div><div class="metric-value" style="color:#27AE60">S/ {interes:,.2f}</div><div class="metric-sub">Cobrar día {fecha.day} de cada mes</div></div>', unsafe_allow_html=True)
+        k3.markdown(f'<div class="metric-card" style="border-left-color:#F39C12"><div class="metric-title">Tasa Aplicada</div><div class="metric-value">{tasa}%</div></div>', unsafe_allow_html=True)
         
-        if st.button("GUARDAR"):
-            nuevo = {
-                "Cliente": cliente, "DNI": dni, "Fecha_Prestamo": str(fecha),
-                "Dia_Cobro": fecha.day, "Monto_Capital": monto, 
-                "Tasa_Interes": tasa, "Pago_Mensual_Interes": interes,
-                "Estado": "Activo", "Observaciones": obs
-            }
-            datos, sha = cargar_datos()
-            datos.append(nuevo)
-            if guardar_datos(datos, sha, "Nuevo Prestamo"):
-                st.success("Guardado!")
-                time.sleep(1)
-                st.rerun()
+        st.write("")
+        if st.button("💾 GUARDAR OPERACIÓN"):
+            if cliente and monto > 0:
+                nuevo = {
+                    "Cliente": cliente, "DNI": dni, "Telefono": telefono,
+                    "Fecha_Prestamo": str(fecha), "Dia_Cobro": fecha.day,
+                    "Monto_Capital": monto, "Tasa_Interes": tasa,
+                    "Pago_Mensual_Interes": interes, "Estado": "Activo",
+                    "Observaciones": obs
+                }
+                datos, sha = cargar_datos()
+                datos.append(nuevo)
+                if guardar_datos(datos, sha, f"Nuevo prestamo: {cliente}"):
+                    st.success("✅ Préstamo registrado correctamente.")
+                    time.sleep(1)
+                    st.rerun()
+            else:
+                st.warning("⚠️ Complete Nombre y Monto.")
 
-    # --- 2. REGISTRAR PAGO (CAJA) ---
+    # 2. CAJA Y PAGOS
     elif menu == "💸 Registrar Pago":
-        st.title("💸 Caja: Registrar Cobros")
+        st.subheader("💸 Gestión de Cobranza")
         datos, sha = cargar_datos()
         
-        # Solo mostrar clientes activos
         activos = [d for d in datos if d.get('Estado') == 'Activo']
+        
         if activos:
-            # Crear lista legible para el selector
-            mapa_clientes = {f"{d['Cliente']} | Deuda: S/{d['Monto_Capital']}": i for i, d in enumerate(datos) if d.get('Estado') == 'Activo'}
-            seleccion = st.selectbox("Seleccionar Cliente", list(mapa_clientes.keys()))
-            index_real = mapa_clientes[seleccion]
-            cliente_data = datos[index_real]
+            mapa = {f"{d['Cliente']} | Deuda: S/{d['Monto_Capital']}": i for i, d in enumerate(datos) if d.get('Estado') == 'Activo'}
+            seleccion = st.selectbox("Buscar Cliente", list(mapa.keys()))
+            idx = mapa[seleccion]
+            data = datos[idx]
             
-            # Tarjeta de Información del Cliente
-            st.info(f"""
-            👤 **Cliente:** {cliente_data['Cliente']}
-            💰 **Deuda Capital Actual:** S/ {cliente_data['Monto_Capital']:,.2f}
-            📅 **Interés Mensual a Pagar:** S/ {cliente_data['Pago_Mensual_Interes']:,.2f}
-            """)
-            
-            st.markdown("---")
-            st.markdown("### ¿Qué operación vas a realizar?")
-            
-            opcion = st.radio("Tipo de Cobro:", 
-                            ["✅ Cobrar solo Interés Mensual", 
-                             "📉 Amortizar Capital (Bajar Deuda)"])
-            
-            if opcion == "✅ Cobrar solo Interés Mensual":
-                st.write(f"Vas a registrar que **{cliente_data['Cliente']}** pagó su interés de **S/ {cliente_data['Pago_Mensual_Interes']:.2f}**.")
-                st.caption("La deuda de capital se mantiene igual para el próximo mes.")
-                confirmar = st.button("CONFIRMAR COBRO DE INTERÉS")
-                if confirmar:
-                    # Lógica simple: No movemos capital, solo registramos log (futuro)
-                    st.success(f"Cobro de S/ {cliente_data['Pago_Mensual_Interes']:.2f} registrado exitosamente.")
-                    time.sleep(2)
-                    st.rerun()
+            with st.container(border=True):
+                c1, c2 = st.columns([2, 1])
+                with c1:
+                    st.markdown(f"### 👤 {data['Cliente']}")
+                    st.markdown(f"📞 **Teléfono:** {data.get('Telefono', 'No registrado')}")
+                with c2:
+                    st.metric("Deuda Capital", f"S/ {data['Monto_Capital']:,.2f}")
+                    st.metric("Cuota Interés", f"S/ {data['Pago_Mensual_Interes']:,.2f}")
 
-            elif opcion == "📉 Amortizar Capital (Bajar Deuda)":
-                st.warning("⚠️ Aquí registras dinero que BAJA la deuda (Capital).")
+            st.write("")
+            modo = st.radio("Tipo de Operación", ["✅ Pago SOLO Interés", "📉 Amortizar Capital + Interés"], horizontal=True)
+            
+            if modo == "✅ Pago SOLO Interés":
+                st.info(f"El cliente paga **S/ {data['Pago_Mensual_Interes']:.2f}**. El capital se mantiene igual.")
+                if st.button("CONFIRMAR COBRO"):
+                    st.success("Cobro registrado.")
+                    time.sleep(1)
+                    st.rerun()
+            else:
+                st.warning("El cliente devuelve parte del dinero prestado.")
+                colA, colB = st.columns(2)
+                amort = colA.number_input("Monto que devuelve al Capital (S/)", min_value=0.0, max_value=float(data['Monto_Capital']))
+                colB.write(f"Además, ¿pagó su interés de S/ {data['Pago_Mensual_Interes']:.2f}?")
+                check = colB.checkbox("Sí, pagó interés completo", value=True)
                 
-                col_a, col_b = st.columns(2)
-                monto_amortizar = col_a.number_input("¿Cuánto capital devuelve? (S/)", min_value=0.0, max_value=float(cliente_data['Monto_Capital']), step=50.0)
+                nuevo_cap = data['Monto_Capital'] - amort
+                nueva_cuota = nuevo_cap * (data['Tasa_Interes']/100)
                 
-                # Checkbox para confirmar que TAMBIÉN pagó el interés
-                pago_interes = col_b.checkbox(f"¿Pagó también sus S/ {cliente_data['Pago_Mensual_Interes']:.2f} de interés?", value=True)
-                
-                nuevo_capital = cliente_data['Monto_Capital'] - monto_amortizar
-                nuevo_interes = nuevo_capital * (cliente_data['Tasa_Interes'] / 100)
-                
-                if monto_amortizar > 0:
+                if amort > 0:
                     st.markdown(f"""
-                        **Simulación del cambio:**
-                        *   Deuda Anterior: S/ {cliente_data['Monto_Capital']:,.2f}
-                        *   **Nueva Deuda:** S/ {nuevo_capital:,.2f}
-                        *   **Nueva Cuota Interés (Próx. Mes):** S/ {nuevo_interes:,.2f}
-                    """)
+                        <div style="background-color:#E8F8F5; padding:10px; border-radius:5px; border:1px solid #27AE60;">
+                            <b>📉 Nueva Deuda:</b> S/ {nuevo_cap:,.2f} <br>
+                            <b>📅 Nueva Cuota Mensual:</b> S/ {nueva_cuota:,.2f}
+                        </div>
+                    """, unsafe_allow_html=True)
                     
                     if st.button("PROCESAR AMORTIZACIÓN"):
-                        # Actualizamos datos
-                        cliente_data['Monto_Capital'] = nuevo_capital
-                        cliente_data['Pago_Mensual_Interes'] = nuevo_interes
-                        
-                        if nuevo_capital <= 0:
-                            cliente_data['Estado'] = "Pagado"
-                            msg = "¡Deuda cancelada en su totalidad!"
-                        else:
-                            msg = f"Capital reducido. Nueva cuota mensual: S/ {nuevo_interes:.2f}"
-                        
-                        # Guardamos en GitHub
-                        guardar_datos(datos, sha, f"Amortizacion {cliente_data['Cliente']}")
-                        st.success(f"✅ Operación Exitosa. {msg}")
-                        time.sleep(3)
+                        data['Monto_Capital'] = nuevo_cap
+                        data['Pago_Mensual_Interes'] = nueva_cuota
+                        if nuevo_cap <= 0: data['Estado'] = "Pagado"
+                        guardar_datos(datos, sha, f"Amortiza {data['Cliente']}")
+                        st.success("Capital actualizado.")
+                        time.sleep(2)
                         st.rerun()
-        else:
-            st.info("No hay clientes con deuda activa.")
 
-    # --- 3. DASHBOARD CON ALERTAS ---
-    elif menu == "📊 Dashboard de Préstamos":
-        st.title("📊 Control de Cartera")
+    # 3. DASHBOARD GERENCIAL
+    elif menu == "📊 Dashboard General":
+        st.subheader("📊 Resumen Ejecutivo")
         datos, _ = cargar_datos()
         
         if datos:
             df = pd.DataFrame(datos)
-            df_activos = df[df['Estado'] == 'Activo']
+            df = df[df['Estado'] == 'Activo']
             
-            # --- SECCIÓN DE NOTIFICACIONES ---
-            st.subheader("🔔 Cobranzas Próximas")
-            hoy_dia = datetime.now().day
+            # --- NOTIFICACIONES ---
+            hoy = datetime.now().day
+            c1, c2 = st.columns([2, 1])
             
-            # Buscamos clientes que pagan hoy o en los proximos 3 dias
-            alertas = []
-            advertencias = []
-            
-            for index, row in df_activos.iterrows():
-                dia_cobro = int(row['Dia_Cobro'])
-                # Logica simple de dias (si hoy es 28 y paga el 1, es complejo, simplificamos rango)
-                diferencia = dia_cobro - hoy_dia
+            with c1:
+                # KPIs Principales
+                total = df['Monto_Capital'].sum()
+                ganancia = df['Pago_Mensual_Interes'].sum()
                 
-                if diferencia == 0:
-                    alertas.append(f"🚨 <b>{row['Cliente']}</b> debe pagar <b>HOY</b> sus S/ {row['Pago_Mensual_Interes']:.2f}")
-                elif diferencia < 0: # Ya pasó su día en este mes (vencido este mes)
-                     # Esto es una lógica simple, asumiendo que verificamos el día calendario actual
-                    pass 
-                elif 0 < diferencia <= 3:
-                    advertencias.append(f"⚠️ <b>{row['Cliente']}</b> paga en {diferencia} días (Día {dia_cobro})")
-
-            if alertas:
-                for a in alertas: st.markdown(f"<div class='alert-card'>{a}</div>", unsafe_allow_html=True)
-            if advertencias:
-                for a in advertencias: st.markdown(f"<div class='warning-card'>{a}</div>", unsafe_allow_html=True)
-            if not alertas and not advertencias:
-                st.success("✅ Todo tranquilo por los próximos 3 días.")
-
-            st.markdown("---")
+                k1, k2, k3 = st.columns(3)
+                k1.markdown(f'<div class="metric-card"><div class="metric-title">Capital Activo</div><div class="metric-value">S/ {total:,.2f}</div></div>', unsafe_allow_html=True)
+                k2.markdown(f'<div class="metric-card" style="border-left-color:#27AE60"><div class="metric-title">Flujo Mensual</div><div class="metric-value" style="color:#27AE60">S/ {ganancia:,.2f}</div></div>', unsafe_allow_html=True)
+                k3.markdown(f'<div class="metric-card" style="border-left-color:#8E44AD"><div class="metric-title">Clientes</div><div class="metric-value">{len(df)}</div></div>', unsafe_allow_html=True)
             
-            # KPIS
-            total_calle = df_activos['Monto_Capital'].sum()
-            ganancia_mensual = df_activos['Pago_Mensual_Interes'].sum()
-            
-            k1, k2, k3 = st.columns(3)
-            k1.markdown(f'<div class="metric-card"><div class="metric-title">Capital en Calle</div><div class="metric-value">S/ {total_calle:,.2f}</div></div>', unsafe_allow_html=True)
-            k2.markdown(f'<div class="metric-card" style="border-left-color:#27AE60"><div class="metric-title">Proyección Interés Mes</div><div class="metric-value" style="color:#27AE60">S/ {ganancia_mensual:,.2f}</div></div>', unsafe_allow_html=True)
-            k3.markdown(f'<div class="metric-card"><div class="metric-title">Clientes Activos</div><div class="metric-value">{len(df_activos)}</div></div>', unsafe_allow_html=True)
+            with c2:
+                # Alertas Compactas
+                st.markdown("##### 📅 Vencimientos Próximos")
+                hay_alertas = False
+                for _, row in df.iterrows():
+                    dia = int(row['Dia_Cobro'])
+                    diff = dia - hoy
+                    if diff == 0:
+                        st.markdown(f"<div class='alert-box alert-danger'>🚨 {row['Cliente']} paga HOY</div>", unsafe_allow_html=True)
+                        hay_alertas = True
+                    elif 0 < diff <= 3:
+                        st.markdown(f"<div class='alert-box alert-warning'>⚠️ {row['Cliente']} paga en {diff} días</div>", unsafe_allow_html=True)
+                        hay_alertas = True
+                if not hay_alertas:
+                    st.caption("No hay cobros urgentes para los próximos 3 días.")
 
-            # TABLA
-            st.write("")
-            st.markdown("#### 📋 Detalle de Clientes")
-            cols = ["Cliente", "Monto_Capital", "Pago_Mensual_Interes", "Dia_Cobro", "Observaciones"]
-            st.dataframe(df_activos[cols].rename(columns={"Monto_Capital": "Deuda Actual", "Pago_Mensual_Interes": "Cuota Interés", "Dia_Cobro": "Día Pago"}), use_container_width=True, hide_index=True)
+            # --- TABLA BONITA ---
+            st.markdown("### 📋 Cartera de Clientes")
+            
+            # Preparar tabla para visualización
+            tabla_view = df[["Cliente", "Telefono", "Monto_Capital", "Pago_Mensual_Interes", "Dia_Cobro", "Observaciones"]]
+            
+            st.dataframe(
+                tabla_view,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Cliente": st.column_config.TextColumn("Cliente", width="medium"),
+                    "Telefono": st.column_config.TextColumn("Contacto", width="small"),
+                    "Monto_Capital": st.column_config.NumberColumn("Deuda Capital", format="S/ %.2f"),
+                    "Pago_Mensual_Interes": st.column_config.NumberColumn("Cuota Interés", format="S/ %.2f"),
+                    "Dia_Cobro": st.column_config.NumberColumn("Día Pago", format="%d"),
+                    "Observaciones": st.column_config.TextColumn("Notas", width="large"),
+                }
+            )
         else:
-            st.info("No hay datos.")
-
+            st.info("No hay datos registrados en el sistema.")
