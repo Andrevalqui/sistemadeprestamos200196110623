@@ -721,6 +721,30 @@ def check_login():
     st.markdown("<div style='text-align: center;'><p class='footer-login'>ANDRE VALQUI SYSTEM v2.0 | ENCRIPTACIÓN DE GRADO BANCARIO</p></div>", unsafe_allow_html=True)
     return False
 
+def logout():
+    registrar_auditoria("CIERRE DE SESIÓN", f"El usuario {st.session_state.get('usuario')} cerró su sesión")
+    # Activamos el estado de salida para que check_login lo detecte
+    st.session_state['saliendo'] = True
+    st.rerun()
+
+def get_repo():
+    return Github(st.secrets["GITHUB_TOKEN"]).get_repo(st.secrets["REPO_NAME"])
+
+def cargar_datos(file="data.json"):
+    try:
+        c = get_repo().get_contents(file)
+        return json.loads(c.decoded_content.decode()), c.sha
+    except: return [], None
+
+def guardar_datos(datos, sha, mensaje):
+    try:
+        repo = get_repo()
+        repo.update_file("data.json", mensaje, json.dumps(datos, indent=4), sha)
+        return True
+    except Exception as e:
+        st.error(f"Error de conexión: {e}")
+        return False
+
 # --- 5. INTERFAZ PRINCIPAL ---
 if check_login():
     # --- SIDEBAR (Menú Lateral) ---
@@ -1576,6 +1600,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
