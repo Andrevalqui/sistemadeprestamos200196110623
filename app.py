@@ -158,6 +158,40 @@ div.stButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hove
     margin-bottom: 60px !important; /* ESPACIO PARA QUE NO CHOQUE CON EL TEXTO ABAJO */
 }
 
+/* --- IMAGEN DEL LOGO --- */
+.login-icon {
+    width: 180px; 
+    margin-bottom: -10px;
+    filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.3));
+}
+
+/* --- CENTRADO TOTAL DEL BOTÓN DEL FORMULARIO --- */
+[data-testid="stForm"] div[data-testid="stFormSubmitButton"] {
+    display: flex !important;
+    justify-content: center !important;
+    width: 100% !important;
+}
+
+div[data-testid="stFormSubmitButton"] > button {
+    background: linear-gradient(135deg, #D4AF37 0%, #996515 100%) !important;
+    color: #000 !important;
+    border: none !important;
+    padding: 15px 40px !important;
+    border-radius: 12px !important;
+    font-size: 20px !important;
+    font-weight: 800 !important;
+    width: auto !important;
+    min-width: 250px;
+    box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2) !important;
+    transition: all 0.4s ease !important;
+}
+
+div[data-testid="stFormSubmitButton"] > button:hover {
+    transform: translateY(-3px) !important;
+    background: #FFFFFF !important;
+    color: #B8860B !important;
+    box-shadow: 0 15px 30px rgba(212, 175, 55, 0.4) !important;
+}
 /* Título con estilo elegante cursivo */
 .login-title {
     font-family: 'Dancing Script', cursive !important; 
@@ -622,7 +656,7 @@ def check_login():
     with c2:
         st.markdown(f"""
             <div class="login-container">
-                <div style="font-size: 50px; margin-bottom: 10px;">🔒</div>
+                <img src="https://i.ibb.co/3ykS8VfX/prestamo.png" class="login-icon">
                 <div class="login-title">Sistema de Préstamos</div>
                 <div class="login-subtitle">GESTIÓN DE ACTIVOS & CRÉDITOS</div>
             </div>
@@ -1309,6 +1343,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
