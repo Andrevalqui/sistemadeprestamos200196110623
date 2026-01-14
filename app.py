@@ -216,28 +216,43 @@ st.markdown("""
         text-align: center;
     }
     
-    /* --- BOTONES PREMIUM: LETRAS BLANCAS + NEGRITA --- */
-    div.stButton > button, div.stForm > div > div > button {
+    /* --- ESTILO PARA TODOS LOS BOTONES DEL SISTEMA (NORMAL, FORMULARIO Y CAMBIOS) --- */
+    /* Incluye: Guardar Operación, Procesar Pago y Guardar Cambios */
+    div.stButton > button, 
+    div[data-testid="stFormSubmitButton"] > button,
+    button[kind="secondaryFormSubmit"],
+    button[kind="primaryFormSubmit"] {
         background: linear-gradient(90deg, #D4AF37 0%, #B8860B 100%) !important;
         color: #FFFFFF !important; /* LETRAS BLANCAS POR DEFECTO */
         border: 1px solid #996515 !important;
-        border-radius: 10px !important;
+        border-radius: 12px !important; /* FORMA REDONDEADA IGUAL QUE LOS OTROS */
         font-weight: 900 !important; /* NEGRITA MÁXIMA */
         text-transform: uppercase !important;
         letter-spacing: 1px !important;
         padding: 12px 24px !important;
         transition: all 0.4s ease-in-out !important;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
-        width: 100% !important;
+        width: 100% !important; /* QUE OCUPE TODO EL ANCHO */
+        display: block !important;
     }
 
-    /* --- EFECTO HOVER: INVERSIÓN (FONDO BLANCO + LETRAS DORADAS) --- */
-    div.stButton > button:hover, div.stForm > div > div > button:hover {
+    /* --- EFECTO HOVER PARA TODOS LOS BOTONES (INVERSIÓN TOTAL) --- */
+    div.stButton > button:hover, 
+    div[data-testid="stFormSubmitButton"] > button:hover,
+    button[kind="secondaryFormSubmit"]:hover,
+    button[kind="primaryFormSubmit"]:hover {
         background: #FFFFFF !important; /* FONDO BLANCO AL PASAR EL MOUSE */
         color: #B8860B !important;    /* LETRAS DORADAS AL PASAR EL MOUSE */
-        border: 2px solid #D4AF37 !important; /* BORDE DORADO RESALTADO */
+        border: 2px solid #D4AF37 !important; /* BORDE DORADO */
         transform: scale(1.02) !important;
         box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4) !important;
+    }
+
+    /* --- CORRECCIÓN ADICIONAL PARA EL ICONO DEL DISKETTE --- */
+    /* Si el icono molesta el color del texto, esto ayuda a unificar */
+    div.stButton > button p, 
+    div[data-testid="stFormSubmitButton"] > button p {
+        color: inherit !important; /* Obliga al texto dentro del botón a seguir las reglas anteriores */
     }
     
     /* --- BOTÓN WHATSAPP PREMIUM --- */
@@ -1136,6 +1151,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
