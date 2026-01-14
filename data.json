@@ -58,5 +58,17 @@
         "Pago_Mensual_Interes": 72.0,
         "Estado": "Activo",
         "Observaciones": ""
+    },
+    {
+        "Cliente": "Kelly Grados",
+        "DNI": "-",
+        "Telefono": "994603150",
+        "Fecha_Prestamo": "2025-12-26",
+        "Fecha_Proximo_Pago": "2026-01-26",
+        "Monto_Capital": 1000.0,
+        "Tasa_Interes": 18.0,
+        "Pago_Mensual_Interes": 180.0,
+        "Estado": "Activo",
+        "Observaciones": "PRESTAMO BERTHA"
     }
 ]
