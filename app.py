@@ -877,13 +877,14 @@ if check_login():
                 st.session_state.procesando_pago = False
                 
             if st.button("💾 PROCESAR PAGO"):
-                data['Monto_Capital'] = nuevo_capital
-                data['Pago_Mensual_Interes'] = nueva_cuota
-                data['Fecha_Proximo_Pago'] = nueva_fecha_pago
+                # --- LÓGICA CORREGIDA PARA PRESERVAR EL MONTO EN EL HISTORIAL ---
                 
                 if nuevo_capital <= 0:
+                    # SI EL PAGO COMPLETA LA DEUDA:
                     data['Estado'] = "Pagado"
-                    data['Monto_Capital'] = 0
+                    # IMPORTANTE: No tocamos 'Monto_Capital' para que en el historial 
+                    # siga apareciendo el monto original del préstamo.
+                    
                     data['Fecha_Finalizacion'] = datetime.now().strftime("%Y-%m-%d") 
                     
                     # SI ESCRIBIÓ ALGO EN LA NOTA, LO AGREGAMOS O REEMPLAZAMOS EN OBSERVACIONES
@@ -892,9 +893,13 @@ if check_login():
                     
                     msg_log = "Deuda Totalmente Cancelada"
                 else:
+                    # SI EL PAGO ES PARCIAL (EL PRÉSTAMO SIGUE ACTIVO):
+                    data['Monto_Capital'] = nuevo_capital
+                    data['Pago_Mensual_Interes'] = nueva_cuota
+                    data['Fecha_Proximo_Pago'] = nueva_fecha_pago
                     msg_log = f"Pago registrado. Vence: {nueva_fecha_pago}"
                 
-                # --- GUARDADO Y AUDITORÍA ---
+                # --- PROCESO DE GUARDADO (Mismo que ya tienes) ---
                 if guardar_datos(datos, sha, f"Actualizacion {data['Cliente']} - {msg_log}"):
                     registrar_auditoria("COBRO", f"Pago Recibido: Interés S/ {pago_interes}, Capital S/ {pago_capital}", cliente=data['Cliente'])
                     st.success("✅ Cartera actualizada correctamente.")
@@ -1102,7 +1107,7 @@ if check_login():
         else:
             st.info("No hay datos registrados en el sistema.")
 
-    # 5. HISTORIAL DE CRÉDITOS (Módulo Informativo con Búsqueda Inteligente)
+    # 5. HISTORIAL DE CRÉDITOS (Módulo Informativo con Búsqueda Inteligente y Montos)
     elif menu == "📂 Historial de Créditos":
         st.markdown("""<div class="header-box">
                         <div class="luxury-title">📂 Historial de Créditos</div>
@@ -1121,7 +1126,6 @@ if check_login():
             busqueda_h = st.text_input("", placeholder="🔍 Escriba el nombre del cliente, fecha, monto o nota para filtrar...", label_visibility="collapsed")
             
             if busqueda_h:
-                # Filtrado universal en todas las columnas
                 mask = df_hist.apply(lambda row: row.astype(str).str.contains(busqueda_h, case=False).any(), axis=1)
                 df_hist = df_hist[mask]
                 st.caption(f"✨ Se encontraron {len(df_hist)} registros que coinciden con la búsqueda.")
@@ -1130,12 +1134,11 @@ if check_login():
 
             # --- 2. MÉTRICAS DE ÉXITO DINÁMICAS ---
             h1, h2, h3 = st.columns(3)
-            # Intentamos obtener el capital inicial si existe, sino usamos el valor del préstamo guardado
-            # (Para esto, es ideal que al crear el préstamo guardes 'Capital_Inicial')
+            # Ahora el Capital Recuperado sumará los montos reales ya que no se ponen en 0
             cap_recuperado = df_hist['Monto_Capital'].sum() 
             
             h1.metric("CRÉDITOS CERRADOS", f"{len(df_hist)}")
-            h2.metric("CAPITAL FINALIZADO", "100% RECUPERADO")
+            h2.metric("CAPITAL RECUPERADO", f"S/ {cap_recuperado:,.2f}")
             h3.metric("EFECTIVIDAD", "NIVEL ORO")
 
             st.write("")
@@ -1146,11 +1149,8 @@ if check_login():
             df_hist_view['Inicio'] = pd.to_datetime(df_hist_view['Fecha_Prestamo']).dt.strftime('%d/%m/%Y')
             df_hist_view['Cierre'] = pd.to_datetime(df_hist_view.get('Fecha_Finalizacion', df_hist_view['Fecha_Proximo_Pago'])).dt.strftime('%d/%m/%Y')
             
-            # Formatear montos y tasas para que se vean elegantes
-            df_hist_view['Tasa %'] = df_hist_view['Tasa_Interes'].apply(lambda x: f"{x}%")
-
-            # Selección de columnas importantes
-            cols_to_show = ["Cliente", "Inicio", "Cierre", "Tasa %", "Observaciones"]
+            # --- SELECCIÓN DE COLUMNAS ACTUALIZADA (Agregamos Capital e Interés) ---
+            cols_to_show = ["Cliente", "Monto_Capital", "Pago_Mensual_Interes", "Inicio", "Cierre", "Observaciones"]
             
             st.markdown("### 📜 Detalle de Operaciones Finalizadas")
             st.dataframe(
@@ -1159,9 +1159,10 @@ if check_login():
                 hide_index=True,
                 column_config={
                     "Cliente": st.column_config.TextColumn("👤 Cliente", width="medium"),
+                    "Monto_Capital": st.column_config.NumberColumn("💰 Monto Prestado", format="S/ %.2f"),
+                    "Pago_Mensual_Interes": st.column_config.NumberColumn("📈 Interés Mensual", format="S/ %.2f"),
                     "Inicio": st.column_config.TextColumn("📅 Fecha Inicio"),
                     "Cierre": st.column_config.TextColumn("✅ Fecha Cancelación"),
-                    "Tasa %": st.column_config.TextColumn("📈 Interés"),
                     "Observaciones": st.column_config.TextColumn("📝 Notas Finales", width="large")
                 }
             )
@@ -1169,21 +1170,19 @@ if check_login():
             # --- 4. CSS PARA NEGRITAS EN LAS CELDAS ---
             st.markdown("""
                 <style>
-                /* Forzar negritas en las celdas de la tabla de historial */
                 div[data-testid="stDataFrame"] div[role="gridcell"] {
                     font-weight: 800 !important;
                     color: #1C1C1C !important;
                     font-size: 14px !important;
                 }
-                /* Borde dorado para la tabla */
                 div[data-testid="stDataFrame"] {
-                    border: 2px solid #D4AF37 !important;
+                    border: 3px solid #D4AF37 !important;
                     border-radius: 15px !important;
                 }
                 </style>
             """, unsafe_allow_html=True)
             
-            st.info("💡 Este módulo es de solo lectura. Registra los créditos que han completado su ciclo de pago satisfactoriamente.")
+            st.info("💡 Este módulo registra los créditos que han completado su ciclo de pago satisfactoriamente con sus montos originales.")
         else:
             st.info("Aún no hay préstamos marcados como 'Pagado' en el sistema.")
 
@@ -1245,6 +1244,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
