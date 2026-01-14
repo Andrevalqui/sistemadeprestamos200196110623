@@ -389,6 +389,32 @@ st.markdown("""
         background-color: #05080d !important; /* Azul casi negro */
         border-right: 2px solid #D4AF37 !important;
     }
+
+    /* --- AGRANDAR TEXTO DE NAVEGACIÓN EN SIDEBAR --- */
+    /* Target para el título 'Navegación' */
+    div[data-testid="stSidebar"] .st-emotion-cache-17l70it, 
+    div[data-testid="stSidebar"] p {
+        font-size: 20px !important; /* Tamaño de los ítems de radio */
+        font-weight: 800 !important;
+        margin-bottom: 5px !important;
+    }
+
+    /* Target específico para las opciones del Radio Button */
+    div[role="radiogroup"] label div p {
+        font-size: 18px !important; /* Aumenta el tamaño de los nombres de los módulos */
+        font-weight: 900 !important;
+        color: #D4AF37 !important;
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+    }
+
+    /* Agrandar el título de la sección Navegación */
+    div[data-testid="stSidebar"] div.stMarkdown h2, 
+    div[data-testid="stSidebar"] div.stMarkdown p {
+        font-size: 22px !important;
+        letter-spacing: 2px !important;
+        text-transform: uppercase !important;
+    }
     
     </style>
 """, unsafe_allow_html=True)
@@ -612,7 +638,7 @@ if check_login():
         menu = st.radio("Navegación", opciones)
         
         st.markdown("---")
-        if st.button("Cerrar Sesión", use_container_width=True):
+        if st.button("🚪 Cerrar Sesión", use_container_width=True):
             logout()
 
     # --- LÓGICA DE PÁGINAS ---
@@ -1151,6 +1177,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
