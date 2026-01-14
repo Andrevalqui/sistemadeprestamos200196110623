@@ -10,5 +10,17 @@
         "Pago_Mensual_Interes": 90.0,
         "Estado": "Activo",
         "Observaciones": ""
+    },
+    {
+        "Cliente": "Stefany Pesantes",
+        "DNI": "-",
+        "Telefono": "967311131",
+        "Fecha_Prestamo": "2026-01-06",
+        "Fecha_Proximo_Pago": "2026-02-06",
+        "Monto_Capital": 500.0,
+        "Tasa_Interes": 18.0,
+        "Pago_Mensual_Interes": 90.0,
+        "Estado": "Activo",
+        "Observaciones": ""
     }
 ]
