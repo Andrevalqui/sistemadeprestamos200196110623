@@ -23,7 +23,7 @@ st.markdown("""
     
     html, body, [class*="css"] {
         font-family: 'Roboto', sans-serif;
-        background-color: #050505; /* FONDO OSCURO MIDNIGHT */
+        background-color: #8a8d8f; /* FONDO OSCURO MIDNIGHT */
     }
 
     /* Forzar fondo oscuro en la base de Streamlit */
@@ -89,7 +89,7 @@ st.markdown("""
     
     /* Fondo General del Login */
     [data-testid="stAppViewRoot"] {
-        background: radial-gradient(circle at center, #1C1C1C 0%, #050505 100%) !important;
+        background: radial-gradient(circle at center, #1C1C1C 0%, #8a8d8f 100%) !important;
     }
 
     .login-container {
@@ -286,7 +286,7 @@ st.markdown("""
         left: 0;
         width: 100vw; 
         height: 100vh; 
-        background-color: #050505 !important;
+        background-color: #8a8d8f !important;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -1110,5 +1110,6 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
