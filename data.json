@@ -10,7 +10,11 @@
         "Pago_Mensual_Interes": 90.0,
         "Estado": "Activo",
         "Observaciones": "PRESTAMO BERTHA",
-        "Porc_Socio1": 15.0
+        "Porc_Socio1": 3.0,
+        "Distribucion_Socios": {
+            "Pierajuarez": 3.0,
+            "Brunotapia": 15.0
+        }
     },
     {
         "Cliente": "Stefany Pesantes",
