@@ -366,14 +366,27 @@ div[data-testid="stFormSubmitButton"] > button p {
     transform: scale(1.02);
 }
 
-/* --- TABLAS DE DATOS --- */
+/* --- TABLAS DE DATOS ESTILO MINIMALISTA --- */
 [data-testid="stDataFrame"] {
-    background-color: #111111 !important; 
-    border-radius: 10px;
-    padding: 10px;
-    border: 1px solid rgba(212, 175, 55, 0.2);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-    margin: auto; 
+    background-color: transparent !important; 
+    border: 1px solid rgba(212, 175, 55, 0.3) !important; /* Borde muy sutil */
+    box-shadow: none !important;
+    padding: 0px !important;
+}
+
+/* Encabezados de tabla */
+div[data-testid="stDataFrame"] div[role="columnheader"] {
+    background-color: #1a1a1a !important;
+    color: #D4AF37 !important;
+    font-weight: 700 !important;
+    border-bottom: 1px solid #D4AF37 !important;
+}
+
+/* Celdas normales */
+div[data-testid="stDataFrame"] div[role="gridcell"] {
+    color: #E0E0E0 !important;
+    background-color: transparent !important;
+    font-size: 14px !important;
 }
 
 /* --- ALERTAS --- */
@@ -824,6 +837,7 @@ if check_login():
         if activos:
             mapa = {f"{d['Cliente']} | Vence: {d.get('Fecha_Proximo_Pago', 'N/A')}": i for i, d in enumerate(datos) if d.get('Estado') == 'Activo'}
             col_sel1, col_sel2, col_sel3 = st.columns([1, 2, 1]) # 2 es el centro
+        
         with col_sel2:
             seleccion = st.selectbox("BUSCAR CLIENTE", list(mapa.keys()))
             
@@ -926,76 +940,91 @@ if check_login():
                 )
 
             st.write("")
-            st.markdown("### 💰 Ingreso de Dinero")
-            st.caption("Ingresa los montos exactos que recibiste.")
+            st.markdown("---")
 
-            col_pago1, col_pago2 = st.columns(2)
-            with col_pago1:
+            # --- AQUÍ CAMBIA EL DISEÑO: 2 COLUMNAS (INPUTS IZQ | SIMULACION DER) ---
+            col_izq, col_der = st.columns([1.3, 1], gap="large")
+
+            # --- COLUMNA IZQUIERDA: INPUTS Y BOTÓN ---
+            with col_izq:
+                st.markdown("### 💰 Ingreso de Dinero")
+                st.caption("Ingresa los montos exactos que recibiste.")
+
+                # Inputs de pago
                 pago_interes = st.number_input("1. ¿Cuánto pagó de INTERÉS?", 
                                                min_value=0.0, value=float(data['Pago_Mensual_Interes']), step=10.0)
-            with col_pago2:
+                
                 pago_capital = st.number_input("2. ¿Cuánto pagó de CAPITAL?", 
                                                min_value=0.0, value=0.0, step=50.0)
 
-            st.write("")
-            col_chk1, col_chk2 = st.columns([1, 3])
-            with col_chk2:
+                st.write("")
+                # Checkbox de renovación
                 sugerir_renovar = (pago_interes >= (data['Pago_Mensual_Interes'] - 5))
                 renovar = st.checkbox("📅 **¿Renovar vencimiento al próximo mes?**", value=sugerir_renovar)
 
-            interes_pendiente = data['Pago_Mensual_Interes'] - pago_interes
-            nuevo_capital = data['Monto_Capital'] - pago_capital + interes_pendiente
-            nueva_cuota = nuevo_capital * (data['Tasa_Interes'] / 100)
-            
-            nueva_fecha_pago = data['Fecha_Proximo_Pago']
-            txt_fecha_nueva = "Se mantiene igual"
-            if renovar:
-                nueva_fecha_pago = sumar_un_mes(data['Fecha_Proximo_Pago'])
-                txt_fecha_nueva = datetime.strptime(nueva_fecha_pago, "%Y-%m-%d").strftime("%d/%m/%Y")
+                # CÁLCULOS MATEMÁTICOS (Tu lógica intacta)
+                interes_pendiente = data['Pago_Mensual_Interes'] - pago_interes
+                nuevo_capital = data['Monto_Capital'] - pago_capital + interes_pendiente
+                nueva_cuota = nuevo_capital * (data['Tasa_Interes'] / 100)
+                
+                nueva_fecha_pago = data['Fecha_Proximo_Pago']
+                txt_fecha_nueva = "Se mantiene igual"
+                if renovar:
+                    nueva_fecha_pago = sumar_un_mes(data['Fecha_Proximo_Pago'])
+                    txt_fecha_nueva = datetime.strptime(nueva_fecha_pago, "%Y-%m-%d").strftime("%d/%m/%Y")
+                
+                # Input de Notas (Se muestra si se cancela la deuda)
+                nota_cierre = ""
+                if nuevo_capital <= 0:
+                    st.write("")
+                    nota_cierre = st.text_area("📝 **Notas Finales de Cierre:**", 
+                                             placeholder="Ej: Cliente canceló todo por adelantado. Muy puntual.",
+                                             help="Estas notas se verán en el Historial de Créditos.")
 
-            st.markdown("---")
-            st.markdown("#### 📊 Simulación")
-            
-            col_res1, col_res2 = st.columns(2)
-            with col_res1:
+                st.write("")
+                st.write("") # Espaciado para bajar el botón
+                if 'procesando_pago' not in st.session_state:
+                    st.session_state.procesando_pago = False
+                
+                # Botón de Guardado (Ahora en la izquierda)
+                boton_guardar = st.button("💾 PROCESAR PAGO", use_container_width=True)
+
+            # --- COLUMNA DERECHA: SIMULACIÓN VISUAL ---
+            with col_der:
+                st.markdown("### 📊 Simulación")
+                
+                # Alertas visuales
                 if interes_pendiente > 0:
                     st.warning(f"⚠️ **Faltan S/ {interes_pendiente:,.2f}** de interés.")
                 else:
                     st.success("✅ Interés cubierto.")
+                
                 if pago_capital > 0:
                     st.info(f"📉 Capital baja S/ {pago_capital:,.2f}")
 
-            with col_res2:
-                # Si la deuda es 0, mostramos un diseño especial de cancelación
+                st.write("") # Espacio visual
+
+                # Tarjetas de Resultado (Tu diseño intacto)
                 if nuevo_capital <= 0:
                     st.markdown(f"""
-                    <div style="background-color:#D4EFDF; padding:15px; border-radius:10px; border:1px solid #27AE60; text-align: center;">
-                        <h4 style="margin:0; color:#186A3B;">¡DEUDA CANCELADA!</h4>
-                        <p style="margin:0; font-weight:bold;">El capital llega S/ 0.00</p>
+                    <div style="background-color:#D4EFDF; padding:20px; border-radius:10px; border:2px solid #27AE60; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                        <h3 style="margin:0; color:#186A3B;">¡DEUDA CANCELADA!</h3>
+                        <p style="margin:5px 0; font-weight:bold; font-size:16px;">El capital llega S/ 0.00</p>
                     </div>
                     """, unsafe_allow_html=True)
                 else:
                     st.markdown(f"""
-                    <div style="background-color:#EBF5FB; padding:15px; border-radius:10px; border:1px solid #AED6F1; text-align: center;">
-                        <h4 style="margin:0; color:#1B4F72;">Nueva Deuda: S/ {nuevo_capital:,.2f}</h4>
-                        <hr style="margin:10px 0;">
-                        <p style="margin:0; font-weight:bold;">Próx. Vencimiento: {txt_fecha_nueva}</p>
+                    <div style="background-color:#EBF5FB; padding:20px; border-radius:10px; border:2px solid #AED6F1; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                        <p style="margin:0; color:#1B4F72; font-size:14px; text-transform: uppercase;">Nueva Deuda Capital</p>
+                        <h2 style="margin:5px 0; color:#2874A6;">S/ {nuevo_capital:,.2f}</h2>
+                        <hr style="margin:15px 0; border-color: rgba(0,0,0,0.1);">
+                        <p style="margin:0; font-weight:bold; color:#1B4F72;">Próx. Vencimiento:</p>
+                        <p style="margin:0; font-size:18px;">{txt_fecha_nueva}</p>
                     </div>
                     """, unsafe_allow_html=True)
             
-            # --- BLOQUE NUEVO: NOTAS DE CIERRE ---
-            nota_cierre = ""
-            if nuevo_capital <= 0:
-                st.write("")
-                nota_cierre = st.text_area("📝 **Notas Finales de Cierre:**", 
-                                         placeholder="Ej: Cliente canceló todo por adelantado. Muy puntual.",
-                                         help="Estas notas se verán en el Historial de Créditos.")
-            
-            st.write("")
-            if 'procesando_pago' not in st.session_state:
-                st.session_state.procesando_pago = False
-                
-            if st.button("💾 PROCESAR PAGO"):
+            # --- LÓGICA DE GUARDADO (Tu lógica intacta) ---
+            if boton_guardar:
                 # --- LÓGICA CORREGIDA PARA PRESERVAR EL MONTO EN EL HISTORIAL ---
                 
                 if nuevo_capital <= 0:
@@ -1550,6 +1579,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
