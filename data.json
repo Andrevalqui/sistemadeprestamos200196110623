@@ -130,6 +130,11 @@
         "Tasa_Interes": 10.0,
         "Pago_Mensual_Interes": 80.0,
         "Estado": "Activo",
-        "Observaciones": "PRESTAMO FAMILIAR"
+        "Observaciones": "PRESTAMO FAMILIAR",
+        "Distribucion_Socios": {
+            "Pierajuarez": 4.0,
+            "Brunotapia": 6.0
+        },
+        "Porc_Socio1": 4.0
     }
 ]
