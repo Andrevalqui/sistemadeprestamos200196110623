@@ -83,5 +83,17 @@
         "Estado": "Pagado",
         "Observaciones": "",
         "Fecha_Finalizacion": "2026-01-14"
+    },
+    {
+        "Cliente": "Andr\u00e9 Valqui",
+        "DNI": "70895739",
+        "Telefono": "997317288",
+        "Fecha_Prestamo": "2025-12-14",
+        "Fecha_Proximo_Pago": "2026-01-14",
+        "Monto_Capital": 750.0,
+        "Tasa_Interes": 18.0,
+        "Pago_Mensual_Interes": 135.0,
+        "Estado": "Activo",
+        "Observaciones": ""
     }
 ]
