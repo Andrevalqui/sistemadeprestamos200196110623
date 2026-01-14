@@ -630,36 +630,38 @@ def check_login():
         if "user" in q and "rol" in q:
             st.session_state.update({
                 'logged_in': True, 'usuario': q["user"], 'rol': q["rol"], 'splash_visto': True,
-                'last_active': time.time() # (NUEVO) Iniciamos reloj al recuperar sesión
+                'last_active': time.time() # Iniciamos reloj al recuperar sesión
             })
         else:
             st.session_state.update({'logged_in': False, 'usuario': '', 'rol': ''})
 
-    # 3. SI YA ESTÁ LOGUEADO (MANEJO DE SPLASH DE ENTRADA Y TIMEOUT)
+    # 3. SI YA ESTÁ LOGUEADO (VERIFICACIÓN DE SEGURIDAD Y TIMEOUT)
     if st.session_state['logged_in']:
         
-        # --- (NUEVO) CONTROL DE INACTIVIDAD (5 MINUTOS) ---
+        # --- CONTROL DE INACTIVIDAD (5 MINUTOS) ---
+        # Solo afecta al usuario actual, el Cron Job no entra aquí porque no está logueado
         if 'last_active' not in st.session_state:
             st.session_state['last_active'] = time.time()
         
-        if (time.time() - st.session_state['last_active']) > (5 * 60): # 300 segundos
+        # Si la diferencia entre AHORA y la ÚLTIMA ACCIÓN es mayor a 300 seg (5 min)
+        if (time.time() - st.session_state['last_active']) > (5 * 60): 
             st.session_state.clear()
             st.query_params.clear()
             placeholder = st.empty()
             with placeholder.container():
-                st.warning("⚠️ SESIÓN CERRADA POR SEGURIDAD (5 MIN INACTIVIDAD)")
+                # Mensaje de alerta
+                st.warning("⚠️ SESIÓN EXPIRADA: No se detectó actividad por más de 5 minutos.")
                 time.sleep(3)
             placeholder.empty()
             st.rerun()
             return False
         else:
-            st.session_state['last_active'] = time.time() # Reseteamos reloj si hay actividad
-        # ----------------------------------------------------
+            # Si hay actividad reciente, actualizamos el reloj
+            st.session_state['last_active'] = time.time() 
+        # ----------------------------------------------------------
 
         if not st.session_state.get('splash_visto'):
-            # --- SOLUCIÓN AL ERROR: DEFINIR VARIABLE NOMBRE ---
             nombre = st.session_state.get('usuario', '').upper()
-            
             placeholder = st.empty()
             with placeholder.container():
                 st.markdown(f"""
@@ -682,7 +684,7 @@ def check_login():
         return True # Entra al portal
 
     # --- 4. PANTALLA DE LOGIN (REDiseño Exclusivo) ---
-    st.write("") # Espaciado superior
+    st.write("") 
     st.write("")
     c1, c2, c3 = st.columns([1, 1.8, 1])
     with c2:
@@ -694,7 +696,6 @@ def check_login():
             </div>
         """, unsafe_allow_html=True)
         
-        # El formulario ahora vive "encima" del contenedor transparente
         with st.form("login_form"):
             usuario = st.text_input("Usuario", placeholder="Ingrese su credencial")
             password = st.text_input("Contraseña", type="password", placeholder="••••••••")
@@ -708,7 +709,7 @@ def check_login():
                     'logged_in': True, 
                     'usuario': usuario,
                     'rol': 'Admin' if usuario in st.secrets["config"]["admins"] else 'Visor',
-                    'last_active': time.time() # (NUEVO) Iniciamos reloj al loguear
+                    'last_active': time.time() # Iniciamos el reloj
                 })
                 registrar_auditoria("INICIO DE SESIÓN", f"Acceso exitoso al portal")
                 st.query_params["user"] = usuario
@@ -717,13 +718,11 @@ def check_login():
             else:
                 st.error("Credenciales no autorizadas para este nivel de acceso.")
     
-    # Footer sutil fuera del contenedor
     st.markdown("<div style='text-align: center;'><p class='footer-login'>ANDRE VALQUI SYSTEM v2.0 | ENCRIPTACIÓN DE GRADO BANCARIO</p></div>", unsafe_allow_html=True)
     return False
 
 def logout():
     registrar_auditoria("CIERRE DE SESIÓN", f"El usuario {st.session_state.get('usuario')} cerró su sesión")
-    # Activamos el estado de salida para que check_login lo detecte
     st.session_state['saliendo'] = True
     st.rerun()
 
@@ -744,7 +743,6 @@ def guardar_datos(datos, sha, mensaje):
     except Exception as e:
         st.error(f"Error de conexión: {e}")
         return False
-
 # --- 5. INTERFAZ PRINCIPAL ---
 if check_login():
     # --- SIDEBAR (Menú Lateral) ---
@@ -1600,6 +1598,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
