@@ -78,5 +78,13 @@
         "Operaci\u00f3n": "CREACI\u00d3N CR\u00c9DITO",
         "Cliente Afectado": "Tatiana Lacunza",
         "Detalle del Movimiento": "Pr\u00e9stamo de S/ 400.0"
+    },
+    {
+        "Fecha/Hora": "13/01/2026 20:03:05",
+        "Usuario": "PIERAJUAREZ",
+        "Perfil": "Admin",
+        "Operaci\u00f3n": "CREACI\u00d3N CR\u00c9DITO",
+        "Cliente Afectado": "Kelly Grados",
+        "Detalle del Movimiento": "Pr\u00e9stamo de S/ 1000.0"
     }
 ]
