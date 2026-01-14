@@ -1033,7 +1033,6 @@ if check_login():
                 <div class="luxury-subtitle">Inteligencia de Datos, Control de Activos y Gestión de Cobranza.</div>
                </div>""", unsafe_allow_html=True)
         
-        # Recuperamos 'sha' para poder guardar los cambios en el Tab 4
         datos, sha = cargar_datos()
         
         if datos:
@@ -1051,7 +1050,7 @@ if check_login():
 
             st.write("")
 
-            # --- SUBMÓDULOS DEL DASHBOARD (CON 4 TABS) ---
+            # --- SUBMÓDULOS DEL DASHBOARD (4 TABS) ---
             tab1, tab2, tab3, tab4 = st.tabs([
                 "🔔 ACCIONES DE COBRO PRIORITARIAS", 
                 "📲 CENTRO DE NOTIFICACIONES", 
@@ -1124,34 +1123,61 @@ if check_login():
                 df['Vence'] = pd.to_datetime(df['Fecha_Proximo_Pago']).dt.strftime('%d/%m/%Y')
                 st.dataframe(df[["Cliente", "Telefono", "Monto_Capital", "Pago_Mensual_Interes", "Vence", "Observaciones"]], use_container_width=True, hide_index=True)
 
-            # --- NUEVO TAB 4: LÓGICA DE SOCIOS ---
+            # --- NUEVO TAB 4: LÓGICA DE SOCIOS (CON NOMBRES Y FLEXIBILIDAD) ---
             with tab4:
                 st.markdown("### 🤝 INTERÉS POR SOCIO")
-                st.info("💡 **Nota:** Ajuste los porcentajes por cliente. El sistema recalcula automáticamente las ganancias.")
+                
+                # --- 1. CONFIGURACIÓN DINÁMICA DE NOMBRES ---
+                # Esto permite que si mañana hay un 3er socio o cambian nombres, se pueda ajustar visualmente
+                # obteniendo los usuarios del sistema o usando nombres fijos.
+                
+                with st.expander("⚙️ Configuración de Identidad de Socios (Click para ver)", expanded=False):
+                    st.caption("Aquí puede asignar qué usuario representa a cada Socio para los cálculos.")
+                    
+                    # Intentamos obtener usuarios registrados, si no hay, usamos defaults
+                    try:
+                        lista_usuarios = list(st.secrets["credenciales"].keys())
+                        # Capitalizamos para que se vea bonito
+                        lista_usuarios = [u.capitalize() for u in lista_usuarios]
+                    except:
+                        lista_usuarios = ["Admin", "Visor"]
 
-                # 1. CÁLCULOS PREVIOS
+                    c_name1, c_name2 = st.columns(2)
+                    # Lógica para seleccionar por defecto a Bruno y Piera si existen en la lista
+                    idx_bruno = next((i for i, x in enumerate(lista_usuarios) if "Bruno" in x), 0)
+                    idx_piera = next((i for i, x in enumerate(lista_usuarios) if "Piera" in x), min(1, len(lista_usuarios)-1))
+
+                    nombre_s1 = c_name1.selectbox("Nombre Socio 1 (Principal)", lista_usuarios, index=idx_bruno)
+                    nombre_s2 = c_name2.selectbox("Nombre Socio 2 (Secundario)", lista_usuarios, index=idx_piera)
+                    
+                    # Sobreescritura visual bonita (Hardcode solicitado pero en variable)
+                    # Si seleccionan el usuario 'Brunotapia', lo mostramos como 'Bruno Tapia' en las tarjetas
+                    lbl_s1 = "Bruno Tapia" if "Bruno" in nombre_s1 else nombre_s1
+                    lbl_s2 = "Piera Juarez" if "Piera" in nombre_s2 else nombre_s2
+
+                st.info(f"💡 **Nota:** Ajuste los porcentajes. La suma de **{lbl_s1}** y **{lbl_s2}** siempre igualará la Tasa Total del cliente.")
+
+                # --- 2. CÁLCULOS ---
                 total_s1 = 0.0
                 total_s2 = 0.0
                 tabla_socios = []
-                
                 opciones_clientes = []
 
                 for i, d in enumerate(datos):
                     if d.get('Estado') == 'Activo':
                         tasa_cli = float(d.get('Tasa_Interes', 0.0))
                         
-                        # Definir porcentaje Socio 1 (Si no existe, asignar default inteligente)
+                        # --- LÓGICA DE ASIGNACIÓN INTELIGENTE ---
                         if 'Porc_Socio1' not in d:
-                            # Si es la tasa estándar del 18%, default es 10%
                             if tasa_cli == 18.0:
-                                d['Porc_Socio1'] = 10.0
+                                d['Porc_Socio1'] = 10.0 # Caso estándar
                             else:
-                                # Si es otra tasa (ej. 10% familiar), asignamos todo al Socio 1 inicialmente
-                                d['Porc_Socio1'] = tasa_cli 
+                                # Caso flexible (ej. 10% familiar).
+                                # Por defecto asignamos 50/50 para ser justos inicialmente
+                                d['Porc_Socio1'] = tasa_cli / 2 
                         
                         p1 = float(d['Porc_Socio1'])
                         p2 = tasa_cli - p1
-                        
                         if p2 < 0: p2 = 0.0
 
                         ganancia_s1 = d['Monto_Capital'] * (p1 / 100)
@@ -1163,27 +1189,26 @@ if check_login():
                         tabla_socios.append({
                             "Cliente": d['Cliente'],
                             "Tasa Total": f"{tasa_cli}%",
-                            "Socio 1 (%)": f"{p1}%",
-                            "Socio 2 (%)": f"{p2:.1f}%",
-                            "Ganancia S1": ganancia_s1,
-                            "Ganancia S2": ganancia_s2
+                            f"% {lbl_s1}": f"{p1}%",
+                            f"% {lbl_s2}": f"{p2:.1f}%",
+                            f"Ganancia {lbl_s1}": ganancia_s1,
+                            f"Ganancia {lbl_s2}": ganancia_s2
                         })
-                        
                         opciones_clientes.append(f"{i} | {d['Cliente']} (Tasa: {tasa_cli}%)")
 
-                # 2. TARJETAS DE DISTRIBUCIÓN TOTAL (ARRIBA)
-                st.markdown("#### 🌍 DISTRIBUCIÓN TOTAL DE INTERESES (Toda la Cartera)")
+                # --- 3. TARJETAS TOTALES ---
+                st.markdown("#### 🌍 DISTRIBUCIÓN TOTAL DE INTERESES")
                 col_soc1, col_soc2 = st.columns(2)
                 col_soc1.markdown(f"""
                     <div class="metric-card" style="border-left: 6px solid #2980B9;">
-                        <div class="metric-title" style="color:#2980B9;">SOCIO 1 (PRINCIPAL)</div>
+                        <div class="metric-title" style="color:#2980B9;">{lbl_s1.upper()} (TOTAL)</div>
                         <div class="metric-value">S/ {total_s1:,.2f}</div>
                     </div>
                 """, unsafe_allow_html=True)
                 
                 col_soc2.markdown(f"""
                     <div class="metric-card" style="border-left: 6px solid #8E44AD;">
-                        <div class="metric-title" style="color:#8E44AD;">SOCIO 2 (SECUNDARIO)</div>
+                        <div class="metric-title" style="color:#8E44AD;">{lbl_s2.upper()} (TOTAL)</div>
                         <div class="metric-value">S/ {total_s2:,.2f}</div>
                     </div>
                 """, unsafe_allow_html=True)
@@ -1191,7 +1216,7 @@ if check_login():
                 st.write("")
                 st.markdown("---")
 
-                # 3. ZONA DE EDICIÓN Y TARJETAS POR CLIENTE
+                # --- 4. ZONA DE EDICIÓN Y TARJETAS POR CLIENTE ---
                 if opciones_clientes:
                     c_edit, c_view = st.columns([1, 2])
                     
@@ -1204,59 +1229,61 @@ if check_login():
                             item_cli = datos[idx_real]
                             tasa_max = float(item_cli['Tasa_Interes'])
                             
-                            val_slider = float(item_cli.get('Porc_Socio1', 10.0))
+                            val_slider = float(item_cli.get('Porc_Socio1', tasa_max/2))
                             if val_slider > tasa_max: val_slider = tasa_max
 
-                            # Slider dinámico
+                            # Slider dinámico (0 a Tasa Total)
                             nuevo_p1 = st.slider(
-                                "Participación Socio 1 (%)",
+                                f"Participación {lbl_s1} (%)",
                                 min_value=0.0,
                                 max_value=tasa_max,
                                 value=val_slider,
-                                step=0.5
+                                step=0.5,
+                                help=f"El porcentaje restante se asignará automáticamente a {lbl_s2}."
                             )
                             
-                            # Cálculo visual inmediato
+                            # Cálculo visual
                             nuevo_p2 = tasa_max - nuevo_p1
                             monto_calc = item_cli['Monto_Capital']
                             g1_prev = monto_calc * (nuevo_p1/100)
                             g2_prev = monto_calc * (nuevo_p2/100)
                             
-                            # --- NUEVAS TARJETAS GRANDES POR CLIENTE ---
                             st.write("")
-                            st.markdown("#### 👤 DISTRIBUCIÓN POR CLIENTE")
+                            st.markdown(f"#### 👤 DISTRIBUCIÓN: {item_cli['Cliente'].upper()}")
                             
-                            # Usamos HTML manual para replicar exactamente el estilo "Big Card" pero más compacto
+                            # TARJETAS GRANDES POR CLIENTE
                             st.markdown(f"""
                             <div style="display: flex; flex-direction: column; gap: 10px;">
-                                <div class="metric-card" style="border-left: 6px solid #2980B9; padding: 10px;">
-                                    <div class="metric-title" style="color:#2980B9; font-size:12px;">SOCIO 1 (CLIENTE)</div>
-                                    <div class="metric-value" style="font-size: 24px;">S/ {g1_prev:,.2f}</div>
+                                <div class="metric-card" style="border-left: 6px solid #2980B9; padding: 15px;">
+                                    <div class="metric-title" style="color:#2980B9; font-size:14px;">{lbl_s1.upper()}</div>
+                                    <div class="metric-value" style="font-size: 26px;">S/ {g1_prev:,.2f}</div>
+                                    <div style="font-size: 12px; color: #aaa;">Equivale al {nuevo_p1}%</div>
                                 </div>
-                                <div class="metric-card" style="border-left: 6px solid #8E44AD; padding: 10px;">
-                                    <div class="metric-title" style="color:#8E44AD; font-size:12px;">SOCIO 2 (CLIENTE)</div>
-                                    <div class="metric-value" style="font-size: 24px;">S/ {g2_prev:,.2f}</div>
+                                <div class="metric-card" style="border-left: 6px solid #8E44AD; padding: 15px;">
+                                    <div class="metric-title" style="color:#8E44AD; font-size:14px;">{lbl_s2.upper()}</div>
+                                    <div class="metric-value" style="font-size: 26px;">S/ {g2_prev:,.2f}</div>
+                                    <div style="font-size: 12px; color: #aaa;">Equivale al {nuevo_p2:.1f}%</div>
                                 </div>
                             </div>
                             """, unsafe_allow_html=True)
 
                             st.write("")
-                            if st.button("💾 GUARDAR CAMBIO"):
+                            if st.button("💾 GUARDAR DISTRIBUCIÓN"):
                                 datos[idx_real]['Porc_Socio1'] = nuevo_p1
-                                if guardar_datos(datos, sha, f"Actualizacion Intereses Socio: {item_cli['Cliente']}"):
-                                    st.success("✅ Porcentajes actualizados.")
+                                if guardar_datos(datos, sha, f"Ajuste socio {item_cli['Cliente']}: {nuevo_p1}% - {nuevo_p2}%"):
+                                    st.success("✅ Distribución actualizada.")
                                     time.sleep(1)
                                     st.rerun()
 
                     with c_view:
-                        st.markdown("#### 📊 Desglose Detallado")
+                        st.markdown("#### 📊 Tabla de Detalle")
                         st.dataframe(
                             pd.DataFrame(tabla_socios),
                             use_container_width=True,
                             hide_index=True,
                             column_config={
-                                "Ganancia S1": st.column_config.NumberColumn(format="S/ %.2f"),
-                                "Ganancia S2": st.column_config.NumberColumn(format="S/ %.2f"),
+                                f"Ganancia {lbl_s1}": st.column_config.NumberColumn(format="S/ %.2f"),
+                                f"Ganancia {lbl_s2}": st.column_config.NumberColumn(format="S/ %.2f"),
                             }
                         )
                 else:
@@ -1509,4 +1536,5 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
