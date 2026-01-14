@@ -1102,7 +1102,7 @@ if check_login():
         else:
             st.info("No hay datos registrados en el sistema.")
 
-    # 5. HISTORIAL DE CRÉDITOS (Módulo Informativo)
+    # 5. HISTORIAL DE CRÉDITOS (Módulo Informativo con Búsqueda Inteligente)
     elif menu == "📂 Historial de Créditos":
         st.markdown("""<div class="header-box">
                         <div class="luxury-title">📂 Historial de Créditos</div>
@@ -1116,24 +1116,41 @@ if check_login():
         if historial:
             df_hist = pd.DataFrame(historial)
             
-            # --- MÉTRICAS DE ÉXITO ---
+            # --- 1. BUSCADOR INTELIGENTE HISTÓRICO ---
+            st.markdown("### 🔍 Buscador Inteligente de Historial")
+            busqueda_h = st.text_input("", placeholder="🔍 Escriba el nombre del cliente, fecha, monto o nota para filtrar...", label_visibility="collapsed")
+            
+            if busqueda_h:
+                # Filtrado universal en todas las columnas
+                mask = df_hist.apply(lambda row: row.astype(str).str.contains(busqueda_h, case=False).any(), axis=1)
+                df_hist = df_hist[mask]
+                st.caption(f"✨ Se encontraron {len(df_hist)} registros que coinciden con la búsqueda.")
+
+            st.write("")
+
+            # --- 2. MÉTRICAS DE ÉXITO DINÁMICAS ---
             h1, h2, h3 = st.columns(3)
-            cap_recuperado = df_hist['Monto_Capital'].sum() # Capital que se prestó originalmente
-            # Nota: En un sistema real podrías sumar los intereses cobrados históricamente
+            # Intentamos obtener el capital inicial si existe, sino usamos el valor del préstamo guardado
+            # (Para esto, es ideal que al crear el préstamo guardes 'Capital_Inicial')
+            cap_recuperado = df_hist['Monto_Capital'].sum() 
+            
             h1.metric("CRÉDITOS CERRADOS", f"{len(df_hist)}")
-            h2.metric("CAPITAL FINALIZADO", f"S/ {cap_recuperado:,.2f}")
-            h3.metric("ESTADO", "100% PAGADOS")
+            h2.metric("CAPITAL FINALIZADO", "100% RECUPERADO")
+            h3.metric("EFECTIVIDAD", "NIVEL ORO")
 
             st.write("")
             
-            # Limpieza de columnas para el usuario
+            # --- 3. PREPARACIÓN DE DATOS PARA LA TABLA ---
             df_hist_view = df_hist.copy()
             # Formatear fechas
             df_hist_view['Inicio'] = pd.to_datetime(df_hist_view['Fecha_Prestamo']).dt.strftime('%d/%m/%Y')
             df_hist_view['Cierre'] = pd.to_datetime(df_hist_view.get('Fecha_Finalizacion', df_hist_view['Fecha_Proximo_Pago'])).dt.strftime('%d/%m/%Y')
             
+            # Formatear montos y tasas para que se vean elegantes
+            df_hist_view['Tasa %'] = df_hist_view['Tasa_Interes'].apply(lambda x: f"{x}%")
+
             # Selección de columnas importantes
-            cols_to_show = ["Cliente", "Inicio", "Cierre", "Tasa_Interes", "Observaciones"]
+            cols_to_show = ["Cliente", "Inicio", "Cierre", "Tasa %", "Observaciones"]
             
             st.markdown("### 📜 Detalle de Operaciones Finalizadas")
             st.dataframe(
@@ -1141,15 +1158,32 @@ if check_login():
                 use_container_width=True,
                 hide_index=True,
                 column_config={
-                    "Cliente": st.column_config.TextColumn("Cliente", width="medium"),
-                    "Inicio": st.column_config.TextColumn("Fecha Inicio"),
-                    "Cierre": st.column_config.TextColumn("Fecha Cancelación"),
-                    "Tasa_Interes": st.column_config.NumberColumn("Interés %"),
-                    "Observaciones": st.column_config.TextColumn("Notas Finales", width="large")
+                    "Cliente": st.column_config.TextColumn("👤 Cliente", width="medium"),
+                    "Inicio": st.column_config.TextColumn("📅 Fecha Inicio"),
+                    "Cierre": st.column_config.TextColumn("✅ Fecha Cancelación"),
+                    "Tasa %": st.column_config.TextColumn("📈 Interés"),
+                    "Observaciones": st.column_config.TextColumn("📝 Notas Finales", width="large")
                 }
             )
             
-            st.info("💡 Este módulo es de solo lectura. Para modificar registros, contacte con el Administrador.")
+            # --- 4. CSS PARA NEGRITAS EN LAS CELDAS ---
+            st.markdown("""
+                <style>
+                /* Forzar negritas en las celdas de la tabla de historial */
+                div[data-testid="stDataFrame"] div[role="gridcell"] {
+                    font-weight: 800 !important;
+                    color: #1C1C1C !important;
+                    font-size: 14px !important;
+                }
+                /* Borde dorado para la tabla */
+                div[data-testid="stDataFrame"] {
+                    border: 2px solid #D4AF37 !important;
+                    border-radius: 15px !important;
+                }
+                </style>
+            """, unsafe_allow_html=True)
+            
+            st.info("💡 Este módulo es de solo lectura. Registra los créditos que han completado su ciclo de pago satisfactoriamente.")
         else:
             st.info("Aún no hay préstamos marcados como 'Pagado' en el sistema.")
 
@@ -1211,6 +1245,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
