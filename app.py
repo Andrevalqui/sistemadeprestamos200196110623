@@ -1033,7 +1033,7 @@ if check_login():
                 <div class="luxury-subtitle">Inteligencia de Datos, Control de Activos y Gestión de Cobranza.</div>
                </div>""", unsafe_allow_html=True)
         
-        # CAMBIO NECESARIO: Recuperamos 'sha' para poder guardar los cambios en el Tab 4
+        # Recuperamos 'sha' para poder guardar los cambios en el Tab 4
         datos, sha = cargar_datos()
         
         if datos:
@@ -1051,7 +1051,7 @@ if check_login():
 
             st.write("")
 
-            # --- SUBMÓDULOS DEL DASHBOARD (AHORA CON 4 TABS) ---
+            # --- SUBMÓDULOS DEL DASHBOARD (CON 4 TABS) ---
             tab1, tab2, tab3, tab4 = st.tabs([
                 "🔔 ACCIONES DE COBRO PRIORITARIAS", 
                 "📲 CENTRO DE NOTIFICACIONES", 
@@ -1061,8 +1061,6 @@ if check_login():
 
             with tab1:
                 st.markdown("### 🔔 ALERTAS DE COBRANZA")
-                
-                # Columnas para organizar las alertas visuales
                 col_alert1, col_alert2 = st.columns([1, 1])
                 
                 avisos_hoy = []
@@ -1078,7 +1076,6 @@ if check_login():
                     elif dias == 0:
                         avisos_hoy.append(f"<div class='alert-box alert-warning'>⚠️ COBRAR HOY: {r['Cliente']} - S/ {r['Pago_Mensual_Interes']:,.2f}</div>")
                     elif dias <= 5:
-                        # COLOR MARRÓN PARA < 5 DÍAS
                         alertas_proximas.append(f"<div class='alert-box' style='background-color:#EFEBE9; color:#5D4037; border:1px solid #5D4037;'>🕒 PRÓXIMO: {r['Cliente']} (En {dias} días)</div>")
 
                 with col_alert1:
@@ -1129,15 +1126,14 @@ if check_login():
 
             # --- NUEVO TAB 4: LÓGICA DE SOCIOS ---
             with tab4:
-                st.markdown("### 🤝 DISTRIBUCIÓN DE INTERESES POR SOCIO")
-                st.info("💡 **Nota:** La suma de los porcentajes de ambos socios siempre igualará la Tasa de Interés total asignada a cada cliente.")
+                st.markdown("### 🤝 INTERÉS POR SOCIO")
+                st.info("💡 **Nota:** Ajuste los porcentajes por cliente. El sistema recalcula automáticamente las ganancias.")
 
                 # 1. CÁLCULOS PREVIOS
                 total_s1 = 0.0
                 total_s2 = 0.0
                 tabla_socios = []
                 
-                # Mapeo para el Selectbox (Indice | Cliente | Tasa)
                 opciones_clientes = []
 
                 for i, d in enumerate(datos):
@@ -1150,13 +1146,12 @@ if check_login():
                             if tasa_cli == 18.0:
                                 d['Porc_Socio1'] = 10.0
                             else:
-                                # Si es otra tasa (ej. 10% familiar), asignamos todo al Socio 1 inicialmente para que editen
+                                # Si es otra tasa (ej. 10% familiar), asignamos todo al Socio 1 inicialmente
                                 d['Porc_Socio1'] = tasa_cli 
                         
                         p1 = float(d['Porc_Socio1'])
                         p2 = tasa_cli - p1
                         
-                        # Asegurar que no sea negativo por errores de redondeo
                         if p2 < 0: p2 = 0.0
 
                         ganancia_s1 = d['Monto_Capital'] * (p1 / 100)
@@ -1169,14 +1164,15 @@ if check_login():
                             "Cliente": d['Cliente'],
                             "Tasa Total": f"{tasa_cli}%",
                             "Socio 1 (%)": f"{p1}%",
-                            "Socio 2 (%)": f"{p2:.1f}%",  # Redondeo visual
+                            "Socio 2 (%)": f"{p2:.1f}%",
                             "Ganancia S1": ganancia_s1,
                             "Ganancia S2": ganancia_s2
                         })
                         
                         opciones_clientes.append(f"{i} | {d['Cliente']} (Tasa: {tasa_cli}%)")
 
-                # 2. MOSTRAR MÉTRICAS DE SOCIOS
+                # 2. TARJETAS DE DISTRIBUCIÓN TOTAL (ARRIBA)
+                st.markdown("#### 🌍 DISTRIBUCIÓN TOTAL DE INTERESES (Toda la Cartera)")
                 col_soc1, col_soc2 = st.columns(2)
                 col_soc1.markdown(f"""
                     <div class="metric-card" style="border-left: 6px solid #2980B9;">
@@ -1195,7 +1191,7 @@ if check_login():
                 st.write("")
                 st.markdown("---")
 
-                # 3. ZONA DE EDICIÓN
+                # 3. ZONA DE EDICIÓN Y TARJETAS POR CLIENTE
                 if opciones_clientes:
                     c_edit, c_view = st.columns([1, 2])
                     
@@ -1208,11 +1204,10 @@ if check_login():
                             item_cli = datos[idx_real]
                             tasa_max = float(item_cli['Tasa_Interes'])
                             
-                            # Valor actual del slider
                             val_slider = float(item_cli.get('Porc_Socio1', 10.0))
                             if val_slider > tasa_max: val_slider = tasa_max
 
-                            # Slider dinámico (Tope es la tasa del cliente)
+                            # Slider dinámico
                             nuevo_p1 = st.slider(
                                 "Participación Socio 1 (%)",
                                 min_value=0.0,
@@ -1227,8 +1222,25 @@ if check_login():
                             g1_prev = monto_calc * (nuevo_p1/100)
                             g2_prev = monto_calc * (nuevo_p2/100)
                             
-                            st.caption(f"**Resultado:** Socio 1: S/ {g1_prev:,.2f} | Socio 2: S/ {g2_prev:,.2f}")
+                            # --- NUEVAS TARJETAS GRANDES POR CLIENTE ---
+                            st.write("")
+                            st.markdown("#### 👤 DISTRIBUCIÓN POR CLIENTE")
+                            
+                            # Usamos HTML manual para replicar exactamente el estilo "Big Card" pero más compacto
+                            st.markdown(f"""
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                <div class="metric-card" style="border-left: 6px solid #2980B9; padding: 10px;">
+                                    <div class="metric-title" style="color:#2980B9; font-size:12px;">SOCIO 1 (CLIENTE)</div>
+                                    <div class="metric-value" style="font-size: 24px;">S/ {g1_prev:,.2f}</div>
+                                </div>
+                                <div class="metric-card" style="border-left: 6px solid #8E44AD; padding: 10px;">
+                                    <div class="metric-title" style="color:#8E44AD; font-size:12px;">SOCIO 2 (CLIENTE)</div>
+                                    <div class="metric-value" style="font-size: 24px;">S/ {g2_prev:,.2f}</div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
 
+                            st.write("")
                             if st.button("💾 GUARDAR CAMBIO"):
                                 datos[idx_real]['Porc_Socio1'] = nuevo_p1
                                 if guardar_datos(datos, sha, f"Actualizacion Intereses Socio: {item_cli['Cliente']}"):
@@ -1497,3 +1509,4 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
