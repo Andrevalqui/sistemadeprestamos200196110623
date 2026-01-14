@@ -15,6 +15,16 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+/* --- 1. FONDO BLANCO Y ESTRUCTURA LIMPIA --- */
+    html, body, [class*="css"] {
+        font-family: 'Roboto', sans-serif;
+        background-color: #FFFFFF; 
+    }
+
+    .stApp {
+        background-color: #FFFFFF !important;
+    }
+
 /* --- 2. CENTRADO ESPECÍFICO DE ETIQUETAS (NOMBRE, DNI, ETC) --- */
     /* Solo centra el texto guía arriba de los cuadros, sin mover los cuadros de su lugar */
     div[data-testid="stWidgetLabel"] p {
@@ -1242,6 +1252,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
