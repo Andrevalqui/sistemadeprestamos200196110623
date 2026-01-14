@@ -34,7 +34,22 @@ st.markdown("""
     /* --- CENTRADO GLOBAL FORZADO --- */
     h1, h2, h3, h4, h5, h6, .stMarkdown, p, label {
         text-align: center !important;
-        color: #D4AF37 !important; /* TEXTO DORADO POR DEFECTO */
+        color: #D4AF37 !important; 
+        font-weight: 800 !important;
+    }
+
+    /* --- MEJORA DE SUBMÓDULOS (TABS): CENTRADOS Y GRANDES --- */
+    div[data-baseweb="tab-list"] {
+        display: flex !important;
+        justify-content: center !important; /* ESTO LOS CENTRA */
+        gap: 50px !important;
+        background-color: transparent !important;
+    }
+
+    button[data-baseweb="tab"] {
+        font-size: 24px !important; /* LETRAS MÁS GRANDES */
+        font-weight: 900 !important; /* NEGRITA EXTREMA */
+        color: #D4AF37 !important;
     }
   
     /* --- MÉTRICAS DORADAS CENTRADAS --- */
@@ -335,8 +350,8 @@ st.markdown("""
 
     .luxury-subtitle {
         font-family: 'Roboto', sans-serif !important;
-        color: #D4AF37 !important; /* CAMBIO A DORADO */
-        font-size: 14px !important;
+        color: #FFFFFF !important; /* CAMBIA A BLANCO PURO */
+        font-size: 16px !important;
         font-weight: 800 !important; 
         letter-spacing: 3px !important;
         text-transform: uppercase !important;
@@ -345,8 +360,8 @@ st.markdown("""
 
     /* Sidebar */
     [data-testid="stSidebar"] {
-        background-color: #6d7072 !important;
-        border-right: 1px solid rgba(212, 175, 55, 0.2);
+        background-color: #05080d !important; /* Azul casi negro */
+        border-right: 2px solid #D4AF37 !important;
     }
     
     </style>
@@ -1110,6 +1125,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
