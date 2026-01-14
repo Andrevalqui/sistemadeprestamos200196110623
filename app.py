@@ -20,15 +20,15 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-/* --- 1. ENCABEZADOS Y TEXTO ESTRATÉGICO --- */
+/* --- 1. ENCABEZADOS SIEMPRE CENTRADOS --- */
 h1, h2, h3, h4, h5, h6, .stMarkdown {
     text-align: center !important;
     color: #D4AF37 !important;
     font-weight: 800 !important;
 }
 
-/* --- 2. CENTRAR SOLO LAS LETRAS DE LOS TÍTULOS (LABELS) --- */
-/* Esto centra el texto "¿Cuánto pagó de...?" pero NO deforma el cuadro de abajo */
+/* --- 2. CENTRAR SOLO LAS LETRAS DE LOS TÍTULOS DE LOS CAMPOS --- */
+/* Esto centrará "Nombre Completo", "DNI", etc., pero NO el contenido de los cuadros */
 [data-testid="stWidgetLabel"] {
     display: flex !important;
     justify-content: center !important;
@@ -40,10 +40,10 @@ h1, h2, h3, h4, h5, h6, .stMarkdown {
     color: #D4AF37 !important;
     font-weight: 800 !important;
     text-transform: uppercase !important;
-    margin-bottom: 5px !important;
+    margin-bottom: 8px !important;
 }
 
-/* Asegurar que el texto DENTRO de los inputs NO se centre (mantiene orden) */
+/* Evitar que el texto que escribes dentro de los cuadros se mueva al centro */
 div[data-baseweb="input"] input {
     text-align: left !important;
 }
@@ -453,7 +453,7 @@ div[data-testid="stSidebar"] div[role="radiogroup"] [aria-checked="true"] div::a
 
 # --- 3. FUNCIONES DE LÓGICA DE CALENDARIO ---
 def sumar_un_mes(fecha_str):
-    """Suma 1 mes exacto respetando si el mes siguiente tiene menos días (ej: 31 Enero -> 28 Febrero)"""
+    """Suma 1 mes exacto manteniendo el mismo día (ej: 13/01 -> 13/02)"""
     fecha_dt = datetime.strptime(fecha_str, "%Y-%m-%d")
     mes_nuevo = fecha_dt.month + 1
     anio_nuevo = fecha_dt.year
@@ -462,10 +462,11 @@ def sumar_un_mes(fecha_str):
         mes_nuevo = 1
         anio_nuevo += 1
     
-    # Obtener el último día del nuevo mes
+    # Obtener el último día del mes destino (por si es 31 y pasamos a un mes de 30)
     _, ult_dia_mes = calendar.monthrange(anio_nuevo, mes_nuevo)
     
-    # Si el día original es 31, pero el nuevo mes tiene 28, usamos 28.
+    # Si el día original es 31, pero el nuevo mes tiene 30, se pone 30.
+    # Pero si es 13, se mantendrá 13.
     dia_nuevo = min(fecha_dt.day, ult_dia_mes)
     
     return datetime(anio_nuevo, mes_nuevo, dia_nuevo).strftime("%Y-%m-%d")
@@ -1281,5 +1282,6 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
