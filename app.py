@@ -1055,9 +1055,10 @@ if check_login():
                 "🔔 ACCIONES DE COBRO PRIORITARIAS", 
                 "📲 CENTRO DE NOTIFICACIONES", 
                 "📋 CARTERA DE CLIENTES",
-                "🤝 INTERÉS POR SOCIO"
+                "🤝 INTERÉS MULTI-SOCIO"
             ])
 
+            # --- TAB 1 (INTACTO) ---
             with tab1:
                 st.markdown("### 🔔 ALERTAS DE COBRANZA")
                 col_alert1, col_alert2 = st.columns([1, 1])
@@ -1088,6 +1089,7 @@ if check_login():
                         for a in alertas_proximas: st.markdown(a, unsafe_allow_html=True)
                     else: st.caption("No hay vencimientos cercanos (< 5 días).")
 
+            # --- TAB 2 (INTACTO) ---
             with tab2:
                 st.markdown("### 📲 CENTRO DE NOTIFICACIONES PREMIUM")
                 n1, n2, n3 = st.columns(3)
@@ -1118,177 +1120,187 @@ if check_login():
                         link = generar_link_whatsapp(c['tel'], c['nombre'], c['monto'], c['fecha'], "recordatorio")
                         st.markdown(f'<a href="{link}" target="_blank" class="wa-button">📲 Notificar {c["nombre"]}</a>', unsafe_allow_html=True)
 
+            # --- TAB 3 (INTACTO) ---
             with tab3:
                 st.markdown("### 📋 CARTERA DE CLIENTES ACTIVA")
                 df['Vence'] = pd.to_datetime(df['Fecha_Proximo_Pago']).dt.strftime('%d/%m/%Y')
                 st.dataframe(df[["Cliente", "Telefono", "Monto_Capital", "Pago_Mensual_Interes", "Vence", "Observaciones"]], use_container_width=True, hide_index=True)
 
-            # --- NUEVO TAB 4: LÓGICA DE SOCIOS (CON NOMBRES Y FLEXIBILIDAD) ---
+            # --- TAB 4: LÓGICA MULTI-SOCIOS ESCALABLE ---
             with tab4:
-                st.markdown("### 🤝 INTERÉS POR SOCIO")
+                st.markdown("### 🤝 GESTIÓN MULTI-SOCIO")
                 
-                # --- 1. CONFIGURACIÓN DINÁMICA DE NOMBRES ---
-                # Esto permite que si mañana hay un 3er socio o cambian nombres, se pueda ajustar visualmente
-                # obteniendo los usuarios del sistema o usando nombres fijos.
+                # 1. DEFINIR QUIÉNES SON LOS SOCIOS ACTIVOS
+                # Intentamos sacar la lista de tus credenciales o usamos una lista base
+                try:
+                    usuarios_sistema = list(st.secrets["credenciales"].keys())
+                    # Convertimos a formato Título (ej: brunotapia -> Bruno Tapia)
+                    # Aquí puedes mapear nombres específicos si quieres
+                    mapa_nombres = {
+                        "brunotapia": "Bruno Tapia",
+                        "pierajuarez": "Piera Juarez"
+                    }
+                    lista_nombres = [mapa_nombres.get(u, u.capitalize()) for u in usuarios_sistema]
+                except:
+                    lista_nombres = ["Bruno Tapia", "Piera Juarez"]
+
+                with st.expander("⚙️ Seleccionar Socios Activos (Click aquí)", expanded=False):
+                    st.info("Seleccione todos los socios que participan en la repartición de intereses.")
+                    # Por defecto seleccionamos a los 2 principales
+                    defaults = [n for n in lista_nombres if "Bruno" in n or "Piera" in n]
+                    if not defaults: defaults = lista_nombres[:2]
+                    
+                    socios_seleccionados = st.multiselect("Socios:", lista_nombres, default=defaults)
                 
-                with st.expander("⚙️ Configuración de Identidad de Socios (Click para ver)", expanded=False):
-                    st.caption("Aquí puede asignar qué usuario representa a cada Socio para los cálculos.")
-                    
-                    # Intentamos obtener usuarios registrados, si no hay, usamos defaults
-                    try:
-                        lista_usuarios = list(st.secrets["credenciales"].keys())
-                        # Capitalizamos para que se vea bonito
-                        lista_usuarios = [u.capitalize() for u in lista_usuarios]
-                    except:
-                        lista_usuarios = ["Admin", "Visor"]
+                if not socios_seleccionados:
+                    st.warning("⚠️ Seleccione al menos un socio para ver los cálculos.")
+                    st.stop()
 
-                    c_name1, c_name2 = st.columns(2)
-                    # Lógica para seleccionar por defecto a Bruno y Piera si existen en la lista
-                    idx_bruno = next((i for i, x in enumerate(lista_usuarios) if "Bruno" in x), 0)
-                    idx_piera = next((i for i, x in enumerate(lista_usuarios) if "Piera" in x), min(1, len(lista_usuarios)-1))
-
-                    nombre_s1 = c_name1.selectbox("Nombre Socio 1 (Principal)", lista_usuarios, index=idx_bruno)
-                    nombre_s2 = c_name2.selectbox("Nombre Socio 2 (Secundario)", lista_usuarios, index=idx_piera)
-                    
-                    # Sobreescritura visual bonita (Hardcode solicitado pero en variable)
-                    # Si seleccionan el usuario 'Brunotapia', lo mostramos como 'Bruno Tapia' en las tarjetas
-                    lbl_s1 = "Bruno Tapia" if "Bruno" in nombre_s1 else nombre_s1
-                    lbl_s2 = "Piera Juarez" if "Piera" in nombre_s2 else nombre_s2
-
-                st.info(f"💡 **Nota:** Ajuste los porcentajes. La suma de **{lbl_s1}** y **{lbl_s2}** siempre igualará la Tasa Total del cliente.")
-
-                # --- 2. CÁLCULOS ---
-                total_s1 = 0.0
-                total_s2 = 0.0
-                tabla_socios = []
+                # 2. CÁLCULO DE TOTALES (Iteración sobre datos)
+                # Estructura para acumular: {'Bruno Tapia': 0.0, 'Piera Juarez': 0.0}
+                acumulado = {s: 0.0 for s in socios_seleccionados}
+                tabla_resumen = []
                 opciones_clientes = []
 
                 for i, d in enumerate(datos):
                     if d.get('Estado') == 'Activo':
                         tasa_cli = float(d.get('Tasa_Interes', 0.0))
                         
-                        # --- LÓGICA DE ASIGNACIÓN INTELIGENTE ---
-                        if 'Porc_Socio1' not in d:
-                            if tasa_cli == 18.0:
-                                d['Porc_Socio1'] = 10.0 # Caso estándar
+                        # --- LÓGICA DE RECUPERACIÓN DE DATOS (COMPATIBILIDAD) ---
+                        # Buscamos si ya tiene un diccionario de distribución guardado
+                        distribucion = d.get('Distribucion_Socios', {})
+                        
+                        # Si no existe (es dato antiguo) o faltan socios nuevos, recalculamos defaults
+                        # Si es dato antiguo con 'Porc_Socio1', intentamos usarlo
+                        if not distribucion:
+                            if 'Porc_Socio1' in d and len(socios_seleccionados) == 2:
+                                # Lógica compatible con lo anterior
+                                p1 = float(d['Porc_Socio1'])
+                                p2 = tasa_cli - p1
+                                # Asignamos al primero y segundo de la lista actual
+                                distribucion = {socios_seleccionados[0]: p1, socios_seleccionados[1]: p2}
                             else:
-                                # Caso flexible (ej. 10% familiar).
-                                # Por defecto asignamos 50/50 para ser justos inicialmente
-                                d['Porc_Socio1'] = tasa_cli / 2 
+                                # Si no hay datos previos o son más de 2 socios, dividimos equitativamente
+                                pct_base = tasa_cli / len(socios_seleccionados)
+                                distribucion = {s: pct_base for s in socios_seleccionados}
                         
-                        p1 = float(d['Porc_Socio1'])
-                        p2 = tasa_cli - p1
-                        if p2 < 0: p2 = 0.0
-
-                        ganancia_s1 = d['Monto_Capital'] * (p1 / 100)
-                        ganancia_s2 = d['Monto_Capital'] * (p2 / 100)
+                        # Guardamos datos calculados para la tabla visual
+                        fila_tabla = {"Cliente": d['Cliente'], "Tasa Total": f"{tasa_cli}%"}
                         
-                        total_s1 += ganancia_s1
-                        total_s2 += ganancia_s2
+                        for socio in socios_seleccionados:
+                            pct = float(distribucion.get(socio, 0.0))
+                            ganancia = d['Monto_Capital'] * (pct / 100)
+                            
+                            acumulado[socio] = acumulado.get(socio, 0.0) + ganancia
+                            
+                            fila_tabla[f"% {socio}"] = f"{pct:.1f}%"
+                            fila_tabla[f"$ {socio}"] = ganancia # Valor numérico para config
                         
-                        tabla_socios.append({
-                            "Cliente": d['Cliente'],
-                            "Tasa Total": f"{tasa_cli}%",
-                            f"% {lbl_s1}": f"{p1}%",
-                            f"% {lbl_s2}": f"{p2:.1f}%",
-                            f"Ganancia {lbl_s1}": ganancia_s1,
-                            f"Ganancia {lbl_s2}": ganancia_s2
-                        })
+                        tabla_resumen.append(fila_tabla)
                         opciones_clientes.append(f"{i} | {d['Cliente']} (Tasa: {tasa_cli}%)")
 
-                # --- 3. TARJETAS TOTALES ---
-                st.markdown("#### 🌍 DISTRIBUCIÓN TOTAL DE INTERESES")
-                col_soc1, col_soc2 = st.columns(2)
-                col_soc1.markdown(f"""
-                    <div class="metric-card" style="border-left: 6px solid #2980B9;">
-                        <div class="metric-title" style="color:#2980B9;">{lbl_s1.upper()} (TOTAL)</div>
-                        <div class="metric-value">S/ {total_s1:,.2f}</div>
-                    </div>
-                """, unsafe_allow_html=True)
+                # 3. TARJETAS DE TOTALES (DINÁMICAS PARA N SOCIOS)
+                st.markdown("#### 🌍 GANANCIAS TOTALES ACUMULADAS")
                 
-                col_soc2.markdown(f"""
-                    <div class="metric-card" style="border-left: 6px solid #8E44AD;">
-                        <div class="metric-title" style="color:#8E44AD;">{lbl_s2.upper()} (TOTAL)</div>
-                        <div class="metric-value">S/ {total_s2:,.2f}</div>
-                    </div>
-                """, unsafe_allow_html=True)
+                # Creamos tantas columnas como socios haya
+                cols = st.columns(len(socios_seleccionados))
+                colores = ["#2980B9", "#8E44AD", "#27AE60", "#D35400", "#C0392B"] # Lista de colores para rotar
 
-                st.write("")
+                for idx, socio in enumerate(socios_seleccionados):
+                    color_actual = colores[idx % len(colores)]
+                    monto_total = acumulado[socio]
+                    with cols[idx]:
+                        st.markdown(f"""
+                        <div class="metric-card" style="border-left: 6px solid {color_actual}; margin-bottom:10px;">
+                            <div class="metric-title" style="color:{color_actual}; font-size:13px;">{socio.upper()}</div>
+                            <div class="metric-value" style="font-size: 20px;">S/ {monto_total:,.2f}</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+
                 st.markdown("---")
 
-                # --- 4. ZONA DE EDICIÓN Y TARJETAS POR CLIENTE ---
+                # 4. ZONA DE EDICIÓN
                 if opciones_clientes:
                     c_edit, c_view = st.columns([1, 2])
                     
                     with c_edit:
-                        st.markdown("#### 🛠️ Configurar Porcentajes")
-                        seleccion = st.selectbox("Seleccione Cliente:", opciones_clientes)
+                        st.markdown("#### 🛠️ Configurar Repartición")
+                        seleccion = st.selectbox("Cliente a editar:", opciones_clientes)
                         
                         if seleccion:
                             idx_real = int(seleccion.split(" | ")[0])
                             item_cli = datos[idx_real]
                             tasa_max = float(item_cli['Tasa_Interes'])
                             
-                            val_slider = float(item_cli.get('Porc_Socio1', tasa_max/2))
-                            if val_slider > tasa_max: val_slider = tasa_max
-
-                            # Slider dinámico (0 a Tasa Total)
-                            nuevo_p1 = st.slider(
-                                f"Participación {lbl_s1} (%)",
-                                min_value=0.0,
-                                max_value=tasa_max,
-                                value=val_slider,
-                                step=0.5,
-                                help=f"El porcentaje restante se asignará automáticamente a {lbl_s2}."
-                            )
+                            st.info(f"💰 Tasa a repartir: **{tasa_max}%**")
                             
-                            # Cálculo visual
-                            nuevo_p2 = tasa_max - nuevo_p1
-                            monto_calc = item_cli['Monto_Capital']
-                            g1_prev = monto_calc * (nuevo_p1/100)
-                            g2_prev = monto_calc * (nuevo_p2/100)
+                            # Recuperamos la distribución actual de ese cliente
+                            dist_actual_cli = item_cli.get('Distribucion_Socios', {})
+                            
+                            nuevos_valores = {}
+                            suma_actual = 0.0
+                            
+                            # Generamos un INPUT por cada socio
+                            for s in socios_seleccionados:
+                                # Valor por defecto (si no existe, dividimos equitativamente)
+                                val_def = float(dist_actual_cli.get(s, tasa_max / len(socios_seleccionados)))
+                                
+                                val = st.number_input(f"% para {s}", min_value=0.0, max_value=tasa_max, value=val_def, step=0.1, key=f"input_{s}")
+                                nuevos_valores[s] = val
+                                suma_actual += val
+                            
+                            # VALIDACIÓN MATEMÁTICA
+                            diff = tasa_max - suma_actual
                             
                             st.write("")
-                            st.markdown(f"#### 👤 DISTRIBUCIÓN: {item_cli['Cliente'].upper()}")
-                            
-                            # TARJETAS GRANDES POR CLIENTE
-                            st.markdown(f"""
-                            <div style="display: flex; flex-direction: column; gap: 10px;">
-                                <div class="metric-card" style="border-left: 6px solid #2980B9; padding: 15px;">
-                                    <div class="metric-title" style="color:#2980B9; font-size:14px;">{lbl_s1.upper()}</div>
-                                    <div class="metric-value" style="font-size: 26px;">S/ {g1_prev:,.2f}</div>
-                                    <div style="font-size: 12px; color: #aaa;">Equivale al {nuevo_p1}%</div>
-                                </div>
-                                <div class="metric-card" style="border-left: 6px solid #8E44AD; padding: 15px;">
-                                    <div class="metric-title" style="color:#8E44AD; font-size:14px;">{lbl_s2.upper()}</div>
-                                    <div class="metric-value" style="font-size: 26px;">S/ {g2_prev:,.2f}</div>
-                                    <div style="font-size: 12px; color: #aaa;">Equivale al {nuevo_p2:.1f}%</div>
-                                </div>
-                            </div>
-                            """, unsafe_allow_html=True)
+                            if abs(diff) < 0.01: # Margen de error por decimales
+                                st.success("✅ ¡La distribución es exacta!")
+                                
+                                # PREVISUALIZACIÓN DE DINERO (TARJETAS GRANDES POR CLIENTE)
+                                st.markdown("##### 👤 Resultado Financiero:")
+                                for idx, s in enumerate(socios_seleccionados):
+                                    g = item_cli['Monto_Capital'] * (nuevos_valores[s] / 100)
+                                    color_actual = colores[idx % len(colores)]
+                                    
+                                    # Tarjeta mini manual
+                                    st.markdown(f"""
+                                    <div style="border-left: 4px solid {color_actual}; background-color: #1a1a1a; padding: 10px; margin-bottom: 5px; border-radius: 5px;">
+                                        <span style="color:{color_actual}; font-weight:bold;">{s}:</span> 
+                                        <span style="color:white; float:right;">S/ {g:,.2f}</span>
+                                    </div>
+                                    """, unsafe_allow_html=True)
 
-                            st.write("")
-                            if st.button("💾 GUARDAR DISTRIBUCIÓN"):
-                                datos[idx_real]['Porc_Socio1'] = nuevo_p1
-                                if guardar_datos(datos, sha, f"Ajuste socio {item_cli['Cliente']}: {nuevo_p1}% - {nuevo_p2}%"):
-                                    st.success("✅ Distribución actualizada.")
-                                    time.sleep(1)
-                                    st.rerun()
+                                if st.button("💾 GUARDAR CAMBIOS"):
+                                    # Guardamos el diccionario completo
+                                    datos[idx_real]['Distribucion_Socios'] = nuevos_valores
+                                    # Mantenemos Porc_Socio1 solo por si acaso quieres volver atrás, usando el primer socio
+                                    datos[idx_real]['Porc_Socio1'] = list(nuevos_valores.values())[0]
+                                    
+                                    if guardar_datos(datos, sha, f"Reparticion socios {item_cli['Cliente']}"):
+                                        st.balloons()
+                                        time.sleep(1)
+                                        st.rerun()
+                            else:
+                                if diff > 0:
+                                    st.warning(f"⚠️ Faltan asignar **{diff:.1f}%** para llegar al {tasa_max}%.")
+                                else:
+                                    st.error(f"⛔ Te has pasado por **{abs(diff):.1f}%**. Ajusta los valores.")
+                                
+                                st.button("💾 GUARDAR (Bloqueado)", disabled=True)
 
                     with c_view:
                         st.markdown("#### 📊 Tabla de Detalle")
+                        # Configuración dinámica de columnas
+                        col_config = {f"$ {s}": st.column_config.NumberColumn(f"Ganancia {s.split()[0]}", format="S/ %.2f") for s in socios_seleccionados}
+                        
                         st.dataframe(
-                            pd.DataFrame(tabla_socios),
+                            pd.DataFrame(tabla_resumen),
                             use_container_width=True,
                             hide_index=True,
-                            column_config={
-                                f"Ganancia {lbl_s1}": st.column_config.NumberColumn(format="S/ %.2f"),
-                                f"Ganancia {lbl_s2}": st.column_config.NumberColumn(format="S/ %.2f"),
-                            }
+                            column_config=col_config
                         )
                 else:
-                    st.info("No hay clientes activos para configurar.")
-
+                    st.info("No hay clientes activos.")
         else:
             st.info("No hay datos registrados.")
 
@@ -1536,5 +1548,6 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
