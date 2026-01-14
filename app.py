@@ -547,13 +547,12 @@ if check_login():
         st.markdown("---")
         
         # --- LÓGICA DE ACCESO BRUNOTAPIA ---
-        opciones = ["📊 Dashboard General"]
+        opciones = ["📊 Dashboard General", "📂 Historial de Créditos"] # Opción nueva para todos
         user_actual = st.session_state.get('usuario', '').lower()
         
         if st.session_state['rol'] == 'Admin':
             opciones = ["📝 Nuevo Préstamo", "💸 Registrar Pago", "🛠️ Administrar Cartera", "📜 Auditoría"] + opciones
         elif user_actual == "brunotapia":
-            # Si el usuario es BrunoTapia y no es admin, se le habilita solo Auditoría y Dashboard
             opciones = ["📜 Auditoría"] + opciones
         
         menu = st.radio("Navegación", opciones)
@@ -783,7 +782,9 @@ if check_login():
                 if nuevo_capital <= 0:
                     data['Estado'] = "Pagado"
                     data['Monto_Capital'] = 0
-                    msg_log = "Deuda Cancelada"
+                    # AGREGAMOS LA FECHA DE FINALIZACIÓN
+                    data['Fecha_Finalizacion'] = datetime.now().strftime("%Y-%m-%d") 
+                    msg_log = "Deuda Totalmente Cancelada"
                 else:
                     msg_log = f"Pago registrado. Vence: {nueva_fecha_pago}"
                 
@@ -987,7 +988,58 @@ if check_login():
         else:
             st.info("No hay datos para administrar.")
 
-    # 5. AUDITORÍA
+    # 5. HISTORIAL DE CRÉDITOS (Módulo Informativo)
+    elif menu == "📂 Historial de Créditos":
+        st.markdown("""<div class="header-box">
+                        <div class="luxury-title">📂 Historial de Créditos</div>
+                        <div class="luxury-subtitle">Registro de Préstamos Finalizados y Capital Recuperado</div>
+                       </div>""", unsafe_allow_html=True)
+        
+        datos, _ = cargar_datos()
+        # Filtramos solo los préstamos pagados
+        historial = [d for d in datos if d.get('Estado') == 'Pagado']
+        
+        if historial:
+            df_hist = pd.DataFrame(historial)
+            
+            # --- MÉTRICAS DE ÉXITO ---
+            h1, h2, h3 = st.columns(3)
+            cap_recuperado = df_hist['Monto_Capital'].sum() # Capital que se prestó originalmente
+            # Nota: En un sistema real podrías sumar los intereses cobrados históricamente
+            h1.metric("CRÉDITOS CERRADOS", f"{len(df_hist)}")
+            h2.metric("CAPITAL FINALIZADO", f"S/ {cap_recuperado:,.2f}")
+            h3.metric("ESTADO", "100% CANCELADOS")
+
+            st.write("")
+            
+            # Limpieza de columnas para el usuario
+            df_hist_view = df_hist.copy()
+            # Formatear fechas
+            df_hist_view['Inicio'] = pd.to_datetime(df_hist_view['Fecha_Prestamo']).dt.strftime('%d/%m/%Y')
+            df_hist_view['Cierre'] = pd.to_datetime(df_hist_view.get('Fecha_Finalizacion', df_hist_view['Fecha_Proximo_Pago'])).dt.strftime('%d/%m/%Y')
+            
+            # Selección de columnas importantes
+            cols_to_show = ["Cliente", "Inicio", "Cierre", "Tasa_Interes", "Observaciones"]
+            
+            st.markdown("### 📜 Detalle de Operaciones Finalizadas")
+            st.dataframe(
+                df_hist_view[cols_to_show],
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Cliente": st.column_config.TextColumn("Cliente", width="medium"),
+                    "Inicio": st.column_config.TextColumn("Fecha Inicio"),
+                    "Cierre": st.column_config.TextColumn("Fecha Cancelación"),
+                    "Tasa_Interes": st.column_config.NumberColumn("Interés %"),
+                    "Observaciones": st.column_config.TextColumn("Notas Finales", width="large")
+                }
+            )
+            
+            st.info("💡 Este módulo es de solo lectura. Para modificar registros, contacte con el Administrador.")
+        else:
+            st.info("Aún no hay préstamos marcados como 'Pagado' en el sistema.")
+
+    # 6. AUDITORÍA
     elif menu == "📜 Auditoría":
         st.markdown("""<div class="header-box">
                         <div class="luxury-title">📜 Auditoría del Sistema</div>
@@ -1023,7 +1075,3 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
-
-
-
-
