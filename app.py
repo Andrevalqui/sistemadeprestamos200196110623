@@ -608,25 +608,35 @@ if check_login():
             st.session_state.guardando_prestamo = False
 
         if st.button("💾 GUARDAR OPERACIÓN", disabled=st.session_state.guardando_prestamo):
+            if st.button("💾 GUARDAR OPERACIÓN", disabled=st.session_state.guardando_prestamo):
             if cliente and monto > 0:
-                st.session_state.guardando_prestamo = True # Bloquear el botón
+                # 1. Bloqueamos el botón y mostramos estado de carga
+                st.session_state.guardando_prestamo = True 
                 
-                nuevo = {
-                    "Cliente": cliente, "DNI": dni, "Telefono": telefono,
-                    "Fecha_Prestamo": str(fecha_inicio),
-                    "Fecha_Proximo_Pago": prox_pago,
-                    "Monto_Capital": monto, "Tasa_Interes": tasa,
-                    "Pago_Mensual_Interes": interes, "Estado": "Activo",
-                    "Observaciones": obs
-                }
-                datos, sha = cargar_datos()
-                datos.append(nuevo)
-                if guardar_datos(datos, sha, f"Nuevo prestamo: {cliente}"):
-                    registrar_auditoria("CREACIÓN CRÉDITO", f"Préstamo de S/ {monto}", cliente=cliente)
-                    st.success("✅ Préstamo registrado correctamente.")
-                    time.sleep(1)
-                    st.session_state.guardando_prestamo = False # Liberar
-                    st.rerun()
+                with st.status("Registrando en base de datos segura...", expanded=True) as status:
+                    nuevo = {
+                        "Cliente": cliente, "DNI": dni, "Telefono": telefono,
+                        "Fecha_Prestamo": str(fecha_inicio),
+                        "Fecha_Proximo_Pago": prox_pago,
+                        "Monto_Capital": monto, "Tasa_Interes": tasa,
+                        "Pago_Mensual_Interes": interes, "Estado": "Activo",
+                        "Observaciones": obs
+                    }
+                    datos, sha = cargar_datos()
+                    datos.append(nuevo)
+                    
+                    if guardar_datos(datos, sha, f"Nuevo prestamo: {cliente}"):
+                        registrar_auditoria("CREACIÓN CRÉDITO", f"Préstamo de S/ {monto}", cliente=cliente)
+                        status.update(label="✅ ¡Operación Guardada con Éxito!", state="complete", expanded=False)
+                        st.balloons() # Efecto visual premium
+                        time.sleep(2) # Tiempo suficiente para ver el mensaje
+                        
+                        # 2. Liberamos y reiniciamos
+                        st.session_state.guardando_prestamo = False
+                        st.rerun()
+                    else:
+                        st.session_state.guardando_prestamo = False
+                        st.error("❌ Error al conectar con el servidor.")
             else:
                 st.warning("⚠️ Complete Nombre y Monto.")
 
@@ -1008,4 +1018,5 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
