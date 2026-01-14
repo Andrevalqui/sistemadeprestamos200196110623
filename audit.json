@@ -406,5 +406,13 @@
         "Operaci\u00f3n": "INICIO DE SESI\u00d3N",
         "Cliente Afectado": "-",
         "Detalle del Movimiento": "Acceso exitoso al portal"
+    },
+    {
+        "Fecha/Hora": "14/01/2026 13:02:00",
+        "Usuario": "BRUNOTAPIA",
+        "Perfil": "Visor",
+        "Operaci\u00f3n": "CIERRE DE SESI\u00d3N",
+        "Cliente Afectado": "-",
+        "Detalle del Movimiento": "El usuario BrunoTapia cerr\u00f3 su sesi\u00f3n"
     }
 ]
