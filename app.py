@@ -19,16 +19,22 @@ st.set_page_config(
 st.markdown("""
     <style>
     /* Importar fuente profesional Roboto */
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Playfair+Display:wght@700;900&display=swap');
     
     html, body, [class*="css"] {
         font-family: 'Roboto', sans-serif;
-        background-color: #F0F2F6; /* Fondo gris muy suave */
+        background-color: #050505; /* FONDO OSCURO MIDNIGHT */
+    }
+
+    /* Forzar fondo oscuro en la base de Streamlit */
+    .stApp {
+        background-color: #050505 !important;
     }
     
     /* --- CENTRADO GLOBAL FORZADO --- */
-    h1, h2, h3, h4, h5, h6, .stMarkdown, p {
+    h1, h2, h3, h4, h5, h6, .stMarkdown, p, label {
         text-align: center !important;
+        color: #D4AF37 !important; /* TEXTO DORADO POR DEFECTO */
     }
   
     /* --- MÉTRICAS DORADAS CENTRADAS --- */
@@ -110,16 +116,16 @@ st.markdown("""
     }
 
     .login-subtitle {
-        color: #003366;
+        color: #D4AF37; /* CAMBIADO A DORADO */
         font-size: 14px;
         margin-bottom: 30px;
         letter-spacing: 1px;
     }
 
     /* Personalización de los Campos de Texto */
-    div[data-baseweb="input"] {
+    div[data-baseweb="input"], div[data-baseweb="textarea"] {
         background-color: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(212, 175, 55, 0.2) !important;
+        border: 1px solid rgba(212, 175, 55, 0.4) !important;
         border-radius: 12px !important;
         color: white !important;
         transition: all 0.3s ease;
@@ -161,20 +167,21 @@ st.markdown("""
     
     /* --- TARJETAS DE MÉTRICAS (KPIs) --- */
     .metric-card {
-        background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
+        background: #111111; /* FONDO OSCURO */
         border-radius: 12px;
         padding: 20px;
-        border-left: 6px solid #154360; /* Azul Corporativo */
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border: 1px solid rgba(212, 175, 55, 0.3); /* BORDE DORADO */
+        border-left: 6px solid #D4AF37; /* CAMBIO A DORADO */
+        box-shadow: 0 4px 6px rgba(0,0,0,0.5);
         transition: transform 0.2s;
         text-align: center; /* Centrar texto interno */
     }
     .metric-card:hover {
         transform: translateY(-3px);
-        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 8px 15px rgba(212, 175, 55, 0.2);
     }
     .metric-title {
-        color: #7F8C8D;
+        color: #D4AF37; /* DORADO */
         font-size: 0.85rem;
         text-transform: uppercase;
         letter-spacing: 1px;
@@ -183,7 +190,7 @@ st.markdown("""
         text-align: center;
     }
     .metric-value {
-        color: #154360;
+        color: #FFFFFF; /* BLANCO PARA RESALTAR */
         font-size: 1.8rem;
         font-weight: 700;
         text-align: center;
@@ -231,11 +238,12 @@ st.markdown("""
     
     /* --- TABLAS DE DATOS --- */
     [data-testid="stDataFrame"] {
-        background-color: white;
+        background-color: #111111 !important; /* OSCURO */
         border-radius: 10px;
         padding: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        margin: auto; /* Centrar tabla si sobra espacio */
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        margin: auto; 
     }
     
     /* --- ALERTAS --- */
@@ -248,9 +256,9 @@ st.markdown("""
         align-items: center;
         justify-content: center; /* Centrar contenido de alerta */
     }
-    .alert-danger { background-color: #FDEDEC; color: #E74C3C; border: 1px solid #FADBD8; }
-    .alert-warning { background-color: #FEF9E7; color: #F1C40F; border: 1px solid #FCF3CF; }
-    .alert-success { background-color: #E8F8F5; color: #186A3B; border: 1px solid #A9DFBF; }
+    .alert-danger { background-color: #2E1513; color: #E74C3C; border: 1px solid #E74C3C; }
+    .alert-warning { background-color: #2E2813; color: #F1C40F; border: 1px solid #F1C40F; }
+    .alert-success { background-color: #132E1B; color: #2ECC71; border: 1px solid #2ECC71; }
     
     /* Eliminar borde feo del formulario de Streamlit */
     [data-testid="stForm"] { border: none; padding: 0; }
@@ -276,14 +284,14 @@ st.markdown("""
         position: fixed;
         top: 0;
         left: 0;
-        width: 100vw; /* Cubre todo el ancho del navegador */
-        height: 100vh; /* Cubre todo el alto del navegador */
-        background-color: #0E1117 !important;
+        width: 100vw; 
+        height: 100vh; 
+        background-color: #050505 !important;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        z-index: 9999999 !important; /* Capa superior absoluta */
+        z-index: 9999999 !important; 
     }
     
     .gif-container {
@@ -293,12 +301,12 @@ st.markdown("""
 
     /* --- ENCABEZADOS DE ALTA GAMA --- */
     .header-box {
-        background: linear-gradient(145deg, #1C1C1C, #0A0A0A);
+        background: linear-gradient(145deg, #0A0A0A, #1C1C1C); /* MAS OSCURO */
         border: 1px solid rgba(212, 175, 55, 0.4);
         padding: 40px 20px;
         border-radius: 20px;
         margin-bottom: 40px;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.8);
         text-align: center;
         position: relative;
         overflow: hidden;
@@ -318,7 +326,6 @@ st.markdown("""
         text-transform: uppercase !important;
         letter-spacing: 5px !important;
         font-size: 38px !important;
-        /* Efecto de Oro Metálico */
         background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -328,12 +335,18 @@ st.markdown("""
 
     .luxury-subtitle {
         font-family: 'Roboto', sans-serif !important;
-        color: #888 !important;
+        color: #D4AF37 !important; /* CAMBIO A DORADO */
         font-size: 14px !important;
-        font-weight: 800 !important; /* SE CAMBIÓ A NEGRITA */
+        font-weight: 800 !important; 
         letter-spacing: 3px !important;
         text-transform: uppercase !important;
         margin-top: 5px !important;
+    }
+
+    /* Sidebar Oscura */
+    [data-testid="stSidebar"] {
+        background-color: #0A0A0A !important;
+        border-right: 1px solid rgba(212, 175, 55, 0.2);
     }
     
     </style>
@@ -1030,7 +1043,7 @@ if check_login():
             # Nota: En un sistema real podrías sumar los intereses cobrados históricamente
             h1.metric("CRÉDITOS CERRADOS", f"{len(df_hist)}")
             h2.metric("CAPITAL FINALIZADO", f"S/ {cap_recuperado:,.2f}")
-            h3.metric("ESTADO", "100% CANCELADOS")
+            h3.metric("ESTADO", "100% PAGADOS")
 
             st.write("")
             
@@ -1097,4 +1110,5 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
