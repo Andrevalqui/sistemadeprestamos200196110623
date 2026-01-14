@@ -15,6 +15,10 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Nota: Si este CSS va dentro de un st.markdown, 
+# asegúrate de envolverlo en triple comilla y etiquetas <style>
+
+"""
 /* --- CENTRADO GLOBAL FORZADO --- */
 h1, h2, h3, h4, h5, h6, .stMarkdown, p, label {
     text-align: center !important;
@@ -91,23 +95,25 @@ button[data-baseweb="tab"]:hover {
 [data-testid="stMetricDelta"] div {
     font-weight: 700 !important;
 }
-    /* --- 6. BOTONES CON INVERSIÓN (TU ESTILO FAVORITO) --- */
-    div.stButton > button, div[data-testid="stFormSubmitButton"] > button {
-        background: linear-gradient(90deg, #D4AF37 0%, #B8860B 100%) !important;
-        color: #FFFFFF !important; 
-        border: 1px solid #996515 !important;
-        border-radius: 12px !important;
-        font-weight: 900 !important;
-        text-transform: uppercase !important;
-        transition: all 0.4s ease-in-out !important;
-        width: 100% !important;
-    }
 
-    div.stButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hover {
-        background: #FFFFFF !important; 
-        color: #B8860B !important;    
-        border: 2px solid #D4AF37 !important;
-    }
+/* --- 6. BOTONES CON INVERSIÓN --- */
+div.stButton > button, div[data-testid="stFormSubmitButton"] > button {
+    background: linear-gradient(90deg, #D4AF37 0%, #B8860B 100%) !important;
+    color: #FFFFFF !important; 
+    border: 1px solid #996515 !important;
+    border-radius: 12px !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    transition: all 0.4s ease-in-out !important;
+    width: 100% !important;
+}
+
+div.stButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hover {
+    background: #FFFFFF !important; 
+    color: #B8860B !important;    
+    border: 2px solid #D4AF37 !important;
+}
+"""
     
     /* --- DISEÑO DE LOGIN EXCLUSIVO: MIDNIGHT GOLD --- */
     
@@ -1253,6 +1259,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
