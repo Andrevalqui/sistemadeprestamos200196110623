@@ -138,143 +138,122 @@ div.stButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hove
     border: 2px solid #D4AF37 !important;
 }
 
-/* --- DISEÑO DE LOGIN EXCLUSIVO: MIDNIGHT GOLD --- */
-    
-/* Fondo General del Login */
+//* --- DISEÑO DE LOGIN EXCLUSIVO: MIDNIGHT GOLD (RENOVADO) --- */
+
+/* 1. Fondo General de la página (Más oscuro para que la tarjeta resalte) */
 [data-testid="stAppViewRoot"] {
-    background: #8a8d8f !important;
+    background: radial-gradient(circle, #2c2c2c 0%, #000000 100%) !important;
 }
 
+/* 2. La Tarjeta de Login (Midnight Card) */
 .login-container {
-    background: rgba(28, 28, 28, 0.6) !important;
-    backdrop-filter: blur(20px);
+    /* Fondo negro profundo con brillo sutil */
+    background: linear-gradient(145deg, #0a0a0a, #1a1a1a) !important;
+    backdrop-filter: blur(15px);
     padding: 60px;
-    border-radius: 25px;
-    border: 1px solid rgba(212, 175, 55, 0.3);
-    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    
+    /* BORDES DORADOS TIPO TARJETA VIP */
+    border: 3px solid #D4AF37 !important; 
+    border-radius: 35px !important;
+    
+    /* SOMBRA TRIPLE PARA PROFUNDIDAD */
+    box-shadow: 
+        0 30px 60px rgba(0,0,0,0.8), 
+        0 0 20px rgba(212, 175, 55, 0.25),
+        inset 0 0 10px rgba(212, 175, 55, 0.1) !important;
+    
     text-align: center;
-    max-width: 450px;
+    max-width: 480px;
     margin: auto;
-    margin-bottom: 60px !important; /* ESPACIO PARA QUE NO CHOQUE CON EL TEXTO ABAJO */
+    margin-bottom: 50px !important;
+    border-top: 5px solid #D4AF37 !important; /* Borde superior un poco más grueso para estilo */
 }
 
-/* --- IMAGEN DEL LOGO --- */
+/* 3. Imagen del Logo */
 .login-icon {
-    width: 180px; 
-    margin-bottom: -10px;
-    filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.3));
+    width: 200px; 
+    margin-bottom: 10px;
+    filter: drop-shadow(0px 8px 12px rgba(0,0,0,0.5));
 }
 
-/* --- CENTRADO TOTAL DEL BOTÓN DEL FORMULARIO --- */
-[data-testid="stForm"] div[data-testid="stFormSubmitButton"] {
-    display: flex !important;
-    justify-content: center !important;
-    width: 100% !important;
-}
-
-div[data-testid="stFormSubmitButton"] > button {
-    background: linear-gradient(135deg, #D4AF37 0%, #996515 100%) !important;
-    color: #000 !important;
-    border: none !important;
-    padding: 15px 40px !important;
-    border-radius: 12px !important;
-    font-size: 20px !important;
-    font-weight: 800 !important;
-    width: auto !important;
-    min-width: 250px;
-    box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2) !important;
-    transition: all 0.4s ease !important;
-}
-
-div[data-testid="stFormSubmitButton"] > button:hover {
-    transform: translateY(-3px) !important;
-    background: #FFFFFF !important;
-    color: #B8860B !important;
-    box-shadow: 0 15px 30px rgba(212, 175, 55, 0.4) !important;
-}
-/* Título con estilo elegante cursivo */
+/* 4. Título Elegante (Brisa el Milagro Style) */
 .login-title {
     font-family: 'Dancing Script', cursive !important; 
     color: #D4AF37 !important;
-    font-size: 65px !important; /* MÁS GRANDE */
+    font-size: 65px !important;
     font-weight: 700 !important;
     text-transform: none !important; 
     margin-bottom: 5px !important;
-    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.9) !important;
 }
 
 .login-subtitle {
-    color: #D4AF37; /* CAMBIADO A DORADO */
-    font-size: 14px;
+    color: #FFFFFF !important; /* Blanco para que se lea sobre negro */
+    font-size: 13px !important;
+    font-weight: 600 !important;
     margin-bottom: 30px;
-    letter-spacing: 1px;
+    letter-spacing: 3px !important;
+    text-transform: uppercase;
+    opacity: 0.8;
 }
 
-/* Personalización de los Campos de Texto */
-div[data-baseweb="input"], div[data-baseweb="textarea"] {
-    background-color: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(212, 175, 55, 0.4) !important;
-    border-radius: 12px !important;
-    color: white !important;
-    transition: all 0.3s ease;
-}
-
-div[data-baseweb="input"]:focus-within {
-    border: 1px solid #D4AF37 !important;
-    box-shadow: 0 0 10px rgba(212, 175, 55, 0.2) !important;
-}
-
-/* AGRANDAR LETRAS DE USUARIO Y CONTRASEÑA */
+/* 5. Etiquetas de Usuario y Contraseña (Grandes y Doradas) */
 label p {
     color: #D4AF37 !important;
     font-weight: 800 !important;
-    font-size: 22px !important; /* LETRAS GRANDES */
+    font-size: 22px !important;
     text-transform: uppercase;
-    margin-bottom: 12px !important;
-    margin-top: 15px !important; /* ESPACIO EXTRA ARRIBA */
+    margin-bottom: 15px !important;
+    margin-top: 25px !important;
+    letter-spacing: 2px;
 }
 
-* --- CENTRAR Y AJUSTAR BOTÓN DE INICIAR SESIÓN (CORREGIDO) --- */
+/* 6. Inputs (Personalizados para fondo negro) */
+div[data-baseweb="input"] {
+    background-color: rgba(255, 255, 255, 0.07) !important;
+    border: 1px solid rgba(212, 175, 55, 0.4) !important;
+    border-radius: 15px !important;
+    color: white !important;
+}
 
-/* 1. Apuntar al contenedor del botón para obligarlo a centrarse */
-div[data-testid="stButton"], div[data-testid="stFormSubmitButton"] {
+/* 7. CENTRADO Y ESTILO DEL BOTÓN (ACABADO ORO) */
+div[data-testid="stFormSubmitButton"] {
     display: flex !important;
-    justify-content: center !important; /* Centra el contenido horizontalmente */
+    justify-content: center !important;
     width: 100% !important;
-    margin-top: 20px !important;
+    margin-top: 40px !important;
 }
 
-/* 2. Estilo del botón propiamente dicho */
-div.stButton > button, div[data-testid="stFormSubmitButton"] > button {
-    background: linear-gradient(135deg, #D4AF37 0%, #996515 100%) !important;
-    color: #000 !important;
-    border: none !important;
-    padding: 15px 0px !important;
-    border-radius: 12px !important;
-    font-size: 20px !important; 
-    font-weight: 800 !important;
-    width: 80% !important; /* Mantiene el tamaño elegante */
-    transition: all 0.4s ease !important;
-    box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2) !important;
+div[data-testid="stFormSubmitButton"] > button {
+    background: linear-gradient(90deg, #D4AF37 0%, #B8860B 100%) !important;
+    color: #000000 !important; /* Texto negro para contraste pro */
+    border: 1px solid #C5A059 !important;
+    padding: 18px 0px !important;
+    border-radius: 15px !important;
+    font-size: 22px !important; 
+    font-weight: 900 !important;
+    width: 85% !important;
+    text-transform: uppercase;
+    box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3) !important;
+    transition: all 0.4s ease-in-out !important;
 }
 
-/* Efecto Hover */
-div.stButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 15px 30px rgba(212, 175, 55, 0.4) !important;
-    filter: brightness(1.1);
-    background: #FFFFFF !important; /* Fondo blanco al pasar el mouse */
-    color: #B8860B !important;    /* Letras doradas al pasar el mouse */
+div[data-testid="stFormSubmitButton"] > button:hover {
+    transform: translateY(-4px) scale(1.02) !important;
+    background: #FFFFFF !important; 
+    color: #B8860B !important;    
+    border: 2px solid #D4AF37 !important;
+    box-shadow: 0 15px 35px rgba(212, 175, 55, 0.5) !important;
 }
 
-/* ESTILO PARA EL PIE DE PÁGINA (ANDRE VALQUI SYSTEM) */
+/* 8. Estilo para el Pie de Página (Azul Brillante) */
 .footer-login {
-    color: #1A3ACD !important; /* AZUL FUERTE */
-    font-size: 18px !important; /* MÁS GRANDE */
+    color: #1A3ACD !important;
+    font-size: 18px !important;
     font-weight: 900 !important;
     text-align: center !important;
     margin-top: 40px !important;
-    letter-spacing: 1px;
+    text-shadow: 0px 0px 10px rgba(26, 58, 205, 0.2);
 }
 
 /* --- TARJETAS DE MÉTRICAS (KPIs) --- */
@@ -1343,6 +1322,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
