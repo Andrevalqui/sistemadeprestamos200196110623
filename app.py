@@ -20,11 +20,33 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-/* --- CENTRADO GLOBAL FORZADO --- */
-h1, h2, h3, h4, h5, h6, .stMarkdown, p, label {
+/* --- 1. CENTRADO DE TÍTULOS Y TEXTOS GENERALES (CORREGIDO) --- */
+/* Eliminamos 'p' y 'label' de aquí para que no rompa los cuadros de entrada */
+h1, h2, h3, h4, h5, h6, .stMarkdown {
     text-align: center !important;
     color: #D4AF37 !important;
     font-weight: 800 !important;
+}
+
+/* --- 2. CENTRADO ESPECÍFICO DE ETIQUETAS (LABELS) --- */
+/* Esto centra "Nombre Completo", "¿Cuánto pagó de INTERÉS?", etc., sobre el cuadro */
+[data-testid="stWidgetLabel"] {
+    display: flex !important;
+    justify-content: center !important;
+    width: 100% !important;
+}
+
+[data-testid="stWidgetLabel"] p {
+    text-align: center !important;
+    color: #D4AF37 !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    margin-bottom: 5px !important;
+}
+
+/* Asegurar que el texto DENTRO de los inputs NO se centre (mantiene orden) */
+div[data-baseweb="input"] input {
+    text-align: left !important;
 }
 
 /* --- SUBMÓDULOS (TABS) CENTRADOS Y GRANDES --- */
@@ -227,42 +249,40 @@ div.stButton > button:hover {
 }
 
 /* --- ESTILO PARA TODOS LOS BOTONES DEL SISTEMA (NORMAL, FORMULARIO Y CAMBIOS) --- */
-/* Incluye: Guardar Operación, Procesar Pago y Guardar Cambios */
 div.stButton > button, 
 div[data-testid="stFormSubmitButton"] > button,
 button[kind="secondaryFormSubmit"],
 button[kind="primaryFormSubmit"] {
     background: linear-gradient(90deg, #D4AF37 0%, #B8860B 100%) !important;
-    color: #FFFFFF !important; /* LETRAS BLANCAS POR DEFECTO */
+    color: #FFFFFF !important; 
     border: 1px solid #996515 !important;
-    border-radius: 12px !important; /* FORMA REDONDEADA IGUAL QUE LOS OTROS */
-    font-weight: 900 !important; /* NEGRITA MÁXIMA */
+    border-radius: 12px !important; 
+    font-weight: 900 !important; 
     text-transform: uppercase !important;
     letter-spacing: 1px !important;
     padding: 12px 24px !important;
     transition: all 0.4s ease-in-out !important;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
-    width: 100% !important; /* QUE OCUPE TODO EL ANCHO */
+    width: 100% !important; 
     display: block !important;
 }
 
-/* --- EFECTO HOVER PARA TODOS LOS BOTONES (INVERSIÓN TOTAL) --- */
+/* --- EFECTO HOVER PARA TODOS LOS BOTONES --- */
 div.stButton > button:hover, 
 div[data-testid="stFormSubmitButton"] > button:hover,
 button[kind="secondaryFormSubmit"]:hover,
 button[kind="primaryFormSubmit"]:hover {
-    background: #FFFFFF !important; /* FONDO BLANCO AL PASAR EL MOUSE */
-    color: #B8860B !important;    /* LETRAS DORADAS AL PASAR EL MOUSE */
-    border: 2px solid #D4AF37 !important; /* BORDE DORADO */
+    background: #FFFFFF !important; 
+    color: #B8860B !important;    
+    border: 2px solid #D4AF37 !important; 
     transform: scale(1.02) !important;
     box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4) !important;
 }
 
 /* --- CORRECCIÓN ADICIONAL PARA EL ICONO DEL DISKETTE --- */
-/* Si el icono molesta el color del texto, esto ayuda a unificar */
 div.stButton > button p, 
 div[data-testid="stFormSubmitButton"] > button p {
-    color: inherit !important; /* Obliga al texto dentro del botón a seguir las reglas anteriores */
+    color: inherit !important; 
 }
 
 /* --- BOTÓN WHATSAPP PREMIUM --- */
@@ -289,7 +309,7 @@ div[data-testid="stFormSubmitButton"] > button p {
 
 /* --- TABLAS DE DATOS --- */
 [data-testid="stDataFrame"] {
-    background-color: #111111 !important; /* OSCURO */
+    background-color: #111111 !important; 
     border-radius: 10px;
     padding: 10px;
     border: 1px solid rgba(212, 175, 55, 0.2);
@@ -305,7 +325,7 @@ div[data-testid="stFormSubmitButton"] > button p {
     font-weight: 500;
     display: flex;
     align-items: center;
-    justify-content: center; /* Centrar contenido de alerta */
+    justify-content: center; 
 }
 .alert-danger { background-color: #2E1513; color: #E74C3C; border: 1px solid #E74C3C; }
 .alert-warning { background-color: #2E2813; color: #F1C40F; border: 1px solid #F1C40F; }
@@ -323,7 +343,7 @@ div.stButton > button {
 }
 [data-testid="stMetric"] { border: 1px solid #D4AF37; border-radius: 10px; background: #1C1C1C; }
 
-/* --- ACTUALIZACIÓN SPLASH SCREEN CON GIF --- */
+/* --- ACTUALIZACIÓN SPLASH SCREEN --- */
 @keyframes fade-out {
     0% { opacity: 1; }
     90% { opacity: 1; }
@@ -352,7 +372,7 @@ div.stButton > button {
 
 /* --- ENCABEZADOS DE ALTA GAMA --- */
 .header-box {
-    background: linear-gradient(145deg, #0A0A0A, #1C1C1C); /* MAS OSCURO */
+    background: linear-gradient(145deg, #0A0A0A, #1C1C1C); 
     border: 1px solid rgba(212, 175, 55, 0.4);
     padding: 40px 20px;
     border-radius: 20px;
@@ -363,7 +383,6 @@ div.stButton > button {
     overflow: hidden;
 }
 
-/* Efecto de brillo sutil en el fondo del cuadro */
 .header-box::after {
     content: '';
     position: absolute;
@@ -386,7 +405,7 @@ div.stButton > button {
 
 .luxury-subtitle {
     font-family: 'Roboto', sans-serif !important;
-    color: #FFFFFF !important; /* CAMBIA A BLANCO PURO */
+    color: #FFFFFF !important; 
     font-size: 16px !important;
     font-weight: 800 !important; 
     letter-spacing: 3px !important;
@@ -396,13 +415,11 @@ div.stButton > button {
 
 /* Sidebar */
 [data-testid="stSidebar"] {
-    background-color: #05080d !important; /* Azul casi negro */
+    background-color: #05080d !important; 
     border-right: 2px solid #D4AF37 !important;
 }
 
-/* --- ESTE ES EL CÓDIGO FINAL PARA EL SIDEBAR --- */
-
-/* Título 'NAVEGACIÓN' (Grande y Dorado) */
+/* Título 'NAVEGACIÓN' */
 div[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p {
     font-size: 28px !important; 
     font-weight: 900 !important; 
@@ -412,7 +429,7 @@ div[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p {
     margin-bottom: 20px !important;
 }
 
-/* Opciones del menú (Grandes y Blancas para resaltar) */
+/* Opciones del menú */
 div[data-testid="stSidebar"] div[role="radiogroup"] label div p {
     font-size: 35px !important; 
     font-weight: 1000 !important; 
@@ -421,7 +438,7 @@ div[data-testid="stSidebar"] div[role="radiogroup"] label div p {
     line-height: 1.2 !important;
 }
 
-/* Color del círculo de selección en Dorado */
+/* Color del círculo de selección */
 div[data-testid="stSidebar"] div[role="radiogroup"] [data-baseweb="radio"] div {
     border-color: #D4AF37 !important;
     background-color: transparent !important;
@@ -1259,3 +1276,4 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
