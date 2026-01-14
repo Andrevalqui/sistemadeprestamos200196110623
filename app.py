@@ -15,23 +15,8 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. ESTILOS CSS PREMIUM (DISEÑO TOTAL CENTRADO) ---
-st.markdown("""
-    <style>
-    /* Importar fuente profesional Roboto */
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Playfair+Display:wght@700;900&display=swap');
-    
-    html, body, [class*="css"] {
-        font-family: 'Roboto', sans-serif;
-        background-color: #FFFFFF; /* FONDO OSCURO MIDNIGHT */
-    }
-
-    /* Forzar fondo oscuro en la base de Streamlit */
-    .stApp {
-        background: #FFFFFF !important;
-    }
-    
-    /* --- CENTRADO GLOBAL FORZADO Y NEGRITAS --- */
+/* --- 2. CENTRADO ESPECÍFICO DE ETIQUETAS (NOMBRE, DNI, ETC) --- */
+    /* Solo centra el texto guía arriba de los cuadros, sin mover los cuadros de su lugar */
     div[data-testid="stWidgetLabel"] p {
         text-align: center !important;
         width: 100% !important;
@@ -42,16 +27,14 @@ st.markdown("""
         text-transform: uppercase;
     }
     
-    h1, h2, h3, h4, h5, h6, .stMarkdown, p, label, [data-testid="stWidgetLabel"] {
+    /* Centra los Títulos de las Secciones */
+    h1, h2, h3, h4, h5, h6, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown p {
         text-align: center !important;
-        justify-content: center !important;
-        display: flex !important;
-        width: 100% !important;
         color: #D4AF37 !important; 
         font-weight: 800 !important;
     }
 
-    /* --- SUBMÓDULOS (TABS) CENTRADOS Y GRANDES --- */
+    /* --- 3. SUBMÓDULOS (TABS) CENTRADOS Y GRANDES --- */
     div[data-baseweb="tab-list"] {
         display: flex !important;
         justify-content: center !important;
@@ -66,12 +49,7 @@ st.markdown("""
         transition: 0.3s !important;
     }
 
-    button[data-baseweb="tab"]:hover {
-        color: #B8860B !important;
-        transform: translateY(-2px);
-    }
-  
-    /* --- MÉTRICAS DORADAS CENTRADAS --- */
+    /* --- 4. MÉTRICAS DORADAS (ESTILO ORIGINAL) --- */
     [data-testid="stMetric"] {
         background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%) !important;
         border: 2px solid #996515 !important;
@@ -84,53 +62,40 @@ st.markdown("""
         text-align: center !important;
     }
 
-    /* Centrado de datos en tablas (Historial y Auditoría) */
+    [data-testid="stMetricLabel"] div p, [data-testid="stMetricValue"] div {
+        color: #1C1C1C !important;
+        font-weight: 800 !important;
+        text-align: center !important;
+    }
+
+    /* --- 5. TABLAS CENTRADAS Y NEGRITAS --- */
+    div[data-testid="stDataFrame"] {
+        margin: 0 auto !important;
+        border: 2px solid #D4AF37 !important;
+        border-radius: 10px !important;
+    }
+
     div[data-testid="stDataFrame"] div[role="gridcell"] {
         text-align: center !important;
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
         font-weight: 800 !important;
     }
 
-    /* Asegurar que la tabla misma esté centrada en la pantalla */
-    [data-testid="stDataFrame"] {
-        margin: 0 auto !important;
-    }
-
-    /* Centrar Título */
-    [data-testid="stMetricLabel"] {
-        display: flex !important;
-        justify-content: center !important;
-        width: 100% !important;
-    }
-    [data-testid="stMetricLabel"] div p {
-        color: #1C1C1C !important;
-        font-weight: 800 !important;
+    /* --- 6. BOTONES CON INVERSIÓN (TU ESTILO FAVORITO) --- */
+    div.stButton > button, div[data-testid="stFormSubmitButton"] > button {
+        background: linear-gradient(90deg, #D4AF37 0%, #B8860B 100%) !important;
+        color: #FFFFFF !important; 
+        border: 1px solid #996515 !important;
+        border-radius: 12px !important;
+        font-weight: 900 !important;
         text-transform: uppercase !important;
-        text-align: center !important;
-    }
-
-    /* Centrar Valor */
-    [data-testid="stMetricValue"] {
-        display: flex !important;
-        justify-content: center !important;
+        transition: all 0.4s ease-in-out !important;
         width: 100% !important;
     }
-    [data-testid="stMetricValue"] div {
-        color: #1C1C1C !important;
-        font-weight: 700 !important;
-        text-align: center !important;
-    }
 
-    /* Centrar Flecha y Delta */
-    [data-testid="stMetricDelta"] {
-        display: flex !important;
-        justify-content: center !important;
-        width: 100% !important;
-    }
-    [data-testid="stMetricDelta"] div {
-        font-weight: 700 !important;
+    div.stButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hover {
+        background: #FFFFFF !important; 
+        color: #B8860B !important;    
+        border: 2px solid #D4AF37 !important;
     }
     
     /* --- DISEÑO DE LOGIN EXCLUSIVO: MIDNIGHT GOLD --- */
@@ -1277,5 +1242,6 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
