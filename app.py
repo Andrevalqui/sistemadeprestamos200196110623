@@ -330,7 +330,7 @@ st.markdown("""
         font-family: 'Roboto', sans-serif !important;
         color: #888 !important;
         font-size: 14px !important;
-        font-weight: 300 !important;
+        font-weight: 800 !important; /* SE CAMBIÓ A NEGRITA */
         letter-spacing: 3px !important;
         text-transform: uppercase !important;
         margin-top: 5px !important;
@@ -546,9 +546,15 @@ if check_login():
         st.markdown(f"<p style='text-align: center; color: #D4AF37;'>Perfil: {st.session_state['rol']}</p>", unsafe_allow_html=True)
         st.markdown("---")
         
+        # --- LÓGICA DE ACCESO BRUNOTAPIA ---
         opciones = ["📊 Dashboard General"]
+        user_actual = st.session_state.get('usuario', '').lower()
+        
         if st.session_state['rol'] == 'Admin':
             opciones = ["📝 Nuevo Préstamo", "💸 Registrar Pago", "🛠️ Administrar Cartera", "📜 Auditoría"] + opciones
+        elif user_actual == "brunotapia":
+            # Si el usuario es BrunoTapia y no es admin, se le habilita solo Auditoría y Dashboard
+            opciones = ["📜 Auditoría"] + opciones
         
         menu = st.radio("Navegación", opciones)
         
@@ -947,14 +953,18 @@ if check_login():
                 
                 if st.button("🗑️ ELIMINAR REGISTRO DEFINITIVAMENTE"):
                     if confirmar_borrado == item['Cliente']:
-                        # Eliminar el elemento por índice
                         cliente_eliminado = item['Cliente']
                         cap_eliminado = item['Monto_Capital']
                         datos.pop(idx_orig)
                         
                         if guardar_datos(datos, sha, f"Eliminacion de registro: {cliente_eliminado}"):
-                            registrar_auditoria("ELIMINACIÓN", f"Se eliminó préstamo duplicado/erróneo de S/ {cap_eliminado}", cliente=cliente_eliminado)
-                            st.success(f"🗑️ Registro de {cliente_eliminado} eliminado.")
+                            # --- REGISTRO DE AUDITORÍA DETALLADO ---
+                            registrar_auditoria(
+                                "ELIMINACIÓN DEFINITIVA", 
+                                f"BORRADO DE REGISTRO: Se eliminó préstamo de S/ {cap_eliminado:,.2f}. Acción realizada para limpieza de cartera o corrección de duplicados.", 
+                                cliente=cliente_eliminado
+                            )
+                            st.success(f"🗑️ Registro de {cliente_eliminado} eliminado correctamente.")
                             time.sleep(1)
                             st.rerun()
                     else:
@@ -998,3 +1008,4 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
