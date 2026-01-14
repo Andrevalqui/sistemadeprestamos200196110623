@@ -20,6 +20,8 @@ st.set_page_config(
 
 st.markdown("""
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:wght@900&display=swap');
+
 /* --- 1. ENCABEZADOS SIEMPRE CENTRADOS --- */
 h1, h2, h3, h4, h5, h6, .stMarkdown {
     text-align: center !important;
@@ -145,25 +147,26 @@ div.stButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hove
 
 .login-container {
     background: rgba(28, 28, 28, 0.6) !important;
-    backdrop-filter: blur(20px); /* Efecto de cristal esmerilado */
+    backdrop-filter: blur(20px);
     padding: 60px;
     border-radius: 25px;
-    border: 1px solid rgba(212, 175, 55, 0.3); /* Borde dorado tenue */
+    border: 1px solid rgba(212, 175, 55, 0.3);
     box-shadow: 0 25px 50px rgba(0,0,0,0.5);
     text-align: center;
     max-width: 450px;
     margin: auto;
+    margin-bottom: 60px !important; /* ESPACIO PARA QUE NO CHOQUE CON EL TEXTO ABAJO */
 }
 
-/* Título Acceso Seguro */
+/* Título con estilo elegante cursivo */
 .login-title {
-    font-family: 'Playfair Display', serif;
-    color: #D4AF37;
-    font-size: 32px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    margin-bottom: 5px;
-    text-transform: uppercase;
+    font-family: 'Dancing Script', cursive !important; 
+    color: #D4AF37 !important;
+    font-size: 65px !important; /* MÁS GRANDE */
+    font-weight: 700 !important;
+    text-transform: none !important; 
+    margin-bottom: 5px !important;
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
 }
 
 .login-subtitle {
@@ -187,33 +190,45 @@ div[data-baseweb="input"]:focus-within {
     box-shadow: 0 0 10px rgba(212, 175, 55, 0.2) !important;
 }
 
+/* AGRANDAR LETRAS DE USUARIO Y CONTRASEÑA */
 label p {
     color: #D4AF37 !important;
-    font-weight: 600 !important;
-    font-size: 13px !important;
+    font-weight: 800 !important;
+    font-size: 22px !important; /* LETRAS GRANDES */
     text-transform: uppercase;
-    margin-bottom: 8px !important;
+    margin-bottom: 12px !important;
+    margin-top: 15px !important; /* ESPACIO EXTRA ARRIBA */
 }
 
-/* El Botón de Inicio de Sesión */
+/* CENTRAR Y AJUSTAR BOTÓN DE INICIAR SESIÓN */
 div.stButton > button {
     background: linear-gradient(135deg, #D4AF37 0%, #996515 100%) !important;
-    color: #000 !important; /* Texto negro para contraste premium */
+    color: #000 !important;
     border: none !important;
     padding: 15px 0px !important;
     border-radius: 12px !important;
-    font-size: 16px !important;
+    font-size: 20px !important; /* TEXTO DEL BOTÓN MÁS GRANDE */
     font-weight: 800 !important;
-    width: 100% !important;
-    margin-top: 20px !important;
+    width: 80% !important; /* UN POCO MÁS ESTRECHO PARA CENTRARLO MEJOR */
+    margin: 30px auto 0 auto !important; /* CENTRADO HORIZONTAL */
+    display: block !important;
     box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2) !important;
-    transition: all 0.4s ease !important;
 }
 
 div.stButton > button:hover {
     transform: translateY(-2px) !important;
     box-shadow: 0 15px 30px rgba(212, 175, 55, 0.4) !important;
     filter: brightness(1.1);
+}
+
+/* ESTILO PARA EL PIE DE PÁGINA (ANDRE VALQUI SYSTEM) */
+.footer-login {
+    color: #1A3ACD !important; /* AZUL FUERTE */
+    font-size: 18px !important; /* MÁS GRANDE */
+    font-weight: 900 !important;
+    text-align: center !important;
+    margin-top: 40px !important;
+    letter-spacing: 1px;
 }
 
 /* --- TARJETAS DE MÉTRICAS (KPIs) --- */
@@ -624,7 +639,7 @@ def check_login():
                 st.error("Credenciales no autorizadas para este nivel de acceso.")
     
     # Footer sutil fuera del contenedor
-    st.markdown("<p style='color: #444; font-size: 11px; margin-top: 50px;'>ANDRE VALQUI SYSTEM v2.0 | ENCRIPTACIÓN DE GRADO BANCARIO</p>", unsafe_allow_html=True)
+    st.markdown("<div style='text-align: center;'><p class='footer-login'>ANDRE VALQUI SYSTEM v2.0 | ENCRIPTACIÓN DE GRADO BANCARIO</p></div>", unsafe_allow_html=True)
     return False
 
 def logout():
@@ -1282,6 +1297,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
