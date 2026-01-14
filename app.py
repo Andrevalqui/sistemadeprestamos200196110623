@@ -31,11 +31,28 @@ st.markdown("""
         background: #FFFFFF !important;
     }
     
-    /* --- CENTRADO GLOBAL FORZADO --- */
-    h1, h2, h3, h4, h5, h6, .stMarkdown, p, label {
+    /* --- CENTRADO GLOBAL FORZADO Y NEGRITAS --- */
+    h1, h2, h3, h4, h5, h6, .stMarkdown, p, label, [data-testid="stWidgetLabel"] {
         text-align: center !important;
+        justify-content: center !important;
+        display: flex !important;
+        width: 100% !important;
         color: #D4AF37 !important; 
         font-weight: 800 !important;
+    }
+
+    /* Forzar que todos los bloques verticales se centren */
+    [data-testid="stVerticalBlock"] > div {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* Centrar el contenido dentro de los inputs (Números y Texto) */
+    div[data-baseweb="input"] input, div[data-baseweb="textarea"] textarea, select {
+        text-align: center !important; /* Centra el texto que escribes */
+        font-weight: 700 !important;
     }
 
     /* --- SUBMÓDULOS (TABS) CENTRADOS Y GRANDES --- */
@@ -43,11 +60,12 @@ st.markdown("""
         display: flex !important;
         justify-content: center !important;
         gap: 50px !important;
+        width: 100% !important;
     }
 
     button[data-baseweb="tab"] {
-        font-size: 22px !important; /* LETRAS GRANDES */
-        font-weight: 900 !important; /* NEGRITA */
+        font-size: 22px !important; 
+        font-weight: 900 !important; 
         color: #D4AF37 !important;
         transition: 0.3s !important;
     }
@@ -68,6 +86,20 @@ st.markdown("""
         align-items: center !important;
         justify-content: center !important;
         text-align: center !important;
+    }
+
+    /* Centrado de datos en tablas (Historial y Auditoría) */
+    div[data-testid="stDataFrame"] div[role="gridcell"] {
+        text-align: center !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        font-weight: 800 !important;
+    }
+
+    /* Asegurar que la tabla misma esté centrada en la pantalla */
+    [data-testid="stDataFrame"] {
+        margin: 0 auto !important;
     }
 
     /* Centrar Título */
@@ -737,9 +769,9 @@ if check_login():
         
         if activos:
             mapa = {f"{d['Cliente']} | Vence: {d.get('Fecha_Proximo_Pago', 'N/A')}": i for i, d in enumerate(datos) if d.get('Estado') == 'Activo'}
-            col_sel1, col_sel2, col_sel3 = st.columns([1, 2, 1])
-            with col_sel2:
-                seleccion = st.selectbox("Buscar Cliente", list(mapa.keys()))
+            col_sel1, col_sel2, col_sel3 = st.columns([1, 2, 1]) # 2 es el centro
+        with col_sel2:
+            seleccion = st.selectbox("BUSCAR CLIENTE", list(mapa.keys()))
             
             idx = mapa[seleccion]
             data = datos[idx]
@@ -1239,9 +1271,14 @@ if check_login():
                 /* Negritas para los datos de la tabla */
                 div[data-testid="stDataFrame"] div[role="gridcell"] {
                     font-weight: 700 !important;
+                    display: flex !important;
+                    text-align: center !important;
+                    justify-content: center !important;
+                    align-items: center !important;
                     color: #1C1C1C !important;
                 }
                 </style>
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
