@@ -394,7 +394,7 @@ st.markdown("""
     
     /* Título 'NAVEGACIÓN' (Grande y Dorado) */
     div[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p {
-        font-size: 24px !important; 
+        font-size: 28px !important; 
         font-weight: 900 !important; 
         color: #D4AF37 !important;
         letter-spacing: 2px !important;
@@ -405,7 +405,7 @@ st.markdown("""
     /* Opciones del menú (Grandes y Blancas para resaltar) */
     div[data-testid="stSidebar"] div[role="radiogroup"] label div p {
         font-size: 35px !important; 
-        font-weight: 800 !important; 
+        font-weight: 1000 !important; 
         color: #FFFFFF !important; 
         padding: 10px 0px !important;
         line-height: 1.2 !important;
@@ -1245,18 +1245,3 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
