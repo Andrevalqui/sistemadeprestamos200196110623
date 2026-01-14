@@ -9,7 +9,8 @@
         "Tasa_Interes": 18.0,
         "Pago_Mensual_Interes": 90.0,
         "Estado": "Activo",
-        "Observaciones": "PRESTAMO BERTHA"
+        "Observaciones": "PRESTAMO BERTHA",
+        "Porc_Socio1": 8.0
     },
     {
         "Cliente": "Stefany Pesantes",
@@ -21,7 +22,8 @@
         "Tasa_Interes": 18.0,
         "Pago_Mensual_Interes": 90.0,
         "Estado": "Activo",
-        "Observaciones": "PRESTAMO BERTHA"
+        "Observaciones": "PRESTAMO BERTHA",
+        "Porc_Socio1": 10.0
     },
     {
         "Cliente": "Stefany Pesantes",
@@ -33,7 +35,8 @@
         "Tasa_Interes": 18.0,
         "Pago_Mensual_Interes": 180.0,
         "Estado": "Activo",
-        "Observaciones": "PRESTAMO BERTHA"
+        "Observaciones": "PRESTAMO BERTHA",
+        "Porc_Socio1": 10.0
     },
     {
         "Cliente": "Justine Ramirez",
@@ -45,7 +48,8 @@
         "Tasa_Interes": 18.0,
         "Pago_Mensual_Interes": 126.0,
         "Estado": "Activo",
-        "Observaciones": "PRESTAMO BERTHA"
+        "Observaciones": "PRESTAMO BERTHA",
+        "Porc_Socio1": 10.0
     },
     {
         "Cliente": "Tatiana Lacunza",
@@ -57,7 +61,8 @@
         "Tasa_Interes": 18.0,
         "Pago_Mensual_Interes": 72.0,
         "Estado": "Activo",
-        "Observaciones": "PRESTAMO BERTHA"
+        "Observaciones": "PRESTAMO BERTHA",
+        "Porc_Socio1": 10.0
     },
     {
         "Cliente": "Kelly Grados",
@@ -69,7 +74,8 @@
         "Tasa_Interes": 18.0,
         "Pago_Mensual_Interes": 180.0,
         "Estado": "Activo",
-        "Observaciones": "PRESTAMO BERTHA"
+        "Observaciones": "PRESTAMO BERTHA",
+        "Porc_Socio1": 10.0
     },
     {
         "Cliente": "Andr\u00e9 Valqui",
