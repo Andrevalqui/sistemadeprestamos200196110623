@@ -607,8 +607,7 @@ if check_login():
         if 'guardando_prestamo' not in st.session_state:
             st.session_state.guardando_prestamo = False
 
-        if st.button("💾 GUARDAR OPERACIÓN", disabled=st.session_state.guardando_prestamo):
-            if st.button("💾 GUARDAR OPERACIÓN", disabled=st.session_state.guardando_prestamo):
+        if st.button("💾 GUARDAR OPERACIÓN", disabled=st.session_state.guardando_prestamo):            
             if cliente and monto > 0:
                 # 1. Bloqueamos el botón y mostramos estado de carga
                 st.session_state.guardando_prestamo = True 
@@ -1018,5 +1017,6 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
