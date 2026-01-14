@@ -20,16 +20,15 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-/* --- 1. CENTRADO DE TÍTULOS Y TEXTOS GENERALES (CORREGIDO) --- */
-/* Eliminamos 'p' y 'label' de aquí para que no rompa los cuadros de entrada */
+/* --- 1. ENCABEZADOS Y TEXTO ESTRATÉGICO --- */
 h1, h2, h3, h4, h5, h6, .stMarkdown {
     text-align: center !important;
     color: #D4AF37 !important;
     font-weight: 800 !important;
 }
 
-/* --- 2. CENTRADO ESPECÍFICO DE ETIQUETAS (LABELS) --- */
-/* Esto centra "Nombre Completo", "¿Cuánto pagó de INTERÉS?", etc., sobre el cuadro */
+/* --- 2. CENTRAR SOLO LAS LETRAS DE LOS TÍTULOS (LABELS) --- */
+/* Esto centra el texto "¿Cuánto pagó de...?" pero NO deforma el cuadro de abajo */
 [data-testid="stWidgetLabel"] {
     display: flex !important;
     justify-content: center !important;
@@ -800,11 +799,17 @@ if check_login():
                     justify-content: center !important;
                     text-align: center !important;
                 }}
-                [data-testid="stMetricLabel"] {{ display: flex !important; justify-content: center !important; width: 100% !important; }}
-                [data-testid="stMetricValue"] {{ display: flex !important; justify-content: center !important; width: 100% !important; }}
-                [data-testid="stMetricDelta"] {{ display: flex !important; justify-content: center !important; width: 100% !important; }}
+                
+                /* Centrado de los componentes internos de la métrica */
+                [data-testid="stMetricLabel"], 
+                [data-testid="stMetricValue"], 
+                [data-testid="stMetricDelta"] {{
+                    display: flex !important;
+                    justify-content: center !important;
+                    width: 100% !important;
+                }}
 
-                /* Color dinámico SOLO para la métrica de vencimiento (la tercera en la fila) */
+                /* Color dinámico para la fecha de vencimiento */
                 [data-testid="stHorizontalBlock"] > div:nth-child(3) [data-testid="stMetricValue"] div {{
                     color: {color_texto} !important;
                 }}
@@ -1276,4 +1281,5 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
