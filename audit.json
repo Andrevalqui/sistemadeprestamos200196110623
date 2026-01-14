@@ -286,5 +286,13 @@
         "Operaci\u00f3n": "COBRO",
         "Cliente Afectado": "Tatiana Lacunza",
         "Detalle del Movimiento": "Pago Recibido: Inter\u00e9s S/ 72.0, Capital S/ 0.0"
+    },
+    {
+        "Fecha/Hora": "13/01/2026 22:52:51",
+        "Usuario": "PIERAJUAREZ",
+        "Perfil": "Admin",
+        "Operaci\u00f3n": "INICIO DE SESI\u00d3N",
+        "Cliente Afectado": "-",
+        "Detalle del Movimiento": "Acceso exitoso al portal"
     }
 ]
