@@ -326,5 +326,13 @@
         "Operaci\u00f3n": "EDICI\u00d3N MANUAL",
         "Cliente Afectado": "Tatiana Lacunza",
         "Detalle del Movimiento": "Ajuste de datos y observaciones"
+    },
+    {
+        "Fecha/Hora": "13/01/2026 23:02:25",
+        "Usuario": "PIERAJUAREZ",
+        "Perfil": "Admin",
+        "Operaci\u00f3n": "CIERRE DE SESI\u00d3N",
+        "Cliente Afectado": "-",
+        "Detalle del Movimiento": "El usuario PieraJuarez cerr\u00f3 su sesi\u00f3n"
     }
 ]
