@@ -38,5 +38,13 @@
         "Operaci\u00f3n": "CREACI\u00d3N CR\u00c9DITO",
         "Cliente Afectado": "Kelly Grados",
         "Detalle del Movimiento": "Pr\u00e9stamo de S/ 500.0"
+    },
+    {
+        "Fecha/Hora": "13/01/2026 19:58:08",
+        "Usuario": "PIERAJUAREZ",
+        "Perfil": "Admin",
+        "Operaci\u00f3n": "EDICI\u00d3N MANUAL",
+        "Cliente Afectado": "Kelly Grados",
+        "Detalle del Movimiento": "Cambio Capital a S/ 500.0 y Vencimiento a 2026-02-04"
     }
 ]
