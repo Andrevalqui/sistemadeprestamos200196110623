@@ -129,12 +129,13 @@
         "Monto_Capital": 800.0,
         "Tasa_Interes": 10.0,
         "Pago_Mensual_Interes": 80.0,
-        "Estado": "Activo",
+        "Estado": "Pagado",
         "Observaciones": "PRESTAMO FAMILIAR",
         "Distribucion_Socios": {
             "Pierajuarez": 4.0,
             "Brunotapia": 6.0
         },
-        "Porc_Socio1": 4.0
+        "Porc_Socio1": 4.0,
+        "Fecha_Finalizacion": "2026-01-14"
     }
 ]
