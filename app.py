@@ -23,12 +23,12 @@ st.markdown("""
     
     html, body, [class*="css"] {
         font-family: 'Roboto', sans-serif;
-        background-color: #8a8d8f; /* FONDO OSCURO MIDNIGHT */
+        background-color: #FFFFFF; /* FONDO OSCURO MIDNIGHT */
     }
 
     /* Forzar fondo oscuro en la base de Streamlit */
     .stApp {
-        background-color: #8a8d8f !important;
+        background: #FFFFFF !important;
     }
     
     /* --- CENTRADO GLOBAL FORZADO --- */
@@ -301,7 +301,7 @@ st.markdown("""
         left: 0;
         width: 100vw; 
         height: 100vh; 
-        background-color: #8a8d8f !important;
+        background-color: #FFFFFF !important;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -1125,6 +1125,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
