@@ -32,6 +32,16 @@ st.markdown("""
     }
     
     /* --- CENTRADO GLOBAL FORZADO Y NEGRITAS --- */
+    div[data-testid="stWidgetLabel"] p {
+        text-align: center !important;
+        width: 100% !important;
+        display: block !important;
+        color: #D4AF37 !important;
+        font-weight: 800 !important;
+        font-size: 14px !important;
+        text-transform: uppercase;
+    }
+    
     h1, h2, h3, h4, h5, h6, .stMarkdown, p, label, [data-testid="stWidgetLabel"] {
         text-align: center !important;
         justify-content: center !important;
@@ -39,20 +49,6 @@ st.markdown("""
         width: 100% !important;
         color: #D4AF37 !important; 
         font-weight: 800 !important;
-    }
-
-    /* Forzar que todos los bloques verticales se centren */
-    [data-testid="stVerticalBlock"] > div {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-
-    /* Centrar el contenido dentro de los inputs (Números y Texto) */
-    div[data-baseweb="input"] input, div[data-baseweb="textarea"] textarea, select {
-        text-align: center !important; /* Centra el texto que escribes */
-        font-weight: 700 !important;
     }
 
     /* --- SUBMÓDULOS (TABS) CENTRADOS Y GRANDES --- */
@@ -1281,4 +1277,5 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
