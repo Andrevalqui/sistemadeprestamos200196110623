@@ -29,11 +29,11 @@ h1, h2, h3, h4, h5, h6, .stMarkdown {
     font-weight: 800 !important;
 }
 
-/* --- 2. CENTRAR SOLO LAS LETRAS DE LOS TÍTULOS DE LOS CAMPOS --- */
-/* Esto centrará "Nombre Completo", "DNI", etc., pero NO el contenido de los cuadros */
+/* --- 2. CENTRADO DE ETIQUETAS (LABELS) SIN DEFORMAR CUADROS --- */
+/* Cambiamos 'flex' por 'block' para que el texto se mueva pero el cuadro no */
 [data-testid="stWidgetLabel"] {
-    display: flex !important;
-    justify-content: center !important;
+    display: block !important;
+    text-align: center !important;
     width: 100% !important;
 }
 
@@ -45,9 +45,29 @@ h1, h2, h3, h4, h5, h6, .stMarkdown {
     margin-bottom: 8px !important;
 }
 
-/* Evitar que el texto que escribes dentro de los cuadros se mueva al centro */
+/* --- 3. CORRECCIÓN PARA EL CHECKBOX (RENOVAR VENCIMIENTO) --- */
+/* Esto centra el cuadrito y el texto de renovación perfectamente */
+[data-testid="stCheckbox"] {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    margin: 10px 0 !important;
+}
+
+[data-testid="stCheckbox"] label p {
+    font-size: 16px !important; /* Tamaño moderado para que no se vea gigante */
+    color: #D4AF37 !important;
+    font-weight: 700 !important;
+}
+
+/* --- 4. ASEGURAR QUE LOS CUADROS OCUPEN TODO EL ANCHO --- */
+div[data-baseweb="input"] {
+    width: 100% !important;
+}
+
 div[data-baseweb="input"] input {
-    text-align: left !important;
+    text-align: left !important; /* Texto del número a la izquierda */
 }
 
 /* --- SUBMÓDULOS (TABS) CENTRADOS Y GRANDES --- */
@@ -58,8 +78,8 @@ div[data-baseweb="tab-list"] {
 }
 
 button[data-baseweb="tab"] {
-    font-size: 22px !important; /* LETRAS GRANDES */
-    font-weight: 900 !important; /* NEGRITA */
+    font-size: 22px !important; 
+    font-weight: 900 !important; 
     color: #D4AF37 !important;
     transition: 0.3s !important;
 }
@@ -829,10 +849,10 @@ if check_login():
                 txt_venc = f"En {dias_restantes} días"
                 flecha_dir = "normal"
 
-            # Inyectamos CSS específico para centrar y dar color a la tarjeta de vencimiento
+           # Inyectamos CSS específico para centrar métricas y ARREGLAR el Checkbox/Inputs
             st.markdown(f"""
                 <style>
-                /* Centrado general de métricas */
+                /* 1. Centrado de métricas (KPIs) */
                 [data-testid="stMetric"] {{
                     display: flex !important;
                     flex-direction: column !important;
@@ -841,7 +861,6 @@ if check_login():
                     text-align: center !important;
                 }}
                 
-                /* Centrado de los componentes internos de la métrica */
                 [data-testid="stMetricLabel"], 
                 [data-testid="stMetricValue"], 
                 [data-testid="stMetricDelta"] {{
@@ -850,7 +869,34 @@ if check_login():
                     width: 100% !important;
                 }}
 
-                /* Color dinámico para la fecha de vencimiento */
+                /* 2. FIX DEFINITIVO PARA EL CHECKBOX (RENOVAR VENCIMIENTO) */
+                /* Esto evita que el texto se vea gigante o separado del cuadro */
+                [data-testid="stCheckbox"] {{
+                    display: flex !important;
+                    justify-content: center !important;
+                    align-items: center !important;
+                    gap: 8px !important;
+                    width: 100% !important;
+                    margin: 20px 0 !important;
+                }}
+
+                [data-testid="stCheckbox"] label p {{
+                    font-size: 15px !important; /* Tamaño normal de lectura */
+                    color: #D4AF37 !important;
+                    font-weight: 700 !important;
+                    margin: 0 !important;
+                    text-transform: uppercase;
+                }}
+
+                /* 3. FIX PARA INPUTS DE DINERO */
+                /* Asegura que los títulos estén arriba/centro y el cuadro ocupe su lugar */
+                [data-testid="stNumberInput"] label {{
+                    display: block !important;
+                    text-align: center !important;
+                    width: 100% !important;
+                }}
+
+                /* 4. Color dinámico para la fecha de vencimiento (Métrica 3) */
                 [data-testid="stHorizontalBlock"] > div:nth-child(3) [data-testid="stMetricValue"] div {{
                     color: {color_texto} !important;
                 }}
@@ -1322,6 +1368,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
