@@ -93,7 +93,8 @@
         "Monto_Capital": 750.0,
         "Tasa_Interes": 18.0,
         "Pago_Mensual_Interes": 135.0,
-        "Estado": "Activo",
-        "Observaciones": ""
+        "Estado": "Pagado",
+        "Observaciones": "Cliente cancel\u00f3 a tiempo y en el tiempo prometido, excelente cliente",
+        "Fecha_Finalizacion": "2026-01-14"
     }
 ]
