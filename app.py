@@ -1435,11 +1435,13 @@ if check_login():
             # --- 2. MÉTRICAS DE ÉXITO DINÁMICAS ---
             h1, h2, h3 = st.columns(3)
             # Ahora el Capital Recuperado sumará los montos reales ya que no se ponen en 0
-            cap_recuperado = df_hist['Monto_Capital'].sum() 
+            cap_recuperado = df_hist['Monto_Capital'].sum()
+            # Calculamos el total de intereses ganados sumando la columna correspondiente
+            interes_ganado = df_hist['Pago_Mensual_Interes'].sum()
             
             h1.metric("CRÉDITOS CERRADOS", f"{len(df_hist)}")
             h2.metric("CAPITAL RECUPERADO", f"S/ {cap_recuperado:,.2f}")
-            h3.metric("EFECTIVIDAD", "NIVEL ORO")
+            h3.metric("TOTAL INTERESES GANADOS", f"S/ {interes_ganado:,.2f}")
 
             st.write("")
             
@@ -1548,6 +1550,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
