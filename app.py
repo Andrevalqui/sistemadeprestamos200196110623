@@ -200,25 +200,37 @@ label p {
     margin-top: 15px !important; /* ESPACIO EXTRA ARRIBA */
 }
 
-/* CENTRAR Y AJUSTAR BOTÓN DE INICIAR SESIÓN */
-div.stButton > button {
+* --- CENTRAR Y AJUSTAR BOTÓN DE INICIAR SESIÓN (CORREGIDO) --- */
+
+/* 1. Apuntar al contenedor del botón para obligarlo a centrarse */
+div[data-testid="stButton"], div[data-testid="stFormSubmitButton"] {
+    display: flex !important;
+    justify-content: center !important; /* Centra el contenido horizontalmente */
+    width: 100% !important;
+    margin-top: 20px !important;
+}
+
+/* 2. Estilo del botón propiamente dicho */
+div.stButton > button, div[data-testid="stFormSubmitButton"] > button {
     background: linear-gradient(135deg, #D4AF37 0%, #996515 100%) !important;
     color: #000 !important;
     border: none !important;
     padding: 15px 0px !important;
     border-radius: 12px !important;
-    font-size: 20px !important; /* TEXTO DEL BOTÓN MÁS GRANDE */
+    font-size: 20px !important; 
     font-weight: 800 !important;
-    width: 80% !important; /* UN POCO MÁS ESTRECHO PARA CENTRARLO MEJOR */
-    margin: 30px auto 0 auto !important; /* CENTRADO HORIZONTAL */
-    display: block !important;
+    width: 80% !important; /* Mantiene el tamaño elegante */
+    transition: all 0.4s ease !important;
     box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2) !important;
 }
 
-div.stButton > button:hover {
+/* Efecto Hover */
+div.stButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hover {
     transform: translateY(-2px) !important;
     box-shadow: 0 15px 30px rgba(212, 175, 55, 0.4) !important;
     filter: brightness(1.1);
+    background: #FFFFFF !important; /* Fondo blanco al pasar el mouse */
+    color: #B8860B !important;    /* Letras doradas al pasar el mouse */
 }
 
 /* ESTILO PARA EL PIE DE PÁGINA (ANDRE VALQUI SYSTEM) */
@@ -1297,6 +1309,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
