@@ -999,7 +999,7 @@ if check_login():
         else:
             st.info("No hay datos registrados.")
 
-    # 4. ADMINISTRACIÓN Y EDICIÓN (Módulo Nuevo)
+   # 4. ADMINISTRACIÓN Y EDICIÓN (Módulo Nuevo)
     elif menu == "🛠️ Administrar Cartera":
         st.markdown("""<div class="header-box">
                     <div class="luxury-title">🛠️ Administración de Cartera</div>
@@ -1009,91 +1009,98 @@ if check_login():
         datos, sha = cargar_datos()
         
         if datos:
-            # Crear una lista de nombres con índice para identificar duplicados exactos
-            lista_edicion = [f"{i} | {d['Cliente']} (Capital: S/ {d['Monto_Capital']})" for i, d in enumerate(datos)]
+            # --- MEJORA: FILTRAR SOLO CLIENTES ACTIVOS ---
+            lista_edicion = [
+                f"{i} | {d['Cliente']} (Capital: S/ {d['Monto_Capital']})" 
+                for i, d in enumerate(datos) 
+                if d.get('Estado') == 'Activo'
+            ]
             
-            col_sel1, col_sel2 = st.columns([2, 1])
-            with col_sel1:
-                seleccion_edit = st.selectbox("Seleccione el registro exacto a modificar o eliminar:", lista_edicion)
-            
-            # Extraer el índice original
-            idx_orig = int(seleccion_edit.split(" | ")[0])
-            item = datos[idx_orig]
-
-            st.markdown("---")
-            
-            tab_edit, tab_del = st.tabs(["✏️ Editar Datos", "🗑️ Eliminar Registro"])
-
-            with tab_edit:
-                with st.form(f"form_edit_{idx_orig}"):
-                    st.markdown("### Modificar Información")
-                    c_ed1, c_ed2 = st.columns(2)
-                    
-                    nuevo_nombre = c_ed1.text_input("Nombre del Cliente", value=item['Cliente'])
-                    nuevo_dni = c_ed2.text_input("DNI / CE", value=item.get('DNI', ''))
-                    
-                    nuevo_cap = c_ed1.number_input("Deuda Capital Actual (S/)", value=float(item['Monto_Capital']), step=50.0)
-                    nueva_fecha_venc = c_ed2.date_input("Próximo Vencimiento", value=datetime.strptime(item['Fecha_Proximo_Pago'], "%Y-%m-%d"))
-                    
-                    nueva_tasa = c_ed1.number_input("Tasa de Interés (%)", value=float(item['Tasa_Interes']))
-                    nuevo_estado = c_ed2.selectbox("Estado del Crédito", ["Activo", "Pagado"], index=0 if item['Estado'] == "Activo" else 1)
-                    
-                    # --- NUEVO CAMPO DE OBSERVACIONES ---
-                    nueva_obs = st.text_area("Observaciones del Cliente", value=item.get('Observaciones', ''))
-
-                    st.write("")
-                    btn_save_edit = st.form_submit_button("💾 GUARDAR CAMBIOS")
-
-                if btn_save_edit:
-                    # Recalcular interés basado en el nuevo capital
-                    nuevo_interes = nuevo_cap * (nueva_tasa / 100)
-                    
-                    # Actualizar todos los campos en la lista de datos
-                    datos[idx_orig].update({
-                        "Cliente": nuevo_nombre,
-                        "DNI": nuevo_dni,
-                        "Monto_Capital": nuevo_cap,
-                        "Fecha_Proximo_Pago": str(nueva_fecha_venc),
-                        "Tasa_Interes": nueva_tasa,
-                        "Pago_Mensual_Interes": nuevo_interes,
-                        "Estado": nuevo_estado,
-                        "Observaciones": nueva_obs  # Se guarda la nueva observación
-                    })
-                    
-                    # Usamos st.status para que el mensaje de éxito sea visible y profesional
-                    with st.status("Actualizando registro...", expanded=False) as status:
-                        if guardar_datos(datos, sha, f"Edicion manual: {nuevo_nombre}"):
-                            registrar_auditoria("EDICIÓN MANUAL", f"Ajuste de datos y observaciones", cliente=nuevo_nombre)
-                            status.update(label="✅ Cambios aplicados correctamente.", state="complete")
-                            time.sleep(2)
-                            st.rerun()
-
-            with tab_del:
-                st.warning(f"⚠️ **ATENCIÓN:** Está a punto de eliminar permanentemente el registro de **{item['Cliente']}** con capital de S/ {item['Monto_Capital']}.")
-                st.write("Esta acción no se puede deshacer y se usa principalmente para corregir duplicados.")
+            # Verificar si después de filtrar hay clientes para mostrar
+            if lista_edicion:
+                col_sel1, col_sel2 = st.columns([2, 1])
+                with col_sel1:
+                    seleccion_edit = st.selectbox("Seleccione el registro activo a modificar o eliminar:", lista_edicion)
                 
-                confirmar_borrado = st.text_input(f"Para confirmar, escriba el nombre del cliente ({item['Cliente']}):")
+                # Extraer el índice original
+                idx_orig = int(seleccion_edit.split(" | ")[0])
+                item = datos[idx_orig]
+
+                st.markdown("---")
                 
-                if st.button("🗑️ ELIMINAR REGISTRO DEFINITIVAMENTE"):
-                    if confirmar_borrado == item['Cliente']:
-                        cliente_eliminado = item['Cliente']
-                        cap_eliminado = item['Monto_Capital']
-                        datos.pop(idx_orig)
+                # CREACIÓN DE TABS CENTRADOS Y GRANDES (Según tu estilo anterior)
+                tab_edit, tab_del = st.tabs(["✏️ Editar Datos", "🗑️ Eliminar Registro"])
+
+                with tab_edit:
+                    with st.form(f"form_edit_{idx_orig}"):
+                        st.markdown("### Modificar Información")
+                        c_ed1, c_ed2 = st.columns(2)
                         
-                        if guardar_datos(datos, sha, f"Eliminacion de registro: {cliente_eliminado}"):
-                            # --- REGISTRO DE AUDITORÍA DETALLADO ---
-                            registrar_auditoria(
-                                "ELIMINACIÓN DEFINITIVA", 
-                                f"BORRADO DE REGISTRO: Se eliminó préstamo de S/ {cap_eliminado:,.2f}. Acción realizada para limpieza de cartera o corrección de duplicados.", 
-                                cliente=cliente_eliminado
-                            )
-                            st.success(f"🗑️ Registro de {cliente_eliminado} eliminado correctamente.")
-                            time.sleep(1)
-                            st.rerun()
-                    else:
-                        st.error("❌ El nombre no coincide. No se eliminó nada.")
+                        nuevo_nombre = c_ed1.text_input("Nombre del Cliente", value=item['Cliente'])
+                        nuevo_dni = c_ed2.text_input("DNI / CE", value=item.get('DNI', ''))
+                        
+                        nuevo_cap = c_ed1.number_input("Deuda Capital Actual (S/)", value=float(item['Monto_Capital']), step=50.0)
+                        nueva_fecha_venc = c_ed2.date_input("Próximo Vencimiento", value=datetime.strptime(item['Fecha_Proximo_Pago'], "%Y-%m-%d"))
+                        
+                        nueva_tasa = c_ed1.number_input("Tasa de Interés (%)", value=float(item['Tasa_Interes']))
+                        nuevo_estado = c_ed2.selectbox("Estado del Crédito", ["Activo", "Pagado"], index=0 if item['Estado'] == "Activo" else 1)
+                        
+                        # --- CAMPO DE OBSERVACIONES ---
+                        nueva_obs = st.text_area("Observaciones del Cliente", value=item.get('Observaciones', ''))
+
+                        st.write("")
+                        btn_save_edit = st.form_submit_button("💾 GUARDAR CAMBIOS")
+
+                    if btn_save_edit:
+                        # Recalcular interés basado en el nuevo capital
+                        nuevo_interes = nuevo_cap * (nueva_tasa / 100)
+                        
+                        # Actualizar todos los campos en la lista de datos
+                        datos[idx_orig].update({
+                            "Cliente": nuevo_nombre,
+                            "DNI": nuevo_dni,
+                            "Monto_Capital": nuevo_cap,
+                            "Fecha_Proximo_Pago": str(nueva_fecha_venc),
+                            "Tasa_Interes": nueva_tasa,
+                            "Pago_Mensual_Interes": nuevo_interes,
+                            "Estado": nuevo_estado,
+                            "Observaciones": nueva_obs 
+                        })
+                        
+                        with st.status("Actualizando registro...", expanded=False) as status:
+                            if guardar_datos(datos, sha, f"Edicion manual: {nuevo_nombre}"):
+                                registrar_auditoria("EDICIÓN MANUAL", f"Ajuste de datos y observaciones", cliente=nuevo_nombre)
+                                status.update(label="✅ Cambios aplicados correctamente.", state="complete")
+                                time.sleep(2)
+                                st.rerun()
+
+                with tab_del:
+                    st.warning(f"⚠️ **ATENCIÓN:** Está a punto de eliminar permanentemente el registro de **{item['Cliente']}**.")
+                    st.write("Esta acción no se puede deshacer y se usa principalmente para corregir duplicados.")
+                    
+                    confirmar_borrado = st.text_input(f"Para confirmar, escriba el nombre del cliente ({item['Cliente']}):")
+                    
+                    if st.button("🗑️ ELIMINAR REGISTRO DEFINITIVAMENTE"):
+                        if confirmar_borrado == item['Cliente']:
+                            cliente_eliminado = item['Cliente']
+                            cap_eliminado = item['Monto_Capital']
+                            datos.pop(idx_orig)
+                            
+                            if guardar_datos(datos, sha, f"Eliminacion de registro: {cliente_eliminado}"):
+                                registrar_auditoria(
+                                    "ELIMINACIÓN DEFINITIVA", 
+                                    f"BORRADO DE REGISTRO: Se eliminó préstamo de S/ {cap_eliminado:,.2f}.", 
+                                    cliente=cliente_eliminado
+                                )
+                                st.success(f"🗑️ Registro de {cliente_eliminado} eliminado correctamente.")
+                                time.sleep(1)
+                                st.rerun()
+                        else:
+                            st.error("❌ El nombre no coincide.")
+            else:
+                st.info("💡 No hay préstamos activos para administrar. Todos están en el Historial.")
         else:
-            st.info("No hay datos para administrar.")
+            st.info("No hay datos registrados en el sistema.")
 
     # 5. HISTORIAL DE CRÉDITOS (Módulo Informativo)
     elif menu == "📂 Historial de Créditos":
@@ -1150,38 +1157,61 @@ if check_login():
     elif menu == "📜 Auditoría":
         st.markdown("""<div class="header-box">
                         <div class="luxury-title">📜 Auditoría del Sistema</div>
-                        <div class="luxury-subtitle">Registro histórico de movimientos y accesos</div>
+                        <div class="luxury-subtitle">Registro histórico de movimientos y accesos con filtrado inteligente</div>
                        </div>""", unsafe_allow_html=True)
         
         logs, _ = cargar_datos("audit.json")
+        
         if logs:
             df_audit = pd.DataFrame(logs)
             # Ordenar por el más reciente arriba
             df_audit = df_audit.iloc[::-1]
+
+            # --- BUSCADOR INTELIGENTE ---
+            st.markdown("### 🔍 Buscador en Tiempo Real")
+            busqueda = st.text_input("", placeholder="🔍 Filtre por Usuario, Cliente, Operación, Fecha o Detalle...", label_visibility="collapsed")
             
-            # CONFIGURACIÓN DE CENTRADO TOTAL
+            # Lógica de filtrado inteligente (Busca en todas las columnas)
+            if busqueda:
+                # Convertimos todo a string y buscamos la coincidencia sin importar mayúsculas/minúsculas
+                mask = df_audit.apply(lambda row: row.astype(str).str.contains(busqueda, case=False).any(), axis=1)
+                df_audit = df_audit[mask]
+                st.caption(f"✨ Se encontraron {len(df_audit)} resultados para: '{busqueda}'")
+
+            st.write("")
+
+            # CONFIGURACIÓN DE VISUALIZACIÓN
             st.dataframe(
                 df_audit,
                 use_container_width=True,
                 hide_index=True,
                 column_config={
-                    "Fecha/Hora": st.column_config.TextColumn("Fecha/Hora", width="medium", help="Hora exacta Perú"),
-                    "Usuario": st.column_config.TextColumn("Usuario", width="small"),
-                    "Perfil": st.column_config.TextColumn("Perfil", width="small"),
-                    "Operación": st.column_config.TextColumn("Operación", width="medium"),
-                    "Cliente Afectado": st.column_config.TextColumn("Cliente Afectado", width="medium"),
-                    "Detalle del Movimiento": st.column_config.TextColumn("Detalle del Movimiento", width="large"),
+                    "Fecha/Hora": st.column_config.TextColumn("📅 Fecha/Hora", width="medium"),
+                    "Usuario": st.column_config.TextColumn("👤 Usuario", width="small"),
+                    "Perfil": st.column_config.TextColumn("🛡️ Perfil", width="small"),
+                    "Operación": st.column_config.TextColumn("⚙️ Operación", width="medium"),
+                    "Cliente Afectado": st.column_config.TextColumn("👤 Cliente", width="medium"),
+                    "Detalle del Movimiento": st.column_config.TextColumn("📝 Detalle del Movimiento", width="large"),
                 }
             )
-            # CSS Adicional para centrar el texto dentro de las celdas de la tabla
+
+            # CSS Adicional para centrar y estilizar la tabla de auditoría
             st.markdown("""
                 <style>
-                [data-testid="stTable"] td, [data-testid="stTable"] th { text-align: center !important; }
-                [data-testid="stDataFrame"] div[data-testid="stHorizontalBlock"] { justify-content: center; }
+                [data-testid="stDataFrame"] { 
+                    border: 2px solid #D4AF37 !important; 
+                    border-radius: 15px !important;
+                }
+                /* Negritas para los datos de la tabla */
+                div[data-testid="stDataFrame"] div[role="gridcell"] {
+                    font-weight: 700 !important;
+                    color: #1C1C1C !important;
+                }
                 </style>
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
