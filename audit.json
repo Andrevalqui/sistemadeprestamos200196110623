@@ -310,5 +310,13 @@
         "Operaci\u00f3n": "COBRO",
         "Cliente Afectado": "Andr\u00e9 Valqui",
         "Detalle del Movimiento": "Pago Recibido: Inter\u00e9s S/ 900.0, Capital S/ 2500.0"
+    },
+    {
+        "Fecha/Hora": "13/01/2026 22:55:28",
+        "Usuario": "PIERAJUAREZ",
+        "Perfil": "Admin",
+        "Operaci\u00f3n": "ELIMINACI\u00d3N DEFINITIVA",
+        "Cliente Afectado": "Andr\u00e9 Valqui",
+        "Detalle del Movimiento": "BORRADO DE REGISTRO: Se elimin\u00f3 pr\u00e9stamo de S/ 2,500.00."
     }
 ]
