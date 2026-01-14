@@ -28,7 +28,7 @@ st.markdown("""
 
     /* Forzar fondo oscuro en la base de Streamlit */
     .stApp {
-        background-color: #050505 !important;
+        background-color: #8a8d8f !important;
     }
     
     /* --- CENTRADO GLOBAL FORZADO --- */
@@ -89,7 +89,7 @@ st.markdown("""
     
     /* Fondo General del Login */
     [data-testid="stAppViewRoot"] {
-        background: radial-gradient(circle at center, #1C1C1C 0%, #8a8d8f 100%) !important;
+        background: #8a8d8f !important;
     }
 
     .login-container {
@@ -343,9 +343,9 @@ st.markdown("""
         margin-top: 5px !important;
     }
 
-    /* Sidebar Oscura */
+    /* Sidebar */
     [data-testid="stSidebar"] {
-        background-color: #0A0A0A !important;
+        background-color: #6d7072 !important;
         border-right: 1px solid rgba(212, 175, 55, 0.2);
     }
     
@@ -1110,6 +1110,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
