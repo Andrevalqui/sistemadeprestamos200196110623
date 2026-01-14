@@ -656,7 +656,7 @@ def check_login():
     with c2:
         st.markdown(f"""
             <div class="login-container">
-                <img src="https://i.ibb.co/3ykS8VfX/prestamo.png" class="login-icon">
+                <img src="https://cdn-icons-png.flaticon.com/512/2489/2489756.png" class="login-icon">
                 <div class="login-title">Sistema de Préstamos</div>
                 <div class="login-subtitle">GESTIÓN DE ACTIVOS & CRÉDITOS</div>
             </div>
@@ -1343,6 +1343,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
