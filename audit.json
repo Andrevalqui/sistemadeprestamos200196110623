@@ -126,5 +126,13 @@
         "Operaci\u00f3n": "ELIMINACI\u00d3N DEFINITIVA",
         "Cliente Afectado": "Andr\u00e9 Valqui",
         "Detalle del Movimiento": "BORRADO DE REGISTRO: Se elimin\u00f3 pr\u00e9stamo de S/ 500.00. Acci\u00f3n realizada para limpieza de cartera o correcci\u00f3n de duplicados."
+    },
+    {
+        "Fecha/Hora": "13/01/2026 20:13:12",
+        "Usuario": "PIERAJUAREZ",
+        "Perfil": "Admin",
+        "Operaci\u00f3n": "EDICI\u00d3N MANUAL",
+        "Cliente Afectado": "Kelly Grados",
+        "Detalle del Movimiento": "Ajuste de datos y observaciones"
     }
 ]
