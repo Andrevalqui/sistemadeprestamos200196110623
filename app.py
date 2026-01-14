@@ -404,10 +404,11 @@ st.markdown("""
 
     /* Opciones del menú (Grandes y Blancas para resaltar) */
     div[data-testid="stSidebar"] div[role="radiogroup"] label div p {
-        font-size: 28px !important; 
+        font-size: 35px !important; 
         font-weight: 800 !important; 
         color: #FFFFFF !important; 
-        padding: 5px 0px !important;
+        padding: 10px 0px !important;
+        line-height: 1.2 !important;
     }
 
     /* Color del círculo de selección en Dorado */
@@ -1244,6 +1245,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
