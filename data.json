@@ -115,10 +115,10 @@
         "DNI": "70895739",
         "Telefono": "997317288",
         "Fecha_Prestamo": "2026-01-14",
-        "Fecha_Proximo_Pago": "2026-02-14",
-        "Monto_Capital": 5000.0,
+        "Fecha_Proximo_Pago": "2026-03-14",
+        "Monto_Capital": 2500.0,
         "Tasa_Interes": 18.0,
-        "Pago_Mensual_Interes": 900.0,
+        "Pago_Mensual_Interes": 450.0,
         "Estado": "Activo",
         "Observaciones": ""
     }
