@@ -719,8 +719,7 @@ if check_login():
         st.markdown(f"<p style='text-align: center; color: #D4AF37;'>Perfil: {st.session_state['rol']}</p>", unsafe_allow_html=True)
         st.markdown("---")
         
-        # --- LÓGICA DE ACCESO BRUNOTAPIA ---
-        opciones = ["📊 Dashboard General", "📂 Historial de Créditos"] # Opción nueva para todos
+        opciones = ["📊 Dashboard General", "📂 Historial de Créditos"]
         user_actual = st.session_state.get('usuario', '').lower()
         
         if st.session_state['rol'] == 'Admin':
@@ -1034,7 +1033,8 @@ if check_login():
                 <div class="luxury-subtitle">Inteligencia de Datos, Control de Activos y Gestión de Cobranza.</div>
                </div>""", unsafe_allow_html=True)
         
-        datos, _ = cargar_datos()
+        # CAMBIO NECESARIO: Recuperamos 'sha' para poder guardar los cambios en el Tab 4
+        datos, sha = cargar_datos()
         
         if datos:
             df = pd.DataFrame(datos)
@@ -1051,8 +1051,13 @@ if check_login():
 
             st.write("")
 
-            # --- SUBMÓDULOS DEL DASHBOARD ---
-            tab1, tab2, tab3 = st.tabs(["🔔 ACCIONES DE COBRO PRIORITARIAS", "📲 CENTRO DE NOTIFICACIONES", "📋 CARTERA DE CLIENTES"])
+            # --- SUBMÓDULOS DEL DASHBOARD (AHORA CON 4 TABS) ---
+            tab1, tab2, tab3, tab4 = st.tabs([
+                "🔔 ACCIONES DE COBRO PRIORITARIAS", 
+                "📲 CENTRO DE NOTIFICACIONES", 
+                "📋 CARTERA DE CLIENTES",
+                "🤝 INTERÉS POR SOCIO"
+            ])
 
             with tab1:
                 st.markdown("### 🔔 ALERTAS DE COBRANZA")
@@ -1121,6 +1126,130 @@ if check_login():
                 st.markdown("### 📋 CARTERA DE CLIENTES ACTIVA")
                 df['Vence'] = pd.to_datetime(df['Fecha_Proximo_Pago']).dt.strftime('%d/%m/%Y')
                 st.dataframe(df[["Cliente", "Telefono", "Monto_Capital", "Pago_Mensual_Interes", "Vence", "Observaciones"]], use_container_width=True, hide_index=True)
+
+            # --- NUEVO TAB 4: LÓGICA DE SOCIOS ---
+            with tab4:
+                st.markdown("### 🤝 DISTRIBUCIÓN DE INTERESES POR SOCIO")
+                st.info("💡 **Nota:** La suma de los porcentajes de ambos socios siempre igualará la Tasa de Interés total asignada a cada cliente.")
+
+                # 1. CÁLCULOS PREVIOS
+                total_s1 = 0.0
+                total_s2 = 0.0
+                tabla_socios = []
+                
+                # Mapeo para el Selectbox (Indice | Cliente | Tasa)
+                opciones_clientes = []
+
+                for i, d in enumerate(datos):
+                    if d.get('Estado') == 'Activo':
+                        tasa_cli = float(d.get('Tasa_Interes', 0.0))
+                        
+                        # Definir porcentaje Socio 1 (Si no existe, asignar default inteligente)
+                        if 'Porc_Socio1' not in d:
+                            # Si es la tasa estándar del 18%, default es 10%
+                            if tasa_cli == 18.0:
+                                d['Porc_Socio1'] = 10.0
+                            else:
+                                # Si es otra tasa (ej. 10% familiar), asignamos todo al Socio 1 inicialmente para que editen
+                                d['Porc_Socio1'] = tasa_cli 
+                        
+                        p1 = float(d['Porc_Socio1'])
+                        p2 = tasa_cli - p1
+                        
+                        # Asegurar que no sea negativo por errores de redondeo
+                        if p2 < 0: p2 = 0.0
+
+                        ganancia_s1 = d['Monto_Capital'] * (p1 / 100)
+                        ganancia_s2 = d['Monto_Capital'] * (p2 / 100)
+                        
+                        total_s1 += ganancia_s1
+                        total_s2 += ganancia_s2
+                        
+                        tabla_socios.append({
+                            "Cliente": d['Cliente'],
+                            "Tasa Total": f"{tasa_cli}%",
+                            "Socio 1 (%)": f"{p1}%",
+                            "Socio 2 (%)": f"{p2:.1f}%",  # Redondeo visual
+                            "Ganancia S1": ganancia_s1,
+                            "Ganancia S2": ganancia_s2
+                        })
+                        
+                        opciones_clientes.append(f"{i} | {d['Cliente']} (Tasa: {tasa_cli}%)")
+
+                # 2. MOSTRAR MÉTRICAS DE SOCIOS
+                col_soc1, col_soc2 = st.columns(2)
+                col_soc1.markdown(f"""
+                    <div class="metric-card" style="border-left: 6px solid #2980B9;">
+                        <div class="metric-title" style="color:#2980B9;">SOCIO 1 (PRINCIPAL)</div>
+                        <div class="metric-value">S/ {total_s1:,.2f}</div>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                col_soc2.markdown(f"""
+                    <div class="metric-card" style="border-left: 6px solid #8E44AD;">
+                        <div class="metric-title" style="color:#8E44AD;">SOCIO 2 (SECUNDARIO)</div>
+                        <div class="metric-value">S/ {total_s2:,.2f}</div>
+                    </div>
+                """, unsafe_allow_html=True)
+
+                st.write("")
+                st.markdown("---")
+
+                # 3. ZONA DE EDICIÓN
+                if opciones_clientes:
+                    c_edit, c_view = st.columns([1, 2])
+                    
+                    with c_edit:
+                        st.markdown("#### 🛠️ Configurar Porcentajes")
+                        seleccion = st.selectbox("Seleccione Cliente:", opciones_clientes)
+                        
+                        if seleccion:
+                            idx_real = int(seleccion.split(" | ")[0])
+                            item_cli = datos[idx_real]
+                            tasa_max = float(item_cli['Tasa_Interes'])
+                            
+                            # Valor actual del slider
+                            val_slider = float(item_cli.get('Porc_Socio1', 10.0))
+                            if val_slider > tasa_max: val_slider = tasa_max
+
+                            # Slider dinámico (Tope es la tasa del cliente)
+                            nuevo_p1 = st.slider(
+                                "Participación Socio 1 (%)",
+                                min_value=0.0,
+                                max_value=tasa_max,
+                                value=val_slider,
+                                step=0.5
+                            )
+                            
+                            # Cálculo visual inmediato
+                            nuevo_p2 = tasa_max - nuevo_p1
+                            monto_calc = item_cli['Monto_Capital']
+                            g1_prev = monto_calc * (nuevo_p1/100)
+                            g2_prev = monto_calc * (nuevo_p2/100)
+                            
+                            st.caption(f"**Resultado:** Socio 1: S/ {g1_prev:,.2f} | Socio 2: S/ {g2_prev:,.2f}")
+
+                            if st.button("💾 GUARDAR CAMBIO"):
+                                datos[idx_real]['Porc_Socio1'] = nuevo_p1
+                                if guardar_datos(datos, sha, f"Actualizacion Intereses Socio: {item_cli['Cliente']}"):
+                                    st.success("✅ Porcentajes actualizados.")
+                                    time.sleep(1)
+                                    st.rerun()
+
+                    with c_view:
+                        st.markdown("#### 📊 Desglose Detallado")
+                        st.dataframe(
+                            pd.DataFrame(tabla_socios),
+                            use_container_width=True,
+                            hide_index=True,
+                            column_config={
+                                "Ganancia S1": st.column_config.NumberColumn(format="S/ %.2f"),
+                                "Ganancia S2": st.column_config.NumberColumn(format="S/ %.2f"),
+                            }
+                        )
+                else:
+                    st.info("No hay clientes activos para configurar.")
+
         else:
             st.info("No hay datos registrados.")
 
@@ -1368,12 +1497,3 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
-
-
-
-
-
-
-
-
-
