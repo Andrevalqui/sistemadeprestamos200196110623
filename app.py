@@ -18,7 +18,8 @@ st.set_page_config(
 # Nota: Si este CSS va dentro de un st.markdown, 
 # asegúrate de envolverlo en triple comilla y etiquetas <style>
 
-"""
+st.markdown("""
+<style>
 /* --- CENTRADO GLOBAL FORZADO --- */
 h1, h2, h3, h4, h5, h6, .stMarkdown, p, label {
     text-align: center !important;
@@ -113,326 +114,325 @@ div.stButton > button:hover, div[data-testid="stFormSubmitButton"] > button:hove
     color: #B8860B !important;    
     border: 2px solid #D4AF37 !important;
 }
-"""
+
+/* --- DISEÑO DE LOGIN EXCLUSIVO: MIDNIGHT GOLD --- */
     
-    /* --- DISEÑO DE LOGIN EXCLUSIVO: MIDNIGHT GOLD --- */
-    
-    /* Fondo General del Login */
-    [data-testid="stAppViewRoot"] {
-        background: #8a8d8f !important;
-    }
+/* Fondo General del Login */
+[data-testid="stAppViewRoot"] {
+    background: #8a8d8f !important;
+}
 
-    .login-container {
-        background: rgba(28, 28, 28, 0.6) !important;
-        backdrop-filter: blur(20px); /* Efecto de cristal esmerilado */
-        padding: 60px;
-        border-radius: 25px;
-        border: 1px solid rgba(212, 175, 55, 0.3); /* Borde dorado tenue */
-        box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-        text-align: center;
-        max-width: 450px;
-        margin: auto;
-    }
+.login-container {
+    background: rgba(28, 28, 28, 0.6) !important;
+    backdrop-filter: blur(20px); /* Efecto de cristal esmerilado */
+    padding: 60px;
+    border-radius: 25px;
+    border: 1px solid rgba(212, 175, 55, 0.3); /* Borde dorado tenue */
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    text-align: center;
+    max-width: 450px;
+    margin: auto;
+}
 
-    /* Título Acceso Seguro */
-    .login-title {
-        font-family: 'Playfair Display', serif;
-        color: #D4AF37;
-        font-size: 32px;
-        font-weight: 700;
-        letter-spacing: 2px;
-        margin-bottom: 5px;
-        text-transform: uppercase;
-    }
+/* Título Acceso Seguro */
+.login-title {
+    font-family: 'Playfair Display', serif;
+    color: #D4AF37;
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
 
-    .login-subtitle {
-        color: #D4AF37; /* CAMBIADO A DORADO */
-        font-size: 14px;
-        margin-bottom: 30px;
-        letter-spacing: 1px;
-    }
+.login-subtitle {
+    color: #D4AF37; /* CAMBIADO A DORADO */
+    font-size: 14px;
+    margin-bottom: 30px;
+    letter-spacing: 1px;
+}
 
-    /* Personalización de los Campos de Texto */
-    div[data-baseweb="input"], div[data-baseweb="textarea"] {
-        background-color: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(212, 175, 55, 0.4) !important;
-        border-radius: 12px !important;
-        color: white !important;
-        transition: all 0.3s ease;
-    }
+/* Personalización de los Campos de Texto */
+div[data-baseweb="input"], div[data-baseweb="textarea"] {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(212, 175, 55, 0.4) !important;
+    border-radius: 12px !important;
+    color: white !important;
+    transition: all 0.3s ease;
+}
 
-    div[data-baseweb="input"]:focus-within {
-        border: 1px solid #D4AF37 !important;
-        box-shadow: 0 0 10px rgba(212, 175, 55, 0.2) !important;
-    }
+div[data-baseweb="input"]:focus-within {
+    border: 1px solid #D4AF37 !important;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.2) !important;
+}
 
-    label p {
-        color: #D4AF37 !important;
-        font-weight: 600 !important;
-        font-size: 13px !important;
-        text-transform: uppercase;
-        margin-bottom: 8px !important;
-    }
+label p {
+    color: #D4AF37 !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    text-transform: uppercase;
+    margin-bottom: 8px !important;
+}
 
-    /* El Botón de Inicio de Sesión */
-    div.stButton > button {
-        background: linear-gradient(135deg, #D4AF37 0%, #996515 100%) !important;
-        color: #000 !important; /* Texto negro para contraste premium */
-        border: none !important;
-        padding: 15px 0px !important;
-        border-radius: 12px !important;
-        font-size: 16px !important;
-        font-weight: 800 !important;
-        width: 100% !important;
-        margin-top: 20px !important;
-        box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2) !important;
-        transition: all 0.4s ease !important;
-    }
+/* El Botón de Inicio de Sesión */
+div.stButton > button {
+    background: linear-gradient(135deg, #D4AF37 0%, #996515 100%) !important;
+    color: #000 !important; /* Texto negro para contraste premium */
+    border: none !important;
+    padding: 15px 0px !important;
+    border-radius: 12px !important;
+    font-size: 16px !important;
+    font-weight: 800 !important;
+    width: 100% !important;
+    margin-top: 20px !important;
+    box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2) !important;
+    transition: all 0.4s ease !important;
+}
 
-    div.stButton > button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 15px 30px rgba(212, 175, 55, 0.4) !important;
-        filter: brightness(1.1);
-    }
-    
-    /* --- TARJETAS DE MÉTRICAS (KPIs) --- */
-    .metric-card {
-        background: #111111; /* FONDO OSCURO */
-        border-radius: 12px;
-        padding: 20px;
-        border: 1px solid rgba(212, 175, 55, 0.3); /* BORDE DORADO */
-        border-left: 6px solid #D4AF37; /* CAMBIO A DORADO */
-        box-shadow: 0 4px 6px rgba(0,0,0,0.5);
-        transition: transform 0.2s;
-        text-align: center; /* Centrar texto interno */
-    }
-    .metric-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 15px rgba(212, 175, 55, 0.2);
-    }
-    .metric-title {
-        color: #D4AF37; /* DORADO */
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        font-weight: 600;
-        margin-bottom: 8px;
-        text-align: center;
-    }
-    .metric-value {
-        color: #FFFFFF; /* BLANCO PARA RESALTAR */
-        font-size: 1.8rem;
-        font-weight: 700;
-        text-align: center;
-    }
-    
-    /* --- ESTILO PARA TODOS LOS BOTONES DEL SISTEMA (NORMAL, FORMULARIO Y CAMBIOS) --- */
-    /* Incluye: Guardar Operación, Procesar Pago y Guardar Cambios */
-    div.stButton > button, 
-    div[data-testid="stFormSubmitButton"] > button,
-    button[kind="secondaryFormSubmit"],
-    button[kind="primaryFormSubmit"] {
-        background: linear-gradient(90deg, #D4AF37 0%, #B8860B 100%) !important;
-        color: #FFFFFF !important; /* LETRAS BLANCAS POR DEFECTO */
-        border: 1px solid #996515 !important;
-        border-radius: 12px !important; /* FORMA REDONDEADA IGUAL QUE LOS OTROS */
-        font-weight: 900 !important; /* NEGRITA MÁXIMA */
-        text-transform: uppercase !important;
-        letter-spacing: 1px !important;
-        padding: 12px 24px !important;
-        transition: all 0.4s ease-in-out !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
-        width: 100% !important; /* QUE OCUPE TODO EL ANCHO */
-        display: block !important;
-    }
+div.stButton > button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 15px 30px rgba(212, 175, 55, 0.4) !important;
+    filter: brightness(1.1);
+}
 
-    /* --- EFECTO HOVER PARA TODOS LOS BOTONES (INVERSIÓN TOTAL) --- */
-    div.stButton > button:hover, 
-    div[data-testid="stFormSubmitButton"] > button:hover,
-    button[kind="secondaryFormSubmit"]:hover,
-    button[kind="primaryFormSubmit"]:hover {
-        background: #FFFFFF !important; /* FONDO BLANCO AL PASAR EL MOUSE */
-        color: #B8860B !important;    /* LETRAS DORADAS AL PASAR EL MOUSE */
-        border: 2px solid #D4AF37 !important; /* BORDE DORADO */
-        transform: scale(1.02) !important;
-        box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4) !important;
-    }
+/* --- TARJETAS DE MÉTRICAS (KPIs) --- */
+.metric-card {
+    background: #111111; /* FONDO OSCURO */
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid rgba(212, 175, 55, 0.3); /* BORDE DORADO */
+    border-left: 6px solid #D4AF37; /* CAMBIO A DORADO */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+    transition: transform 0.2s;
+    text-align: center; /* Centrar texto interno */
+}
+.metric-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(212, 175, 55, 0.2);
+}
+.metric-title {
+    color: #D4AF37; /* DORADO */
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    text-align: center;
+}
+.metric-value {
+    color: #FFFFFF; /* BLANCO PARA RESALTAR */
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-align: center;
+}
 
-    /* --- CORRECCIÓN ADICIONAL PARA EL ICONO DEL DISKETTE --- */
-    /* Si el icono molesta el color del texto, esto ayuda a unificar */
-    div.stButton > button p, 
-    div[data-testid="stFormSubmitButton"] > button p {
-        color: inherit !important; /* Obliga al texto dentro del botón a seguir las reglas anteriores */
-    }
-    
-    /* --- BOTÓN WHATSAPP PREMIUM --- */
-    .wa-button {
-        background-color: #25D366;
-        color: white !important;
-        padding: 10px 20px;
-        border-radius: 10px;
-        text-decoration: none;
-        font-weight: bold;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
-        transition: 0.3s;
-        width: 100%;
-        margin-top: 5px;
-    }
-    .wa-button:hover {
-        background-color: #128C7E;
-        transform: scale(1.02);
-    }
-    
-    /* --- TABLAS DE DATOS --- */
-    [data-testid="stDataFrame"] {
-        background-color: #111111 !important; /* OSCURO */
-        border-radius: 10px;
-        padding: 10px;
-        border: 1px solid rgba(212, 175, 55, 0.2);
-        box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-        margin: auto; 
-    }
-    
-    /* --- ALERTAS --- */
-    .alert-box {
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 10px;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        justify-content: center; /* Centrar contenido de alerta */
-    }
-    .alert-danger { background-color: #2E1513; color: #E74C3C; border: 1px solid #E74C3C; }
-    .alert-warning { background-color: #2E2813; color: #F1C40F; border: 1px solid #F1C40F; }
-    .alert-success { background-color: #132E1B; color: #2ECC71; border: 1px solid #2ECC71; }
-    
-    /* Eliminar borde feo del formulario de Streamlit */
-    [data-testid="stForm"] { border: none; padding: 0; }
+/* --- ESTILO PARA TODOS LOS BOTONES DEL SISTEMA (NORMAL, FORMULARIO Y CAMBIOS) --- */
+/* Incluye: Guardar Operación, Procesar Pago y Guardar Cambios */
+div.stButton > button, 
+div[data-testid="stFormSubmitButton"] > button,
+button[kind="secondaryFormSubmit"],
+button[kind="primaryFormSubmit"] {
+    background: linear-gradient(90deg, #D4AF37 0%, #B8860B 100%) !important;
+    color: #FFFFFF !important; /* LETRAS BLANCAS POR DEFECTO */
+    border: 1px solid #996515 !important;
+    border-radius: 12px !important; /* FORMA REDONDEADA IGUAL QUE LOS OTROS */
+    font-weight: 900 !important; /* NEGRITA MÁXIMA */
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    padding: 12px 24px !important;
+    transition: all 0.4s ease-in-out !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+    width: 100% !important; /* QUE OCUPE TODO EL ANCHO */
+    display: block !important;
+}
 
-    /* --- CAMBIO A DORADO EJECUTIVO --- */
-    :root { --gold: #D4AF37; --dark: #1C1C1C; }
-    h1, h2, h3, .stMarkdown h1, .stMarkdown h2 { color: #D4AF37 !important; font-family: 'Playfair Display', serif; }
-    div.stButton > button {
-        background: linear-gradient(90deg, #D4AF37 0%, #996515 100%) !important;
-        border: 1px solid #C5A059 !important;
-    }
-    [data-testid="stMetric"] { border: 1px solid #D4AF37; border-radius: 10px; background: #1C1C1C; }
+/* --- EFECTO HOVER PARA TODOS LOS BOTONES (INVERSIÓN TOTAL) --- */
+div.stButton > button:hover, 
+div[data-testid="stFormSubmitButton"] > button:hover,
+button[kind="secondaryFormSubmit"]:hover,
+button[kind="primaryFormSubmit"]:hover {
+    background: #FFFFFF !important; /* FONDO BLANCO AL PASAR EL MOUSE */
+    color: #B8860B !important;    /* LETRAS DORADAS AL PASAR EL MOUSE */
+    border: 2px solid #D4AF37 !important; /* BORDE DORADO */
+    transform: scale(1.02) !important;
+    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4) !important;
+}
 
-    /* --- ACTUALIZACIÓN SPLASH SCREEN CON GIF --- */
-    @keyframes fade-out {
-        0% { opacity: 1; }
-        90% { opacity: 1; }
-        100% { opacity: 0; }
-    }
-    
-    /* --- CSS PARA ELIMINAR FANTASMAS --- */
-    .splash-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw; 
-        height: 100vh; 
-        background-color: #FFFFFF !important;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999999 !important; 
-    }
-    
-    .gif-container {
-        width: 300px;
-        height: 300px;
-    }
+/* --- CORRECCIÓN ADICIONAL PARA EL ICONO DEL DISKETTE --- */
+/* Si el icono molesta el color del texto, esto ayuda a unificar */
+div.stButton > button p, 
+div[data-testid="stFormSubmitButton"] > button p {
+    color: inherit !important; /* Obliga al texto dentro del botón a seguir las reglas anteriores */
+}
 
-    /* --- ENCABEZADOS DE ALTA GAMA --- */
-    .header-box {
-        background: linear-gradient(145deg, #0A0A0A, #1C1C1C); /* MAS OSCURO */
-        border: 1px solid rgba(212, 175, 55, 0.4);
-        padding: 40px 20px;
-        border-radius: 20px;
-        margin-bottom: 40px;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.8);
-        text-align: center;
-        position: relative;
-        overflow: hidden;
-    }
+/* --- BOTÓN WHATSAPP PREMIUM --- */
+.wa-button {
+    background-color: #25D366;
+    color: white !important;
+    padding: 10px 20px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
+    transition: 0.3s;
+    width: 100%;
+    margin-top: 5px;
+}
+.wa-button:hover {
+    background-color: #128C7E;
+    transform: scale(1.02);
+}
 
-    /* Efecto de brillo sutil en el fondo del cuadro */
-    .header-box::after {
-        content: '';
-        position: absolute;
-        top: -50%; left: -50%; width: 200%; height: 200%;
-        background: radial-gradient(circle, rgba(212,175,55,0.05) 0%, transparent 70%);
-    }
+/* --- TABLAS DE DATOS --- */
+[data-testid="stDataFrame"] {
+    background-color: #111111 !important; /* OSCURO */
+    border-radius: 10px;
+    padding: 10px;
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    margin: auto; 
+}
 
-    .luxury-title {
-        font-family: 'Playfair Display', serif !important;
-        font-weight: 900 !important;
-        text-transform: uppercase !important;
-        letter-spacing: 5px !important;
-        font-size: 38px !important;
-        background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 10px !important;
-        filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
-    }
+/* --- ALERTAS --- */
+.alert-box {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Centrar contenido de alerta */
+}
+.alert-danger { background-color: #2E1513; color: #E74C3C; border: 1px solid #E74C3C; }
+.alert-warning { background-color: #2E2813; color: #F1C40F; border: 1px solid #F1C40F; }
+.alert-success { background-color: #132E1B; color: #2ECC71; border: 1px solid #2ECC71; }
 
-    .luxury-subtitle {
-        font-family: 'Roboto', sans-serif !important;
-        color: #FFFFFF !important; /* CAMBIA A BLANCO PURO */
-        font-size: 16px !important;
-        font-weight: 800 !important; 
-        letter-spacing: 3px !important;
-        text-transform: uppercase !important;
-        margin-top: 5px !important;
-    }
+/* Eliminar borde feo del formulario de Streamlit */
+[data-testid="stForm"] { border: none; padding: 0; }
 
-    /* Sidebar */
-    [data-testid="stSidebar"] {
-        background-color: #05080d !important; /* Azul casi negro */
-        border-right: 2px solid #D4AF37 !important;
-    }
+/* --- CAMBIO A DORADO EJECUTIVO --- */
+:root { --gold: #D4AF37; --dark: #1C1C1C; }
+h1, h2, h3, .stMarkdown h1, .stMarkdown h2 { color: #D4AF37 !important; font-family: 'Playfair Display', serif; }
+div.stButton > button {
+    background: linear-gradient(90deg, #D4AF37 0%, #996515 100%) !important;
+    border: 1px solid #C5A059 !important;
+}
+[data-testid="stMetric"] { border: 1px solid #D4AF37; border-radius: 10px; background: #1C1C1C; }
 
-    /* --- ESTE ES EL CÓDIGO FINAL PARA EL SIDEBAR --- */
-    
-    /* Título 'NAVEGACIÓN' (Grande y Dorado) */
-    div[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p {
-        font-size: 28px !important; 
-        font-weight: 900 !important; 
-        color: #D4AF37 !important;
-        letter-spacing: 2px !important;
-        text-transform: uppercase !important;
-        margin-bottom: 20px !important;
-    }
+/* --- ACTUALIZACIÓN SPLASH SCREEN CON GIF --- */
+@keyframes fade-out {
+    0% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { opacity: 0; }
+}
 
-    /* Opciones del menú (Grandes y Blancas para resaltar) */
-    div[data-testid="stSidebar"] div[role="radiogroup"] label div p {
-        font-size: 35px !important; 
-        font-weight: 1000 !important; 
-        color: #FFFFFF !important; 
-        padding: 10px 0px !important;
-        line-height: 1.2 !important;
-    }
+/* --- CSS PARA ELIMINAR FANTASMAS --- */
+.splash-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw; 
+    height: 100vh; 
+    background-color: #FFFFFF !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999999 !important; 
+}
 
-    /* Color del círculo de selección en Dorado */
-    div[data-testid="stSidebar"] div[role="radiogroup"] [data-baseweb="radio"] div {
-        border-color: #D4AF37 !important;
-        background-color: transparent !important;
-    }
-    
-    /* El punto interno cuando está seleccionado */
-    div[data-testid="stSidebar"] div[role="radiogroup"] [aria-checked="true"] div::after {
-        background-color: #D4AF37 !important;
-    }
-    
-    </style>
+.gif-container {
+    width: 300px;
+    height: 300px;
+}
+
+/* --- ENCABEZADOS DE ALTA GAMA --- */
+.header-box {
+    background: linear-gradient(145deg, #0A0A0A, #1C1C1C); /* MAS OSCURO */
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    padding: 40px 20px;
+    border-radius: 20px;
+    margin-bottom: 40px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Efecto de brillo sutil en el fondo del cuadro */
+.header-box::after {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(212,175,55,0.05) 0%, transparent 70%);
+}
+
+.luxury-title {
+    font-family: 'Playfair Display', serif !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 5px !important;
+    font-size: 38px !important;
+    background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px !important;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+}
+
+.luxury-subtitle {
+    font-family: 'Roboto', sans-serif !important;
+    color: #FFFFFF !important; /* CAMBIA A BLANCO PURO */
+    font-size: 16px !important;
+    font-weight: 800 !important; 
+    letter-spacing: 3px !important;
+    text-transform: uppercase !important;
+    margin-top: 5px !important;
+}
+
+/* Sidebar */
+[data-testid="stSidebar"] {
+    background-color: #05080d !important; /* Azul casi negro */
+    border-right: 2px solid #D4AF37 !important;
+}
+
+/* --- ESTE ES EL CÓDIGO FINAL PARA EL SIDEBAR --- */
+
+/* Título 'NAVEGACIÓN' (Grande y Dorado) */
+div[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p {
+    font-size: 28px !important; 
+    font-weight: 900 !important; 
+    color: #D4AF37 !important;
+    letter-spacing: 2px !important;
+    text-transform: uppercase !important;
+    margin-bottom: 20px !important;
+}
+
+/* Opciones del menú (Grandes y Blancas para resaltar) */
+div[data-testid="stSidebar"] div[role="radiogroup"] label div p {
+    font-size: 35px !important; 
+    font-weight: 1000 !important; 
+    color: #FFFFFF !important; 
+    padding: 10px 0px !important;
+    line-height: 1.2 !important;
+}
+
+/* Color del círculo de selección en Dorado */
+div[data-testid="stSidebar"] div[role="radiogroup"] [data-baseweb="radio"] div {
+    border-color: #D4AF37 !important;
+    background-color: transparent !important;
+}
+
+/* El punto interno cuando está seleccionado */
+div[data-testid="stSidebar"] div[role="radiogroup"] [aria-checked="true"] div::after {
+    background-color: #D4AF37 !important;
+}
+
+</style>
 """, unsafe_allow_html=True)
 
 # --- 3. FUNCIONES DE LÓGICA DE CALENDARIO ---
@@ -863,7 +863,7 @@ if check_login():
                     st.markdown(f"""
                     <div style="background-color:#D4EFDF; padding:15px; border-radius:10px; border:1px solid #27AE60; text-align: center;">
                         <h4 style="margin:0; color:#186A3B;">¡DEUDA CANCELADA!</h4>
-                        <p style="margin:0; font-weight:bold;">El capital llega a S/ 0.00</p>
+                        <p style="margin:0; font-weight:bold;">El capital llega S/ 0.00</p>
                     </div>
                     """, unsafe_allow_html=True)
                 else:
@@ -1015,7 +1015,7 @@ if check_login():
         else:
             st.info("No hay datos registrados.")
 
-   # 4. ADMINISTRACIÓN Y EDICIÓN (Módulo Nuevo)
+    # 4. ADMINISTRACIÓN Y EDICIÓN (Módulo Nuevo)
     elif menu == "🛠️ Administrar Cartera":
         st.markdown("""<div class="header-box">
                     <div class="luxury-title">🛠️ Administración de Cartera</div>
@@ -1259,9 +1259,3 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
-
-
-
-
-
-
