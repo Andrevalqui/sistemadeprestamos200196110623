@@ -38,18 +38,23 @@ st.markdown("""
         font-weight: 800 !important;
     }
 
-    /* --- MEJORA DE SUBMÓDULOS (TABS): CENTRADOS Y GRANDES --- */
+    /* --- SUBMÓDULOS (TABS) CENTRADOS Y GRANDES --- */
     div[data-baseweb="tab-list"] {
         display: flex !important;
-        justify-content: center !important; /* ESTO LOS CENTRA */
+        justify-content: center !important;
         gap: 50px !important;
-        background-color: transparent !important;
     }
 
     button[data-baseweb="tab"] {
-        font-size: 24px !important; /* LETRAS MÁS GRANDES */
-        font-weight: 900 !important; /* NEGRITA EXTREMA */
+        font-size: 22px !important; /* LETRAS GRANDES */
+        font-weight: 900 !important; /* NEGRITA */
         color: #D4AF37 !important;
+        transition: 0.3s !important;
+    }
+
+    button[data-baseweb="tab"]:hover {
+        color: #B8860B !important;
+        transform: translateY(-2px);
     }
   
     /* --- MÉTRICAS DORADAS CENTRADAS --- */
@@ -211,22 +216,28 @@ st.markdown("""
         text-align: center;
     }
     
-    /* --- ESTILO UNIFICADO PARA TODOS LOS BOTONES DE ACCIÓN --- */
+    /* --- BOTONES PREMIUM: LETRAS BLANCAS + NEGRITA --- */
     div.stButton > button, div.stForm > div > div > button {
         background: linear-gradient(90deg, #D4AF37 0%, #B8860B 100%) !important;
-        color: #1C1C1C !important; /* Letras negro/marrón ejecutivo */
+        color: #FFFFFF !important; /* LETRAS BLANCAS POR DEFECTO */
         border: 1px solid #996515 !important;
         border-radius: 10px !important;
-        font-weight: 700 !important;
+        font-weight: 900 !important; /* NEGRITA MÁXIMA */
         text-transform: uppercase !important;
         letter-spacing: 1px !important;
         padding: 12px 24px !important;
-        transition: all 0.3s ease !important;
+        transition: all 0.4s ease-in-out !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+        width: 100% !important;
     }
-    div.stButton > button:hover {
+
+    /* --- EFECTO HOVER: INVERSIÓN (FONDO BLANCO + LETRAS DORADAS) --- */
+    div.stButton > button:hover, div.stForm > div > div > button:hover {
+        background: #FFFFFF !important; /* FONDO BLANCO AL PASAR EL MOUSE */
+        color: #B8860B !important;    /* LETRAS DORADAS AL PASAR EL MOUSE */
+        border: 2px solid #D4AF37 !important; /* BORDE DORADO RESALTADO */
         transform: scale(1.02) !important;
-        box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4) !important;
-        background: linear-gradient(90deg, #B8860B 0%, #D4AF37 100%) !important;
+        box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4) !important;
     }
     
     /* --- BOTÓN WHATSAPP PREMIUM --- */
@@ -1125,6 +1136,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
