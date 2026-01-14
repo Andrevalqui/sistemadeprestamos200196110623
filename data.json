@@ -70,5 +70,17 @@
         "Pago_Mensual_Interes": 180.0,
         "Estado": "Activo",
         "Observaciones": "PRESTAMO BERTHA"
+    },
+    {
+        "Cliente": "Andr\u00e9 Valqui",
+        "DNI": "70895739",
+        "Telefono": "997317288",
+        "Fecha_Prestamo": "2026-01-14",
+        "Fecha_Proximo_Pago": "2026-02-14",
+        "Monto_Capital": 500.0,
+        "Tasa_Interes": 18.0,
+        "Pago_Mensual_Interes": 90.0,
+        "Estado": "Activo",
+        "Observaciones": ""
     }
 ]
