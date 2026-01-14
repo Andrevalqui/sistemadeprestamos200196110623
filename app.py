@@ -390,30 +390,35 @@ st.markdown("""
         border-right: 2px solid #D4AF37 !important;
     }
 
-    /* --- AGRANDAR TEXTO DE NAVEGACIÓN EN SIDEBAR --- */
-    /* Target para el título 'Navegación' */
-    div[data-testid="stSidebar"] .st-emotion-cache-17l70it, 
-    div[data-testid="stSidebar"] p {
-        font-size: 20px !important; /* Tamaño de los ítems de radio */
-        font-weight: 800 !important;
-        margin-bottom: 5px !important;
-    }
-
-    /* Target específico para las opciones del Radio Button */
-    div[role="radiogroup"] label div p {
-        font-size: 18px !important; /* Aumenta el tamaño de los nombres de los módulos */
-        font-weight: 900 !important;
+    /* --- ESTE ES EL CÓDIGO FINAL PARA EL SIDEBAR --- */
+    
+    /* Título 'NAVEGACIÓN' (Grande y Dorado) */
+    div[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p {
+        font-size: 24px !important; 
+        font-weight: 900 !important; 
         color: #D4AF37 !important;
-        padding-top: 10px !important;
-        padding-bottom: 10px !important;
-    }
-
-    /* Agrandar el título de la sección Navegación */
-    div[data-testid="stSidebar"] div.stMarkdown h2, 
-    div[data-testid="stSidebar"] div.stMarkdown p {
-        font-size: 22px !important;
         letter-spacing: 2px !important;
         text-transform: uppercase !important;
+        margin-bottom: 20px !important;
+    }
+
+    /* Opciones del menú (Grandes y Blancas para resaltar) */
+    div[data-testid="stSidebar"] div[role="radiogroup"] label div p {
+        font-size: 19px !important; 
+        font-weight: 800 !important; 
+        color: #FFFFFF !important; 
+        padding: 5px 0px !important;
+    }
+
+    /* Color del círculo de selección en Dorado */
+    div[data-testid="stSidebar"] div[role="radiogroup"] [data-baseweb="radio"] div {
+        border-color: #D4AF37 !important;
+        background-color: transparent !important;
+    }
+    
+    /* El punto interno cuando está seleccionado */
+    div[data-testid="stSidebar"] div[role="radiogroup"] [aria-checked="true"] div::after {
+        background-color: #D4AF37 !important;
     }
     
     </style>
@@ -1177,6 +1182,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
