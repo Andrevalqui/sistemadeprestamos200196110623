@@ -762,14 +762,31 @@ if check_login():
                     st.info(f"📉 Capital baja S/ {pago_capital:,.2f}")
 
             with col_res2:
-                st.markdown(f"""
-                <div style="background-color:#EBF5FB; padding:15px; border-radius:10px; border:1px solid #AED6F1; text-align: center;">
-                    <h4 style="margin:0; color:#1B4F72;">Nueva Deuda: S/ {nuevo_capital:,.2f}</h4>
-                    <hr style="margin:10px 0;">
-                    <p style="margin:0; font-weight:bold;">Próx. Vencimiento: {txt_fecha_nueva}</p>
-                </div>
-                """, unsafe_allow_html=True)
-                
+                # Si la deuda es 0, mostramos un diseño especial de cancelación
+                if nuevo_capital <= 0:
+                    st.markdown(f"""
+                    <div style="background-color:#D4EFDF; padding:15px; border-radius:10px; border:1px solid #27AE60; text-align: center;">
+                        <h4 style="margin:0; color:#186A3B;">¡DEUDA CANCELADA!</h4>
+                        <p style="margin:0; font-weight:bold;">El capital llega a S/ 0.00</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.markdown(f"""
+                    <div style="background-color:#EBF5FB; padding:15px; border-radius:10px; border:1px solid #AED6F1; text-align: center;">
+                        <h4 style="margin:0; color:#1B4F72;">Nueva Deuda: S/ {nuevo_capital:,.2f}</h4>
+                        <hr style="margin:10px 0;">
+                        <p style="margin:0; font-weight:bold;">Próx. Vencimiento: {txt_fecha_nueva}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+            
+            # --- BLOQUE NUEVO: NOTAS DE CIERRE ---
+            nota_cierre = ""
+            if nuevo_capital <= 0:
+                st.write("")
+                nota_cierre = st.text_area("📝 **Notas Finales de Cierre:**", 
+                                         placeholder="Ej: Cliente canceló todo por adelantado. Muy puntual.",
+                                         help="Estas notas se verán en el Historial de Créditos.")
+            
             st.write("")
             if 'procesando_pago' not in st.session_state:
                 st.session_state.procesando_pago = False
@@ -782,17 +799,22 @@ if check_login():
                 if nuevo_capital <= 0:
                     data['Estado'] = "Pagado"
                     data['Monto_Capital'] = 0
-                    # AGREGAMOS LA FECHA DE FINALIZACIÓN
                     data['Fecha_Finalizacion'] = datetime.now().strftime("%Y-%m-%d") 
+                    
+                    # SI ESCRIBIÓ ALGO EN LA NOTA, LO AGREGAMOS O REEMPLAZAMOS EN OBSERVACIONES
+                    if nota_cierre:
+                        data['Observaciones'] = nota_cierre
+                    
                     msg_log = "Deuda Totalmente Cancelada"
                 else:
                     msg_log = f"Pago registrado. Vence: {nueva_fecha_pago}"
                 
+                # --- GUARDADO Y AUDITORÍA ---
                 if guardar_datos(datos, sha, f"Actualizacion {data['Cliente']} - {msg_log}"):
                     registrar_auditoria("COBRO", f"Pago Recibido: Interés S/ {pago_interes}, Capital S/ {pago_capital}", cliente=data['Cliente'])
                     st.success("✅ Cartera actualizada correctamente.")
                     time.sleep(2)
-                    st.session_state.procesando_pago = False # Liberar
+                    st.session_state.procesando_pago = False 
                     st.rerun()
 
     # 3. DASHBOARD GERENCIAL
@@ -1075,3 +1097,4 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
