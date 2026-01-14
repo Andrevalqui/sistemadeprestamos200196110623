@@ -624,39 +624,29 @@ def check_login():
         mostrar_splash_salida()
         return False
 
-    # 2. PERSISTENCIA F5
-    q = st.query_params
+    # 2. INICIALIZACIÓN DE ESTADO (YA NO LEEMOS LA URL POR SEGURIDAD)
     if 'logged_in' not in st.session_state:
-        if "user" in q and "rol" in q:
-            st.session_state.update({
-                'logged_in': True, 'usuario': q["user"], 'rol': q["rol"], 'splash_visto': True,
-                'last_active': time.time() # Iniciamos reloj al recuperar sesión
-            })
-        else:
-            st.session_state.update({'logged_in': False, 'usuario': '', 'rol': ''})
+        # Por defecto, nadie está logueado, sin importar qué diga el link
+        st.session_state.update({'logged_in': False, 'usuario': '', 'rol': ''})
 
     # 3. SI YA ESTÁ LOGUEADO (VERIFICACIÓN DE SEGURIDAD Y TIMEOUT)
     if st.session_state['logged_in']:
         
         # --- CONTROL DE INACTIVIDAD (5 MINUTOS) ---
-        # Solo afecta al usuario actual, el Cron Job no entra aquí porque no está logueado
         if 'last_active' not in st.session_state:
             st.session_state['last_active'] = time.time()
         
-        # Si la diferencia entre AHORA y la ÚLTIMA ACCIÓN es mayor a 300 seg (5 min)
         if (time.time() - st.session_state['last_active']) > (5 * 60): 
             st.session_state.clear()
-            st.query_params.clear()
+            st.query_params.clear() # Limpiamos URL por seguridad
             placeholder = st.empty()
             with placeholder.container():
-                # Mensaje de alerta
-                st.warning("⚠️ SESIÓN EXPIRADA: No se detectó actividad por más de 5 minutos.")
+                st.warning("⚠️ SESIÓN EXPIRADA: Por seguridad, ingrese nuevamente.")
                 time.sleep(3)
             placeholder.empty()
             st.rerun()
             return False
         else:
-            # Si hay actividad reciente, actualizamos el reloj
             st.session_state['last_active'] = time.time() 
         # ----------------------------------------------------------
 
@@ -709,11 +699,12 @@ def check_login():
                     'logged_in': True, 
                     'usuario': usuario,
                     'rol': 'Admin' if usuario in st.secrets["config"]["admins"] else 'Visor',
-                    'last_active': time.time() # Iniciamos el reloj
+                    'last_active': time.time()
                 })
+                # IMPORTANTE: Ya NO escribimos en la URL y limpiamos cualquier rastro
+                st.query_params.clear() 
+                
                 registrar_auditoria("INICIO DE SESIÓN", f"Acceso exitoso al portal")
-                st.query_params["user"] = usuario
-                st.query_params["rol"] = st.session_state['rol']
                 st.rerun()
             else:
                 st.error("Credenciales no autorizadas para este nivel de acceso.")
@@ -723,6 +714,7 @@ def check_login():
 
 def logout():
     registrar_auditoria("CIERRE DE SESIÓN", f"El usuario {st.session_state.get('usuario')} cerró su sesión")
+    # Activamos el estado de salida para que check_login lo detecte
     st.session_state['saliendo'] = True
     st.rerun()
 
@@ -743,6 +735,7 @@ def guardar_datos(datos, sha, mensaje):
     except Exception as e:
         st.error(f"Error de conexión: {e}")
         return False
+        
 # --- 5. INTERFAZ PRINCIPAL ---
 if check_login():
     # --- SIDEBAR (Menú Lateral) ---
@@ -1598,6 +1591,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
