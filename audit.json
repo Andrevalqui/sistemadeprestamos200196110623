@@ -390,5 +390,13 @@
         "Operaci\u00f3n": "CREACI\u00d3N CR\u00c9DITO",
         "Cliente Afectado": "Andr\u00e9 Valqui",
         "Detalle del Movimiento": "Pr\u00e9stamo de S/ 800.0"
+    },
+    {
+        "Fecha/Hora": "14/01/2026 13:00:33",
+        "Usuario": "PIERAJUAREZ",
+        "Perfil": "Admin",
+        "Operaci\u00f3n": "CIERRE DE SESI\u00d3N",
+        "Cliente Afectado": "-",
+        "Detalle del Movimiento": "El usuario PieraJuarez cerr\u00f3 su sesi\u00f3n"
     }
 ]
