@@ -404,7 +404,7 @@ st.markdown("""
 
     /* Opciones del menú (Grandes y Blancas para resaltar) */
     div[data-testid="stSidebar"] div[role="radiogroup"] label div p {
-        font-size: 19px !important; 
+        font-size: 28px !important; 
         font-weight: 800 !important; 
         color: #FFFFFF !important; 
         padding: 5px 0px !important;
@@ -568,7 +568,7 @@ def check_login():
         st.markdown(f"""
             <div class="login-container">
                 <div style="font-size: 50px; margin-bottom: 10px;">🔒</div>
-                <div class="login-title">Acceso Seguro</div>
+                <div class="login-title">Sistema de Préstamos</div>
                 <div class="login-subtitle">GESTIÓN DE ACTIVOS & CRÉDITOS</div>
             </div>
         """, unsafe_allow_html=True)
@@ -1244,6 +1244,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
