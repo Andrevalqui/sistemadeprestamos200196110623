@@ -430,5 +430,13 @@
         "Operaci\u00f3n": "COBRO",
         "Cliente Afectado": "Andr\u00e9 Valqui",
         "Detalle del Movimiento": "Pago Recibido: Inter\u00e9s S/ 80.0, Capital S/ 800.0"
+    },
+    {
+        "Fecha/Hora": "14/01/2026 13:22:48",
+        "Usuario": "PIERAJUAREZ",
+        "Perfil": "Admin",
+        "Operaci\u00f3n": "INICIO DE SESI\u00d3N",
+        "Cliente Afectado": "-",
+        "Detalle del Movimiento": "Acceso exitoso al portal"
     }
 ]
