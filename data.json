@@ -96,5 +96,17 @@
         "Estado": "Pagado",
         "Observaciones": "Cliente cancel\u00f3 a tiempo y en el tiempo prometido, excelente cliente",
         "Fecha_Finalizacion": "2026-01-14"
+    },
+    {
+        "Cliente": "Piera",
+        "DNI": "47730848",
+        "Telefono": "977905037",
+        "Fecha_Prestamo": "2026-01-14",
+        "Fecha_Proximo_Pago": "2026-02-14",
+        "Monto_Capital": 500.0,
+        "Tasa_Interes": 18.0,
+        "Pago_Mensual_Interes": 90.0,
+        "Estado": "Activo",
+        "Observaciones": ""
     }
 ]
