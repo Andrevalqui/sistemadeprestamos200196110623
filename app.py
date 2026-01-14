@@ -929,6 +929,9 @@ if check_login():
                     
                     nueva_tasa = c_ed1.number_input("Tasa de Interés (%)", value=float(item['Tasa_Interes']))
                     nuevo_estado = c_ed2.selectbox("Estado del Crédito", ["Activo", "Pagado"], index=0 if item['Estado'] == "Activo" else 1)
+                    
+                    # --- NUEVO CAMPO DE OBSERVACIONES ---
+                    nueva_obs = st.text_area("Observaciones del Cliente", value=item.get('Observaciones', ''))
 
                     st.write("")
                     btn_save_edit = st.form_submit_button("💾 GUARDAR CAMBIOS")
@@ -937,7 +940,7 @@ if check_login():
                     # Recalcular interés basado en el nuevo capital
                     nuevo_interes = nuevo_cap * (nueva_tasa / 100)
                     
-                    # Actualizar datos
+                    # Actualizar todos los campos en la lista de datos
                     datos[idx_orig].update({
                         "Cliente": nuevo_nombre,
                         "DNI": nuevo_dni,
@@ -945,14 +948,17 @@ if check_login():
                         "Fecha_Proximo_Pago": str(nueva_fecha_venc),
                         "Tasa_Interes": nueva_tasa,
                         "Pago_Mensual_Interes": nuevo_interes,
-                        "Estado": nuevo_estado
+                        "Estado": nuevo_estado,
+                        "Observaciones": nueva_obs  # Se guarda la nueva observación
                     })
                     
-                    if guardar_datos(datos, sha, f"Edicion manual: {nuevo_nombre}"):
-                        registrar_auditoria("EDICIÓN MANUAL", f"Cambio Capital a S/ {nuevo_cap} y Vencimiento a {nueva_fecha_venc}", cliente=nuevo_nombre)
-                        st.success("✅ Cambios aplicados correctamente.")
-                        time.sleep(1)
-                        st.rerun()
+                    # Usamos st.status para que el mensaje de éxito sea visible y profesional
+                    with st.status("Actualizando registro...", expanded=False) as status:
+                        if guardar_datos(datos, sha, f"Edicion manual: {nuevo_nombre}"):
+                            registrar_auditoria("EDICIÓN MANUAL", f"Ajuste de datos y observaciones", cliente=nuevo_nombre)
+                            status.update(label="✅ Cambios aplicados correctamente.", state="complete")
+                            time.sleep(2)
+                            st.rerun()
 
             with tab_del:
                 st.warning(f"⚠️ **ATENCIÓN:** Está a punto de eliminar permanentemente el registro de **{item['Cliente']}** con capital de S/ {item['Monto_Capital']}.")
@@ -1017,6 +1023,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
