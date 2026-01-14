@@ -34,5 +34,17 @@
         "Pago_Mensual_Interes": 180.0,
         "Estado": "Activo",
         "Observaciones": ""
+    },
+    {
+        "Cliente": "Justine Ramirez",
+        "DNI": "-",
+        "Telefono": "926638038",
+        "Fecha_Prestamo": "2026-01-11",
+        "Fecha_Proximo_Pago": "2026-02-11",
+        "Monto_Capital": 700.0,
+        "Tasa_Interes": 18.0,
+        "Pago_Mensual_Interes": 126.0,
+        "Estado": "Activo",
+        "Observaciones": ""
     }
 ]
