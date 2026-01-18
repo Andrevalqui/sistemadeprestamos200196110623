@@ -478,5 +478,13 @@
         "Operaci\u00f3n": "INICIO DE SESI\u00d3N",
         "Cliente Afectado": "-",
         "Detalle del Movimiento": "Acceso exitoso al portal"
+    },
+    {
+        "Fecha/Hora": "17/01/2026 23:21:24",
+        "Usuario": "PIERAJUAREZ",
+        "Perfil": "Admin",
+        "Operaci\u00f3n": "INICIO DE SESI\u00d3N",
+        "Cliente Afectado": "-",
+        "Detalle del Movimiento": "Acceso exitoso al portal"
     }
 ]
