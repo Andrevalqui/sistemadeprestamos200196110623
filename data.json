@@ -8,8 +8,9 @@
         "Monto_Capital": 500.0,
         "Tasa_Interes": 18.0,
         "Pago_Mensual_Interes": 90.0,
-        "Estado": "Activo",
-        "Observaciones": "PRUEBA DE SISTEMA"
+        "Estado": "Pagado",
+        "Observaciones": "PRUEBA DE SISTEMA",
+        "Fecha_Finalizacion": "2026-01-24"
     },
     {
         "Cliente": "Tatiana Lacunza",
