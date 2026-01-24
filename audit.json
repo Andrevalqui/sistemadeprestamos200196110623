@@ -502,5 +502,13 @@
         "Operaci\u00f3n": "CREACI\u00d3N CR\u00c9DITO",
         "Cliente Afectado": "Andr\u00e9 Valqui",
         "Detalle del Movimiento": "Pr\u00e9stamo de S/ 5000.0"
+    },
+    {
+        "Fecha/Hora": "23/01/2026 22:37:35",
+        "Usuario": "PIERAJUAREZ",
+        "Perfil": "Admin",
+        "Operaci\u00f3n": "INICIO DE SESI\u00d3N",
+        "Cliente Afectado": "-",
+        "Detalle del Movimiento": "Acceso exitoso al portal"
     }
 ]
