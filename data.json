@@ -148,6 +148,11 @@
         "Tasa_Interes": 18.0,
         "Pago_Mensual_Interes": 900.0,
         "Estado": "Activo",
-        "Observaciones": "FAMILIAR"
+        "Observaciones": "FAMILIAR",
+        "Distribucion_Socios": {
+            "Pierajuarez": 8.0,
+            "Brunotapia": 10.0
+        },
+        "Porc_Socio1": 8.0
     }
 ]
