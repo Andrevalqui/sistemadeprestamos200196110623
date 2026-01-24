@@ -1,1 +1,10 @@
-[]
+[
+    {
+        "Fecha/Hora": "23/01/2026 22:45:40",
+        "Usuario": "PIERAJUAREZ",
+        "Perfil": "Admin",
+        "Operaci\u00f3n": "CREACI\u00d3N CR\u00c9DITO",
+        "Cliente Afectado": "Andr\u00e9 Valqui",
+        "Detalle del Movimiento": "Pr\u00e9stamo de S/ 500.0"
+    }
+]
