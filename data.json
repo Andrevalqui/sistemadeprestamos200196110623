@@ -137,5 +137,17 @@
         },
         "Porc_Socio1": 4.0,
         "Fecha_Finalizacion": "2026-01-14"
+    },
+    {
+        "Cliente": "Andr\u00e9 Valqui",
+        "DNI": "70895739",
+        "Telefono": "997317288",
+        "Fecha_Prestamo": "2026-01-23",
+        "Fecha_Proximo_Pago": "2026-02-23",
+        "Monto_Capital": 5000.0,
+        "Tasa_Interes": 18.0,
+        "Pago_Mensual_Interes": 900.0,
+        "Estado": "Activo",
+        "Observaciones": "FAMILIAR"
     }
 ]
