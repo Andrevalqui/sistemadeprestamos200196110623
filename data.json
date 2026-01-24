@@ -9,6 +9,11 @@
         "Tasa_Interes": 18.0,
         "Pago_Mensual_Interes": 72.0,
         "Estado": "Activo",
-        "Observaciones": ""
+        "Observaciones": "",
+        "Distribucion_Socios": {
+            "Pierajuarez": 3.0,
+            "Brunotapia": 15.0
+        },
+        "Porc_Socio1": 3.0
     }
 ]
