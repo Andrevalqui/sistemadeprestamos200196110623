@@ -4,10 +4,10 @@
         "DNI": "-",
         "Telefono": "-",
         "Fecha_Prestamo": "2025-12-15",
-        "Fecha_Proximo_Pago": "2026-01-15",
-        "Monto_Capital": 400.0,
+        "Fecha_Proximo_Pago": "2026-02-15",
+        "Monto_Capital": 300.0,
         "Tasa_Interes": 18.0,
-        "Pago_Mensual_Interes": 72.0,
+        "Pago_Mensual_Interes": 54.0,
         "Estado": "Activo",
         "Observaciones": "",
         "Distribucion_Socios": {
