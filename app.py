@@ -1311,7 +1311,7 @@ if check_login():
                                 else:
                                     st.error(f"⛔ Te has pasado por **{abs(diff):.1f}%**. Ajusta los valores.")
                                 
-                                st.button("💾 GUARDAR (Bloqueado)", disabled=True)True)
+                                st.button("💾 GUARDAR (Bloqueado)", disabled=True)
 
                     with c_view:
                         st.markdown("#### 📊 Tabla de Detalle")
@@ -1568,5 +1568,6 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
