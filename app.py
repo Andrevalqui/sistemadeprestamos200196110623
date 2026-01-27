@@ -4,7 +4,6 @@ import json
 import time
 from datetime import datetime, timedelta, timezone
 import calendar
-from github import Github
 import urllib.parse
 from supabase import create_client
 
@@ -719,24 +718,6 @@ def logout():
     # Activamos el estado de salida para que check_login lo detecte
     st.session_state['saliendo'] = True
     st.rerun()
-
-def get_repo():
-    return Github(st.secrets["GITHUB_TOKEN"]).get_repo(st.secrets["REPO_NAME"])
-
-def cargar_datos(file="data.json"):
-    try:
-        c = get_repo().get_contents(file)
-        return json.loads(c.decoded_content.decode()), c.sha
-    except: return [], None
-
-def guardar_datos(datos, sha, mensaje):
-    try:
-        repo = get_repo()
-        repo.update_file("data.json", mensaje, json.dumps(datos, indent=4), sha)
-        return True
-    except Exception as e:
-        st.error(f"Error de conexión: {e}")
-        return False
         
 # --- 5. INTERFAZ PRINCIPAL ---
 if check_login():
@@ -1393,25 +1374,18 @@ if check_login():
                         
                         nuevo_nombre = c_ed1.text_input("Nombre del Cliente", value=item['Cliente'])
                         nuevo_dni = c_ed2.text_input("DNI / CE", value=item.get('DNI', ''))
-                        
                         nuevo_cap = c_ed1.number_input("Deuda Capital Actual (S/)", value=float(item['Monto_Capital']), step=50.0)
-                        nueva_fecha_venc = c_ed2.date_input("Próximo Vencimiento", value=datetime.strptime(item['Fecha_Proximo_Pago'], "%Y-%m-%d"))
-                        
+                        nueva_fecha_venc = c_ed2.date_input("Próximo Vencimiento", value=datetime.strptime(str(item['Fecha_Proximo_Pago']), "%Y-%m-%d"))
                         nueva_tasa = c_ed1.number_input("Tasa de Interés (%)", value=float(item['Tasa_Interes']))
                         nuevo_estado = c_ed2.selectbox("Estado del Crédito", ["Activo", "Pagado"], index=0 if item['Estado'] == "Activo" else 1)
-                        
-                        # --- CAMPO DE OBSERVACIONES ---
                         nueva_obs = st.text_area("Observaciones del Cliente", value=item.get('Observaciones', ''))
 
                         st.write("")
                         btn_save_edit = st.form_submit_button("💾 GUARDAR CAMBIOS")
 
                     if btn_save_edit:
-                        # Recalcular interés basado en el nuevo capital
                         nuevo_interes = nuevo_cap * (nueva_tasa / 100)
-                        
-                        # Actualizar todos los campos en la lista de datos
-                        datos[idx_orig].update({
+                        upd = {
                             "Cliente": nuevo_nombre,
                             "DNI": nuevo_dni,
                             "Monto_Capital": nuevo_cap,
@@ -1420,42 +1394,42 @@ if check_login():
                             "Pago_Mensual_Interes": nuevo_interes,
                             "Estado": nuevo_estado,
                             "Observaciones": nueva_obs 
-                        })
-                        
-                        with st.status("Actualizando registro...", expanded=False) as status:
-                            if guardar_datos(datos, sha, f"Edicion manual: {nuevo_nombre}"):
-                                registrar_auditoria("EDICIÓN MANUAL", f"Ajuste de datos y observaciones", cliente=nuevo_nombre)
-                                status.update(label="✅ Cambios aplicados correctamente.", state="complete")
-                                time.sleep(2)
-                                st.rerun()
+                        }
+                        # CAMBIO A SUPABASE:
+                        try:
+                            get_supabase().table("prestamos").update(upd).eq("id", item['id']).execute()
+                            registrar_auditoria("EDICIÓN MANUAL", f"Ajuste de datos", cliente=nuevo_nombre)
+                            st.success("✅ Cambios aplicados correctamente.")
+                            time.sleep(1)
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Error al actualizar: {e}")
 
+                # --- TAB DE ELIMINACIÓN (CORRECCIÓN CRÍTICA AQUÍ) ---
                 with tab_del:
                     st.warning(f"⚠️ **ATENCIÓN:** Está a punto de eliminar permanentemente el registro de **{item['Cliente']}**.")
                     st.write("Esta acción no se puede deshacer y se usa principalmente para corregir duplicados.")
                     
-                    confirmar_borrado = st.text_input(f"Para confirmar, escriba el nombre del cliente ({item['Cliente']}):")
+                    confirmar_borrado = st.text_input(f"Para confirmar, escriba el nombre del cliente ({item['Cliente']}):", key="del_confirm")
                     
                     if st.button("🗑️ ELIMINAR REGISTRO DEFINITIVAMENTE"):
                         if confirmar_borrado == item['Cliente']:
-                            cliente_eliminado = item['Cliente']
-                            cap_eliminado = item['Monto_Capital']
-                            datos.pop(idx_orig)
-                            
-                            if guardar_datos(datos, sha, f"Eliminacion de registro: {cliente_eliminado}"):
+                            try:
+                                # CAMBIO A SUPABASE: Eliminamos directamente por ID
+                                get_supabase().table("prestamos").delete().eq("id", item['id']).execute()
+                                
                                 registrar_auditoria(
                                     "ELIMINACIÓN DEFINITIVA", 
-                                    f"BORRADO DE REGISTRO: Se eliminó préstamo de S/ {cap_eliminado:,.2f}.", 
-                                    cliente=cliente_eliminado
+                                    f"BORRADO DE REGISTRO: Se eliminó préstamo de S/ {item['Monto_Capital']:,.2f}.", 
+                                    cliente=item['Cliente']
                                 )
-                                st.success(f"🗑️ Registro de {cliente_eliminado} eliminado correctamente.")
+                                st.success(f"🗑️ Registro de {item['Cliente']} eliminado correctamente.")
                                 time.sleep(1)
                                 st.rerun()
+                            except Exception as e:
+                                st.error(f"Error al eliminar en base de datos: {e}")
                         else:
                             st.error("❌ El nombre no coincide.")
-            else:
-                st.info("💡 No hay préstamos activos para administrar. Todos están en el Historial.")
-        else:
-            st.info("No hay datos registrados en el sistema.")
 
     # 5. HISTORIAL DE CRÉDITOS (Módulo Informativo con Búsqueda Inteligente y Montos)
     elif menu == "📂 Historial de Créditos":
@@ -1545,7 +1519,7 @@ if check_login():
                         <div class="luxury-subtitle">Registro histórico de movimientos y accesos con filtrado inteligente</div>
                        </div>""", unsafe_allow_html=True)
         
-        logs, _ = cargar_datos("audit.json")
+        logs = cargar_datos("auditoria")
         
         if logs:
             df_audit = pd.DataFrame(logs)
@@ -1600,3 +1574,4 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
