@@ -20,14 +20,27 @@ st.set_page_config(
 def get_supabase():
     return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
 
-def cargar_datos_db(tabla="prestamos"):
+def cargar_datos(tabla_o_archivo="prestamos"):
+    """
+    Esta función reemplaza a la antigua de GitHub. 
+    Mantiene el nombre para no romper tus 1590 líneas.
+    """
     try:
         supabase = get_supabase()
-        response = supabase.table(tabla).select("*").execute()
-        return response.data
+        
+        # Mapeo automático: si tu código pide "audit.json" o "auditoria", va a la tabla auditoria
+        nombre_tabla = "prestamos"
+        if "audit" in str(tabla_o_archivo).lower():
+            nombre_tabla = "auditoria"
+            
+        response = supabase.table(nombre_tabla).select("*").execute()
+        
+        # Devolvemos (datos, None) para que el código 'datos, sha = cargar_datos()'
+        # no falle al intentar desempaquetar dos valores.
+        return response.data, None
     except Exception as e:
-        st.error(f"Error al cargar base de datos: {e}")
-        return []
+        st.error(f"Error de conexión con Supabase: {e}")
+        return [], None
 
 st.markdown("""
 <style>
@@ -1513,7 +1526,7 @@ if check_login():
                         <div class="luxury-subtitle">Registro histórico de movimientos y accesos con filtrado inteligente</div>
                        </div>""", unsafe_allow_html=True)
         
-        logs = cargar_datos("auditoria")
+        logs, _ = cargar_datos("auditoria")
         
         if logs:
             df_audit = pd.DataFrame(logs)
@@ -1568,6 +1581,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
