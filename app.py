@@ -1178,7 +1178,7 @@ if check_login():
 
                 for i, d in enumerate(datos):
                     if d.get('Estado') == 'Activo':
-                        tasa_cli = float(d.get('Tasa_Interes', 0.0))
+                        tasa_cli = float(d.get('Tasa_Interes') or 0.0)
                         
                         # --- LÓGICA DE RECUPERACIÓN DE DATOS (COMPATIBILIDAD) ---
                         # Buscamos si ya tiene un diccionario de distribución guardado
@@ -1189,7 +1189,7 @@ if check_login():
                         if not distribucion:
                             if 'Porc_Socio1' in d and len(socios_seleccionados) == 2:
                                 # Lógica compatible con lo anterior
-                                p1 = float(d['Porc_Socio1'])
+                                p1 = float(d.get('Porc_Socio1') or 0.0)
                                 p2 = tasa_cli - p1
                                 # Asignamos al primero y segundo de la lista actual
                                 distribucion = {socios_seleccionados[0]: p1, socios_seleccionados[1]: p2}
@@ -1570,6 +1570,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
