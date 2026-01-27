@@ -1434,7 +1434,7 @@ if check_login():
                         <div class="luxury-subtitle">Registro de Préstamos Finalizados y Capital Recuperado</div>
                        </div>""", unsafe_allow_html=True)
         
-        datos, _ = cargar_datos()
+        datos, _ = cargar_datos("prestamos")
         # Filtramos solo los préstamos pagados
         historial = [d for d in datos if d.get('Estado') == 'Pagado']
         
@@ -1570,6 +1570,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
