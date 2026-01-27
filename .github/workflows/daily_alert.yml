@@ -2,8 +2,8 @@ name: Alerta Diaria de Vencimientos
 
 on:
   schedule:
-    - cron: '40 4 * * *' # Corre todos los días a las 13:00 UTC (8:00 AM Perú)
-  workflow_dispatch: # Esto permite que tú lo ejecutes manualmente para probar
+    - cron: '50 4 * * *' # 11:40 PM hora Perú
+  workflow_dispatch:
 
 jobs:
   build:
@@ -24,7 +24,7 @@ jobs:
       - name: Ejecutar Notificador
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets. secrets.SUPABASE_KEY }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_PASS: ${{ secrets.GMAIL_PASS }}
           RECEPTOR: ${{ secrets.RECEPTOR }}
