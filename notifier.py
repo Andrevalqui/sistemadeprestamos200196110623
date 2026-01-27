@@ -11,7 +11,7 @@ def print_log(msg):
     print(msg)
     sys.stdout.flush()
 
-# Leer variables
+# Leer variables de entorno
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 GMAIL_USER = os.environ.get("GMAIL_USER")
@@ -23,13 +23,13 @@ def check_and_notify():
         print_log("--- INICIANDO PROCESO DE NOTIFICACIÓN ---")
         
         if not SUPABASE_URL or not SUPABASE_KEY:
-            print_log("❌ ERROR: Faltan las credenciales de Supabase en GitHub Secrets.")
+            print_log("❌ ERROR: Faltan las credenciales de Supabase.")
             return
 
         print_log("Conectando a Supabase...")
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
         
-        # Consultar solo los préstamos activos
+        # Consultar préstamos activos
         response = supabase.table("prestamos").select("*").eq("Estado", "Activo").execute()
         prestamos = response.data
         
@@ -48,13 +48,15 @@ def check_and_notify():
             print_log(f"Revisando: {p['Cliente']} | Vence en: {dias} días")
 
             if dias <= 5:
+                # --- AQUÍ ESTÁ LA CORRECCIÓN BASADA EN TU CÓDIGO STREAMLIT ---
+                # Usamos .get(..., 0.0) para evitar errores si el campo viene vacío
+                capital = float(p.get('Monto_Capital', 0.0) or 0.0)
+                interes = float(p.get('Pago_Mensual_Interes', 0.0) or 0.0)
+                
                 alerta_clientes.append({
                     "nombre": p['Cliente'],
-                    # IMPORTANTE: Aquí obtenemos el capital.
-                    # Asegúrate que tu columna en Supabase se llame 'Monto_Prestamo'.
-                    # Si se llama diferente (ej: 'Capital' o 'Saldo'), cambia el nombre aquí abajo:
-                    "capital": p.get('Monto_Prestamo', 0.0), 
-                    "monto": p['Pago_Mensual_Interes'],
+                    "capital": capital,  # Columna: Monto_Capital
+                    "cuota": interes,    # Columna: Pago_Mensual_Interes
                     "dias": dias,
                     "fecha": vencimiento.strftime("%d/%m/%Y")
                 })
@@ -73,29 +75,29 @@ def enviar_correo(clientes):
         msg = MIMEMultipart()
         msg['From'] = GMAIL_USER
         msg['To'] = RECEPTOR
-        msg['Subject'] = f"🏦 REPORTE DE COBRANZA: {len(clientes)} Vencimientos Detectados"
+        msg['Subject'] = f"🏦 REPORTE EJECUTIVO: {len(clientes)} Vencimientos Detectados"
 
         filas = ""
-        # Ordenamos: primero los que tienen más días de mora
+        # Ordenamos por urgencia (días)
         for c in sorted(clientes, key=lambda x: x['dias']):
-            # Colores gerenciales según gravedad
+            # Colores según estado
             color_fondo = "#FDEDEC" if c['dias'] < 0 else "#FEF9E7" if c['dias'] == 0 else "#F4F6F7"
             color_texto = "#C0392B" if c['dias'] < 0 else "#9A7D0A" if c['dias'] == 0 else "#2C3E50"
             estado = f"MORA ({abs(c['dias'])} días)" if c['dias'] < 0 else "VENCE HOY" if c['dias'] == 0 else f"Faltan {c['dias']} días"
             
             filas += f"""
             <tr style="background-color: {color_fondo};">
-                <td style="padding: 15px; border-bottom: 1px solid #ddd; font-weight: bold; color: #1C1C1C;">{c['nombre']}</td>
-                <td style="padding: 15px; border-bottom: 1px solid #ddd; text-align: center; color: #1C1C1C;">S/ {c['capital']:,.2f}</td>
-                <td style="padding: 15px; border-bottom: 1px solid #ddd; text-align: center; color: #1C1C1C;">S/ {c['monto']:,.2f}</td>
-                <td style="padding: 15px; border-bottom: 1px solid #ddd; text-align: center; color: #1C1C1C;">{c['fecha']}</td>
-                <td style="padding: 15px; border-bottom: 1px solid #ddd; text-align: center; color: {color_texto}; font-weight: 900; text-transform: uppercase; font-size: 12px;">{estado}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #ddd; font-weight: bold; color: #1C1C1C;">{c['nombre']}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: center; color: #1C1C1C;">S/ {c['capital']:,.2f}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: center; color: #1C1C1C;">S/ {c['cuota']:,.2f}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: center; color: #1C1C1C;">{c['fecha']}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: center; color: {color_texto}; font-weight: 900; text-transform: uppercase; font-size: 11px;">{estado}</td>
             </tr>"""
 
         html = f"""
         <html>
         <body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: 'Segoe UI', Arial, sans-serif;">
-            <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 15px; overflow: hidden; margin-top: 40px; margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <table align="center" border="0" cellpadding="0" cellspacing="0" width="650" style="background-color: #ffffff; border-radius: 15px; overflow: hidden; margin-top: 40px; margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
                 <!-- HEADER LUXURY -->
                 <tr>
                     <td align="center" style="background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%); padding: 40px 20px; border-bottom: 4px solid #D4AF37;">
