@@ -50,6 +50,10 @@ def check_and_notify():
             if dias <= 5:
                 alerta_clientes.append({
                     "nombre": p['Cliente'],
+                    # IMPORTANTE: Aquí obtenemos el capital.
+                    # Asegúrate que tu columna en Supabase se llame 'Monto_Prestamo'.
+                    # Si se llama diferente (ej: 'Capital' o 'Saldo'), cambia el nombre aquí abajo:
+                    "capital": p.get('Monto_Prestamo', 0.0), 
                     "monto": p['Pago_Mensual_Interes'],
                     "dias": dias,
                     "fecha": vencimiento.strftime("%d/%m/%Y")
@@ -69,7 +73,7 @@ def enviar_correo(clientes):
         msg = MIMEMultipart()
         msg['From'] = GMAIL_USER
         msg['To'] = RECEPTOR
-        msg['Subject'] = f"🏦 REPORTE EJECUTIVO: {len(clientes)} Vencimientos Detectados"
+        msg['Subject'] = f"🏦 REPORTE DE COBRANZA: {len(clientes)} Vencimientos Detectados"
 
         filas = ""
         # Ordenamos: primero los que tienen más días de mora
@@ -82,6 +86,7 @@ def enviar_correo(clientes):
             filas += f"""
             <tr style="background-color: {color_fondo};">
                 <td style="padding: 15px; border-bottom: 1px solid #ddd; font-weight: bold; color: #1C1C1C;">{c['nombre']}</td>
+                <td style="padding: 15px; border-bottom: 1px solid #ddd; text-align: center; color: #1C1C1C;">S/ {c['capital']:,.2f}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #ddd; text-align: center; color: #1C1C1C;">S/ {c['monto']:,.2f}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #ddd; text-align: center; color: #1C1C1C;">{c['fecha']}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #ddd; text-align: center; color: {color_texto}; font-weight: 900; text-transform: uppercase; font-size: 12px;">{estado}</td>
@@ -109,6 +114,7 @@ def enviar_correo(clientes):
                             <thead>
                                 <tr style="background-color: #1a1a1a;">
                                     <th style="color: #D4AF37; padding: 12px; font-size: 12px; text-align: left; text-transform: uppercase;">Cliente</th>
+                                    <th style="color: #D4AF37; padding: 12px; font-size: 12px; text-align: center; text-transform: uppercase;">Capital</th>
                                     <th style="color: #D4AF37; padding: 12px; font-size: 12px; text-align: center; text-transform: uppercase;">Cuota</th>
                                     <th style="color: #D4AF37; padding: 12px; font-size: 12px; text-align: center; text-transform: uppercase;">Vence</th>
                                     <th style="color: #D4AF37; padding: 12px; font-size: 12px; text-align: center; text-transform: uppercase;">Estado</th>
