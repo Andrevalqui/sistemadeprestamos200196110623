@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 import calendar
 from github import Github
 import urllib.parse
+from supabase import create_client
 
 # --- 1. CONFIGURACIÓN INICIAL ---
 st.set_page_config(
@@ -15,8 +16,19 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Nota: Si este CSS va dentro de un st.markdown, 
-# asegúrate de envolverlo en triple comilla y etiquetas <style>
+# --- CONEXIÓN SUPABASE ---
+@st.cache_resource
+def get_supabase():
+    return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
+
+def cargar_datos_db(tabla="prestamos"):
+    try:
+        supabase = get_supabase()
+        response = supabase.table(tabla).select("*").execute()
+        return response.data
+    except Exception as e:
+        st.error(f"Error al cargar base de datos: {e}")
+        return []
 
 st.markdown("""
 <style>
@@ -563,16 +575,9 @@ def generar_link_whatsapp(telefono, cliente, monto, fecha, tipo):
 
 def registrar_auditoria(accion, detalle, cliente="-"):
     try:
-        repo = get_repo()
-        try:
-            c = repo.get_contents("audit.json")
-            logs = json.loads(c.decoded_content.decode())
-            sha = c.sha
-        except:
-            logs = []; sha = None
-        
-        # --- CÁLCULO HORA PERÚ (UTC-5) ---
-        hora_peru = datetime.now(timezone(timedelta(hours=-5))).strftime("%d/%m/%Y %H:%M:%S")
+        supabase = get_supabase()
+        # Hora Perú UTC-5
+        hora_peru = datetime.now(timezone(timedelta(hours=-5))).strftime("%Y-%m-%d %H:%M:%S")
         
         nuevo_log = {
             "Fecha/Hora": hora_peru,
@@ -582,10 +587,7 @@ def registrar_auditoria(accion, detalle, cliente="-"):
             "Cliente Afectado": cliente,
             "Detalle del Movimiento": detalle
         }
-        logs.append(nuevo_log)
-        
-        if sha: repo.update_file("audit.json", f"Log: {accion}", json.dumps(logs, indent=4), sha)
-        else: repo.create_file("audit.json", "Init Audit", json.dumps(logs, indent=4))
+        supabase.table("auditoria").insert(nuevo_log).execute()
     except Exception as e:
         print(f"Error Auditoría: {e}")
         
@@ -805,10 +807,8 @@ if check_login():
 
         if st.button("💾 GUARDAR OPERACIÓN", disabled=st.session_state.guardando_prestamo):            
             if cliente and monto > 0:
-                # 1. Bloqueamos el botón y mostramos estado de carga
                 st.session_state.guardando_prestamo = True 
-                
-                with st.status("Registrando en base de datos segura...", expanded=True) as status:
+                with st.status("Registrando en base de datos segura (Supabase)...", expanded=True) as status:
                     nuevo = {
                         "Cliente": cliente, "DNI": dni, "Telefono": telefono,
                         "Fecha_Prestamo": str(fecha_inicio),
@@ -817,21 +817,19 @@ if check_login():
                         "Pago_Mensual_Interes": interes, "Estado": "Activo",
                         "Observaciones": obs
                     }
-                    datos, sha = cargar_datos()
-                    datos.append(nuevo)
                     
-                    if guardar_datos(datos, sha, f"Nuevo prestamo: {cliente}"):
+                    # GUARDADO DIRECTO EN SUPABASE
+                    try:
+                        get_supabase().table("prestamos").insert(nuevo).execute()
                         registrar_auditoria("CREACIÓN CRÉDITO", f"Préstamo de S/ {monto}", cliente=cliente)
-                        status.update(label="✅ ¡Operación Guardada con Éxito!", state="complete", expanded=False)
-                        st.balloons() # Efecto visual premium
-                        time.sleep(2) # Tiempo suficiente para ver el mensaje
-                        
-                        # 2. Liberamos y reiniciamos
+                        status.update(label="✅ ¡Operación Guardada en Nube!", state="complete", expanded=False)
+                        st.balloons()
+                        time.sleep(2)
                         st.session_state.guardando_prestamo = False
                         st.rerun()
-                    else:
+                    except Exception as e:
+                        st.error(f"Error DB: {e}")
                         st.session_state.guardando_prestamo = False
-                        st.error("❌ Error al conectar con el servidor.")
             else:
                 st.warning("⚠️ Complete Nombre y Monto.")
 
@@ -1037,35 +1035,31 @@ if check_login():
             
             # --- LÓGICA DE GUARDADO (Tu lógica intacta) ---
             if boton_guardar:
-                # --- LÓGICA CORREGIDA PARA PRESERVAR EL MONTO EN EL HISTORIAL ---
-                
+                upd_data = {}
                 if nuevo_capital <= 0:
-                    # SI EL PAGO COMPLETA LA DEUDA:
-                    data['Estado'] = "Pagado"
-                    # IMPORTANTE: No tocamos 'Monto_Capital' para que en el historial 
-                    # siga apareciendo el monto original del préstamo.
-                    
-                    data['Fecha_Finalizacion'] = datetime.now().strftime("%Y-%m-%d") 
-                    
-                    # SI ESCRIBIÓ ALGO EN LA NOTA, LO AGREGAMOS O REEMPLAZAMOS EN OBSERVACIONES
-                    if nota_cierre:
-                        data['Observaciones'] = nota_cierre
-                    
+                    upd_data = {
+                        "Estado": "Pagado",
+                        "Fecha_Finalizacion": datetime.now().strftime("%Y-%m-%d"),
+                        "Observaciones": nota_cierre if nota_cierre else data['Observaciones']
+                    }
                     msg_log = "Deuda Totalmente Cancelada"
                 else:
-                    # SI EL PAGO ES PARCIAL (EL PRÉSTAMO SIGUE ACTIVO):
-                    data['Monto_Capital'] = nuevo_capital
-                    data['Pago_Mensual_Interes'] = nueva_cuota
-                    data['Fecha_Proximo_Pago'] = nueva_fecha_pago
+                    upd_data = {
+                        "Monto_Capital": nuevo_capital,
+                        "Pago_Mensual_Interes": nueva_cuota,
+                        "Fecha_Proximo_Pago": nueva_fecha_pago
+                    }
                     msg_log = f"Pago registrado. Vence: {nueva_fecha_pago}"
                 
-                # --- PROCESO DE GUARDADO (Mismo que ya tienes) ---
-                if guardar_datos(datos, sha, f"Actualizacion {data['Cliente']} - {msg_log}"):
+                # ACTUALIZACIÓN EN SUPABASE POR ID
+                try:
+                    get_supabase().table("prestamos").update(upd_data).eq("id", data['id']).execute()
                     registrar_auditoria("COBRO", f"Pago Recibido: Interés S/ {pago_interes}, Capital S/ {pago_capital}", cliente=data['Cliente'])
                     st.success("✅ Cartera actualizada correctamente.")
                     time.sleep(2)
-                    st.session_state.procesando_pago = False 
                     st.rerun()
+                except Exception as e:
+                    st.error(f"Error al actualizar: {e}")
 
     # 3. DASHBOARD GERENCIAL
     elif menu == "📊 Dashboard General":
@@ -1304,6 +1298,11 @@ if check_login():
                                     color_actual = colores[idx % len(colores)]
                                     
                                     # Tarjeta mini manual
+                                   st.markdown("##### 👤 Resultado Financiero:")
+                                for idx, s in enumerate(socios_seleccionados):
+                                    g = item_cli['Monto_Capital'] * (nuevos_valores[s] / 100)
+                                    color_actual = colores[idx % len(colores)]
+                                    
                                     st.markdown(f"""
                                     <div style="border-left: 4px solid {color_actual}; background-color: #1a1a1a; padding: 10px; margin-bottom: 5px; border-radius: 5px;">
                                         <span style="color:{color_actual}; font-weight:bold;">{s}:</span> 
@@ -1311,23 +1310,33 @@ if check_login():
                                     </div>
                                     """, unsafe_allow_html=True)
 
+                                # --- NUEVA LÓGICA DE GUARDADO EN SUPABASE ---
                                 if st.button("💾 GUARDAR CAMBIOS"):
-                                    # Guardamos el diccionario completo
-                                    datos[idx_real]['Distribucion_Socios'] = nuevos_valores
-                                    # Mantenemos Porc_Socio1 solo por si acaso quieres volver atrás, usando el primer socio
-                                    datos[idx_real]['Porc_Socio1'] = list(nuevos_valores.values())[0]
-                                    
-                                    if guardar_datos(datos, sha, f"Reparticion socios {item_cli['Cliente']}"):
+                                    try:
+                                        # 1. Ejecutamos la actualización directamente en Supabase usando el ID
+                                        # No necesitamos 'sha' ni manejar toda la lista de 'datos'
+                                        get_supabase().table("prestamos").update({
+                                            "Distribucion_Socios": nuevos_valores,
+                                            "Porc_Socio1": list(nuevos_valores.values())[0]
+                                        }).eq("id", item_cli['id']).execute()
+                                        
+                                        # 2. Registramos el movimiento en la nueva tabla de auditoría SQL
+                                        registrar_auditoria("REPARTICIÓN SOCIOS", f"Ajuste de porcentajes de interés", cliente=item_cli['Cliente'])
+                                        
                                         st.balloons()
                                         time.sleep(1)
                                         st.rerun()
+                                        
+                                    except Exception as e:
+                                        st.error(f"❌ Error al actualizar en Supabase: {e}")
+
                             else:
                                 if diff > 0:
                                     st.warning(f"⚠️ Faltan asignar **{diff:.1f}%** para llegar al {tasa_max}%.")
                                 else:
                                     st.error(f"⛔ Te has pasado por **{abs(diff):.1f}%**. Ajusta los valores.")
                                 
-                                st.button("💾 GUARDAR (Bloqueado)", disabled=True)
+                                st.button("💾 GUARDAR (Bloqueado)", disabled=True)True)
 
                     with c_view:
                         st.markdown("#### 📊 Tabla de Detalle")
@@ -1591,12 +1600,3 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
-
-
-
-
-
-
-
-
-
