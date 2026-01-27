@@ -842,218 +842,203 @@ if check_login():
             mapa = {f"{d['Cliente']} | Vence: {d.get('Fecha_Proximo_Pago', 'N/A')}": i for i, d in enumerate(datos) if d.get('Estado') == 'Activo'}
             col_sel1, col_sel2, col_sel3 = st.columns([1, 2, 1]) # 2 es el centro
         
-        with col_sel2:
-            seleccion = st.selectbox("BUSCAR CLIENTE", list(mapa.keys()))
-            
-            idx = mapa[seleccion]
-            data = datos[idx]
-            
-            fecha_venc_dt = datetime.strptime(data['Fecha_Proximo_Pago'], "%Y-%m-%d").date()
-            hoy = datetime.now().date()
-            dias_restantes = (fecha_venc_dt - hoy).days
-
-            # --- LÓGICA DE COLORES DINÁMICOS ---
-            if dias_restantes <= 0:
-                color_texto = "#943126"  # Rojo Oscuro (Mora/Hoy)
-                txt_venc = "Vence HOY" if dias_restantes == 0 else f"Vencido hace {abs(dias_restantes)} días"
-                flecha_dir = "inverse"
-            elif dias_restantes <= 5:
-                color_texto = "#5D4037"  # MARRÓN CHOCOLATE (Cercano)
-                txt_venc = f"En {dias_restantes} días"
-                flecha_dir = "off"       
-            else:
-                color_texto = "#145A32"  # Verde Oscuro (Al día)
-                txt_venc = f"En {dias_restantes} días"
-                flecha_dir = "normal"
-
-           # Inyectamos CSS específico para centrar métricas y ARREGLAR el Checkbox/Inputs
-            st.markdown(f"""
-                <style>
-                /* 1. Centrado de métricas (KPIs) */
-                [data-testid="stMetric"] {{
-                    display: flex !important;
-                    flex-direction: column !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                    text-align: center !important;
-                }}
+            # --- TODA TU LÓGICA AHORA ESTÁ DENTRO DE ESTE 'IF' PARA EVITAR EL ERROR ---
+            with col_sel2:
+                seleccion = st.selectbox("BUSCAR CLIENTE", list(mapa.keys()))
                 
-                [data-testid="stMetricLabel"], 
-                [data-testid="stMetricValue"], 
-                [data-testid="stMetricDelta"] {{
-                    display: flex !important;
-                    justify-content: center !important;
-                    width: 100% !important;
-                }}
-
-                /* 2. FIX DEFINITIVO PARA EL CHECKBOX (RENOVAR VENCIMIENTO) */
-                /* Esto evita que el texto se vea gigante o separado del cuadro */
-                [data-testid="stCheckbox"] {{
-                    display: flex !important;
-                    justify-content: center !important;
-                    align-items: center !important;
-                    gap: 8px !important;
-                    width: 100% !important;
-                    margin: 20px 0 !important;
-                }}
-
-                [data-testid="stCheckbox"] label p {{
-                    font-size: 15px !important; /* Tamaño normal de lectura */
-                    color: #D4AF37 !important;
-                    font-weight: 700 !important;
-                    margin: 0 !important;
-                    text-transform: uppercase;
-                }}
-
-                /* 3. FIX PARA INPUTS DE DINERO */
-                /* Asegura que los títulos estén arriba/centro y el cuadro ocupe su lugar */
-                [data-testid="stNumberInput"] label {{
-                    display: block !important;
-                    text-align: center !important;
-                    width: 100% !important;
-                }}
-
-                /* 4. Color dinámico para la fecha de vencimiento (Métrica 3) */
-                [data-testid="stHorizontalBlock"] > div:nth-child(3) [data-testid="stMetricValue"] div {{
-                    color: {color_texto} !important;
-                }}
-                [data-testid="stHorizontalBlock"] > div:nth-child(3) [data-testid="stMetricDelta"] div {{
-                    color: {color_texto} !important;
-                }}
-                [data-testid="stHorizontalBlock"] > div:nth-child(3) [data-testid="stMetricDelta"] svg {{
-                    fill: {color_texto} !important;
-                }}
-                </style>
-            """, unsafe_allow_html=True)
-
-            with st.container(border=True):
-                st.markdown(f"### 👤 {data['Cliente']}")
+                idx = mapa[seleccion]
+                data = datos[idx]
                 
-                c_info1, c_info2, c_info3 = st.columns(3)
-                
-                # Las dos primeras métricas (Negro Ejecutivo)
-                c_info1.metric("Deuda Capital", f"S/ {data['Monto_Capital']:,.2f}")
-                c_info2.metric("Cuota Interés", f"S/ {data['Pago_Mensual_Interes']:,.2f}")
-                
-                # La tercera métrica con color dinámico
-                c_info3.metric(
-                    label="Vencimiento", 
-                    value=fecha_venc_dt.strftime("%d/%m/%Y"), 
-                    delta=txt_venc, 
-                    delta_color=flecha_dir
-                )
+                fecha_venc_dt = datetime.strptime(str(data['Fecha_Proximo_Pago']), "%Y-%m-%d").date()
+                hoy = datetime.now().date()
+                dias_restantes = (fecha_venc_dt - hoy).days
 
-            st.write("")
-            st.markdown("---")
+                # --- LÓGICA DE COLORES DINÁMICOS ---
+                if dias_restantes <= 0:
+                    color_texto = "#943126"  # Rojo Oscuro (Mora/Hoy)
+                    txt_venc = "Vence HOY" if dias_restantes == 0 else f"Vencido hace {abs(dias_restantes)} días"
+                    flecha_dir = "inverse"
+                elif dias_restantes <= 5:
+                    color_texto = "#5D4037"  # MARRÓN CHOCOLATE (Cercano)
+                    txt_venc = f"En {dias_restantes} días"
+                    flecha_dir = "off"       
+                else:
+                    color_texto = "#145A32"  # Verde Oscuro (Al día)
+                    txt_venc = f"En {dias_restantes} días"
+                    flecha_dir = "normal"
 
-            # --- AQUÍ CAMBIA EL DISEÑO: 2 COLUMNAS (INPUTS IZQ | SIMULACION DER) ---
-            col_izq, col_der = st.columns([1.3, 1], gap="large")
+               # Inyectamos CSS específico para centrar métricas y ARREGLAR el Checkbox/Inputs
+                st.markdown(f"""
+                    <style>
+                    /* 1. Centrado de métricas (KPIs) */
+                    [data-testid="stMetric"] {{
+                        display: flex !important;
+                        flex-direction: column !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        text-align: center !important;
+                    }}
+                    
+                    [data-testid="stMetricLabel"], 
+                    [data-testid="stMetricValue"], 
+                    [data-testid="stMetricDelta"] {{
+                        display: flex !important;
+                        justify-content: center !important;
+                        width: 100% !important;
+                    }}
 
-            # --- COLUMNA IZQUIERDA: INPUTS Y BOTÓN ---
-            with col_izq:
-                st.markdown("### 💰 Ingreso de Dinero")
-                st.caption("Ingresa los montos exactos que recibiste.")
+                    /* 2. FIX DEFINITIVO PARA EL CHECKBOX (RENOVAR VENCIMIENTO) */
+                    [data-testid="stCheckbox"] {{
+                        display: flex !important;
+                        justify-content: center !important;
+                        align-items: center !important;
+                        gap: 8px !important;
+                        width: 100% !important;
+                        margin: 20px 0 !important;
+                    }}
 
-                # Inputs de pago
-                pago_interes = st.number_input("1. ¿Cuánto pagó de INTERÉS?", 
-                                               min_value=0.0, value=float(data['Pago_Mensual_Interes']), step=10.0)
-                
-                pago_capital = st.number_input("2. ¿Cuánto pagó de CAPITAL?", 
-                                               min_value=0.0, value=0.0, step=50.0)
+                    [data-testid="stCheckbox"] label p {{
+                        font-size: 15px !important; 
+                        color: #D4AF37 !important;
+                        font-weight: 700 !important;
+                        margin: 0 !important;
+                        text-transform: uppercase;
+                    }}
+
+                    /* 3. FIX PARA INPUTS DE DINERO */
+                    [data-testid="stNumberInput"] label {{
+                        display: block !important;
+                        text-align: center !important;
+                        width: 100% !important;
+                    }}
+
+                    /* 4. Color dinámico para la fecha de vencimiento (Métrica 3) */
+                    [data-testid="stHorizontalBlock"] > div:nth-child(3) [data-testid="stMetricValue"] div {{
+                        color: {color_texto} !important;
+                    }}
+                    [data-testid="stHorizontalBlock"] > div:nth-child(3) [data-testid="stMetricDelta"] div {{
+                        color: {color_texto} !important;
+                    }}
+                    [data-testid="stHorizontalBlock"] > div:nth-child(3) [data-testid="stMetricDelta"] svg {{
+                        fill: {color_texto} !important;
+                    }}
+                    </style>
+                """, unsafe_allow_html=True)
+
+                with st.container(border=True):
+                    st.markdown(f"### 👤 {data['Cliente']}")
+                    
+                    c_info1, c_info2, c_info3 = st.columns(3)
+                    
+                    c_info1.metric("Deuda Capital", f"S/ {data['Monto_Capital']:,.2f}")
+                    c_info2.metric("Cuota Interés", f"S/ {data['Pago_Mensual_Interes']:,.2f}")
+                    
+                    c_info3.metric(
+                        label="Vencimiento", 
+                        value=fecha_venc_dt.strftime("%d/%m/%Y"), 
+                        delta=txt_venc, 
+                        delta_color=flecha_dir
+                    )
 
                 st.write("")
-                # Checkbox de renovación
-                sugerir_renovar = (pago_interes >= (data['Pago_Mensual_Interes'] - 5))
-                renovar = st.checkbox("📅 **¿Renovar vencimiento al próximo mes?**", value=sugerir_renovar)
+                st.markdown("---")
 
-                # CÁLCULOS MATEMÁTICOS (Tu lógica intacta)
-                interes_pendiente = data['Pago_Mensual_Interes'] - pago_interes
-                nuevo_capital = data['Monto_Capital'] - pago_capital + interes_pendiente
-                nueva_cuota = nuevo_capital * (data['Tasa_Interes'] / 100)
-                
-                nueva_fecha_pago = data['Fecha_Proximo_Pago']
-                txt_fecha_nueva = "Se mantiene igual"
-                if renovar:
-                    nueva_fecha_pago = sumar_un_mes(data['Fecha_Proximo_Pago'])
-                    txt_fecha_nueva = datetime.strptime(nueva_fecha_pago, "%Y-%m-%d").strftime("%d/%m/%Y")
-                
-                # Input de Notas (Se muestra si se cancela la deuda)
-                nota_cierre = ""
-                if nuevo_capital <= 0:
+                col_izq, col_der = st.columns([1.3, 1], gap="large")
+
+                with col_izq:
+                    st.markdown("### 💰 Ingreso de Dinero")
+                    st.caption("Ingresa los montos exactos que recibiste.")
+
+                    pago_interes = st.number_input("1. ¿Cuánto pagó de INTERÉS?", 
+                                                   min_value=0.0, value=float(data['Pago_Mensual_Interes']), step=10.0)
+                    
+                    pago_capital = st.number_input("2. ¿Cuánto pagó de CAPITAL?", 
+                                                   min_value=0.0, value=0.0, step=50.0)
+
                     st.write("")
-                    nota_cierre = st.text_area("📝 **Notas Finales de Cierre:**", 
-                                             placeholder="Ej: Cliente canceló todo por adelantado. Muy puntual.",
-                                             help="Estas notas se verán en el Historial de Créditos.")
+                    sugerir_renovar = (pago_interes >= (data['Pago_Mensual_Interes'] - 5))
+                    renovar = st.checkbox("📅 **¿Renovar vencimiento al próximo mes?**", value=sugerir_renovar)
 
-                st.write("")
-                st.write("") # Espaciado para bajar el botón
-                if 'procesando_pago' not in st.session_state:
-                    st.session_state.procesando_pago = False
-                
-                # Botón de Guardado (Ahora en la izquierda)
-                boton_guardar = st.button("💾 PROCESAR PAGO", use_container_width=True)
+                    interes_pendiente = data['Pago_Mensual_Interes'] - pago_interes
+                    nuevo_capital = data['Monto_Capital'] - pago_capital + interes_pendiente
+                    nueva_cuota = nuevo_capital * (data['Tasa_Interes'] / 100)
+                    
+                    nueva_fecha_pago = data['Fecha_Proximo_Pago']
+                    txt_fecha_nueva = "Se mantiene igual"
+                    if renovar:
+                        nueva_fecha_pago = sumar_un_mes(str(data['Fecha_Proximo_Pago']))
+                        txt_fecha_nueva = datetime.strptime(nueva_fecha_pago, "%Y-%m-%d").strftime("%d/%m/%Y")
+                    
+                    nota_cierre = ""
+                    if nuevo_capital <= 0:
+                        st.write("")
+                        nota_cierre = st.text_area("📝 **Notas Finales de Cierre:**", 
+                                                 placeholder="Ej: Cliente canceló todo por adelantado. Muy puntual.",
+                                                 help="Estas notas se verán en el Historial de Créditos.")
 
-            # --- COLUMNA DERECHA: SIMULACIÓN VISUAL ---
-            with col_der:
-                st.markdown("### 📊 Simulación")
-                
-                # Alertas visuales
-                if interes_pendiente > 0:
-                    st.warning(f"⚠️ **Faltan S/ {interes_pendiente:,.2f}** de interés.")
-                else:
-                    st.success("✅ Interés cubierto.")
-                
-                if pago_capital > 0:
-                    st.info(f"📉 Capital baja S/ {pago_capital:,.2f}")
+                    st.write("")
+                    st.write("")
+                    boton_guardar = st.button("💾 PROCESAR PAGO", use_container_width=True)
 
-                st.write("") # Espacio visual
+                with col_der:
+                    st.markdown("### 📊 Simulación")
+                    
+                    if interes_pendiente > 0:
+                        st.warning(f"⚠️ **Faltan S/ {interes_pendiente:,.2f}** de interés.")
+                    else:
+                        st.success("✅ Interés cubierto.")
+                    
+                    if pago_capital > 0:
+                        st.info(f"📉 Capital baja S/ {pago_capital:,.2f}")
 
-                # Tarjetas de Resultado (Tu diseño intacto)
-                if nuevo_capital <= 0:
-                    st.markdown(f"""
-                    <div style="background-color:#D4EFDF; padding:20px; border-radius:10px; border:2px solid #27AE60; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                        <h3 style="margin:0; color:#186A3B;">¡DEUDA CANCELADA!</h3>
-                        <p style="margin:5px 0; font-weight:bold; font-size:16px;">El capital llega S/ 0.00</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.markdown(f"""
-                    <div style="background-color:#EBF5FB; padding:20px; border-radius:10px; border:2px solid #AED6F1; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                        <p style="margin:0; color:#1B4F72; font-size:14px; text-transform: uppercase;">Nueva Deuda Capital</p>
-                        <h2 style="margin:5px 0; color:#2874A6;">S/ {nuevo_capital:,.2f}</h2>
-                        <hr style="margin:15px 0; border-color: rgba(0,0,0,0.1);">
-                        <p style="margin:0; font-weight:bold; color:#1B4F72;">Próx. Vencimiento:</p>
-                        <p style="margin:0; font-size:18px;">{txt_fecha_nueva}</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-            
-            # --- LÓGICA DE GUARDADO (Tu lógica intacta) ---
-            if boton_guardar:
-                upd_data = {}
-                if nuevo_capital <= 0:
-                    upd_data = {
-                        "Estado": "Pagado",
-                        "Fecha_Finalizacion": datetime.now().strftime("%Y-%m-%d"),
-                        "Observaciones": nota_cierre if nota_cierre else data['Observaciones']
-                    }
-                    msg_log = "Deuda Totalmente Cancelada"
-                else:
-                    upd_data = {
-                        "Monto_Capital": nuevo_capital,
-                        "Pago_Mensual_Interes": nueva_cuota,
-                        "Fecha_Proximo_Pago": nueva_fecha_pago
-                    }
-                    msg_log = f"Pago registrado. Vence: {nueva_fecha_pago}"
+                    st.write("")
+
+                    if nuevo_capital <= 0:
+                        st.markdown(f"""
+                        <div style="background-color:#D4EFDF; padding:20px; border-radius:10px; border:2px solid #27AE60; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                            <h3 style="margin:0; color:#186A3B;">¡DEUDA CANCELADA!</h3>
+                            <p style="margin:5px 0; font-weight:bold; font-size:16px;">El capital llega S/ 0.00</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    else:
+                        st.markdown(f"""
+                        <div style="background-color:#EBF5FB; padding:20px; border-radius:10px; border:2px solid #AED6F1; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                            <p style="margin:0; color:#1B4F72; font-size:14px; text-transform: uppercase;">Nueva Deuda Capital</p>
+                            <h2 style="margin:5px 0; color:#2874A6;">S/ {nuevo_capital:,.2f}</h2>
+                            <hr style="margin:15px 0; border-color: rgba(0,0,0,0.1);">
+                            <p style="margin:0; font-weight:bold; color:#1B4F72;">Próx. Vencimiento:</p>
+                            <p style="margin:0; font-size:18px;">{txt_fecha_nueva}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
                 
-                # ACTUALIZACIÓN EN SUPABASE POR ID
-                try:
-                    get_supabase().table("prestamos").update(upd_data).eq("id", data['id']).execute()
-                    registrar_auditoria("COBRO", f"Pago Recibido: Interés S/ {pago_interes}, Capital S/ {pago_capital}", cliente=data['Cliente'])
-                    st.success("✅ Cartera actualizada correctamente.")
-                    time.sleep(2)
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Error al actualizar: {e}")
+                if boton_guardar:
+                    upd_data = {}
+                    if nuevo_capital <= 0:
+                        upd_data = {
+                            "Estado": "Pagado",
+                            "Fecha_Finalizacion": datetime.now().strftime("%Y-%m-%d"),
+                            "Observaciones": nota_cierre if nota_cierre else data['Observaciones']
+                        }
+                        msg_log = "Deuda Totalmente Cancelada"
+                    else:
+                        upd_data = {
+                            "Monto_Capital": nuevo_capital,
+                            "Pago_Mensual_Interes": nueva_cuota,
+                            "Fecha_Proximo_Pago": nueva_fecha_pago
+                        }
+                        msg_log = f"Pago registrado. Vence: {nueva_fecha_pago}"
+                    
+                    try:
+                        get_supabase().table("prestamos").update(upd_data).eq("id", data['id']).execute()
+                        registrar_auditoria("COBRO", f"Pago Recibido: Interés S/ {pago_interes}, Capital S/ {pago_capital}", cliente=data['Cliente'])
+                        st.success("✅ Cartera actualizada correctamente.")
+                        time.sleep(2)
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Error al actualizar: {e}")
+        else:
+            # ESTO SE MUESTRA SI NO HAY CLIENTES ACTIVOS
+            st.info("💡 No hay préstamos activos para registrar pagos en este momento.")
 
     # 3. DASHBOARD GERENCIAL
     elif menu == "📊 Dashboard General":
@@ -1352,14 +1337,14 @@ if check_login():
         datos, sha = cargar_datos()
         
         if datos:
-            # --- MEJORA: FILTRAR SOLO CLIENTES ACTIVOS ---
+            # --- FILTRAR SOLO CLIENTES ACTIVOS ---
             lista_edicion = [
                 f"{i} | {d['Cliente']} (Capital: S/ {d['Monto_Capital']})" 
                 for i, d in enumerate(datos) 
                 if d.get('Estado') == 'Activo'
             ]
             
-            # Verificar si después de filtrar hay clientes para mostrar
+            # --- TODA LA LÓGICA DEBE IR DENTRO DE ESTE IF PARA EVITAR ERRORES ---
             if lista_edicion:
                 col_sel1, col_sel2 = st.columns([2, 1])
                 with col_sel1:
@@ -1371,7 +1356,7 @@ if check_login():
 
                 st.markdown("---")
                 
-                # CREACIÓN DE TABS CENTRADOS Y GRANDES (Según tu estilo anterior)
+                # TABS CENTRADOS Y GRANDES
                 tab_edit, tab_del = st.tabs(["✏️ Editar Datos", "🗑️ Eliminar Registro"])
 
                 with tab_edit:
@@ -1382,7 +1367,11 @@ if check_login():
                         nuevo_nombre = c_ed1.text_input("Nombre del Cliente", value=item['Cliente'])
                         nuevo_dni = c_ed2.text_input("DNI / CE", value=item.get('DNI', ''))
                         nuevo_cap = c_ed1.number_input("Deuda Capital Actual (S/)", value=float(item['Monto_Capital']), step=50.0)
-                        nueva_fecha_venc = c_ed2.date_input("Próximo Vencimiento", value=datetime.strptime(str(item['Fecha_Proximo_Pago']), "%Y-%m-%d"))
+                        
+                        # Convertir a string para asegurar compatibilidad con date_input
+                        fecha_val = str(item['Fecha_Proximo_Pago'])
+                        nueva_fecha_venc = c_ed2.date_input("Próximo Vencimiento", value=datetime.strptime(fecha_val, "%Y-%m-%d"))
+                        
                         nueva_tasa = c_ed1.number_input("Tasa de Interés (%)", value=float(item['Tasa_Interes']))
                         nuevo_estado = c_ed2.selectbox("Estado del Crédito", ["Activo", "Pagado"], index=0 if item['Estado'] == "Activo" else 1)
                         nueva_obs = st.text_area("Observaciones del Cliente", value=item.get('Observaciones', ''))
@@ -1402,7 +1391,6 @@ if check_login():
                             "Estado": nuevo_estado,
                             "Observaciones": nueva_obs 
                         }
-                        # CAMBIO A SUPABASE:
                         try:
                             get_supabase().table("prestamos").update(upd).eq("id", item['id']).execute()
                             registrar_auditoria("EDICIÓN MANUAL", f"Ajuste de datos", cliente=nuevo_nombre)
@@ -1412,19 +1400,16 @@ if check_login():
                         except Exception as e:
                             st.error(f"Error al actualizar: {e}")
 
-                # --- TAB DE ELIMINACIÓN (CORRECCIÓN CRÍTICA AQUÍ) ---
                 with tab_del:
                     st.warning(f"⚠️ **ATENCIÓN:** Está a punto de eliminar permanentemente el registro de **{item['Cliente']}**.")
                     st.write("Esta acción no se puede deshacer y se usa principalmente para corregir duplicados.")
                     
-                    confirmar_borrado = st.text_input(f"Para confirmar, escriba el nombre del cliente ({item['Cliente']}):", key="del_confirm")
+                    confirmar_borrado = st.text_input(f"Para confirmar, escriba el nombre del cliente ({item['Cliente']}):", key="del_confirm_box")
                     
                     if st.button("🗑️ ELIMINAR REGISTRO DEFINITIVAMENTE"):
                         if confirmar_borrado == item['Cliente']:
                             try:
-                                # CAMBIO A SUPABASE: Eliminamos directamente por ID
                                 get_supabase().table("prestamos").delete().eq("id", item['id']).execute()
-                                
                                 registrar_auditoria(
                                     "ELIMINACIÓN DEFINITIVA", 
                                     f"BORRADO DE REGISTRO: Se eliminó préstamo de S/ {item['Monto_Capital']:,.2f}.", 
@@ -1434,9 +1419,13 @@ if check_login():
                                 time.sleep(1)
                                 st.rerun()
                             except Exception as e:
-                                st.error(f"Error al eliminar en base de datos: {e}")
+                                st.error(f"Error al eliminar: {e}")
                         else:
                             st.error("❌ El nombre no coincide.")
+            else:
+                st.info("💡 No hay préstamos activos para administrar en este momento.")
+        else:
+            st.info("📭 El sistema no contiene datos registrados en Supabase.")
 
     # 5. HISTORIAL DE CRÉDITOS (Módulo Informativo con Búsqueda Inteligente y Montos)
     elif menu == "📂 Historial de Créditos":
@@ -1581,6 +1570,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
