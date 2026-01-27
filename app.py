@@ -1277,13 +1277,7 @@ if check_login():
                                 for idx, s in enumerate(socios_seleccionados):
                                     g = item_cli['Monto_Capital'] * (nuevos_valores[s] / 100)
                                     color_actual = colores[idx % len(colores)]
-                                    
-                                    # Tarjeta mini manual
-                                   st.markdown("##### 👤 Resultado Financiero:")
-                                for idx, s in enumerate(socios_seleccionados):
-                                    g = item_cli['Monto_Capital'] * (nuevos_valores[s] / 100)
-                                    color_actual = colores[idx % len(colores)]
-                                    
+                                                                       
                                     st.markdown(f"""
                                     <div style="border-left: 4px solid {color_actual}; background-color: #1a1a1a; padding: 10px; margin-bottom: 5px; border-radius: 5px;">
                                         <span style="color:{color_actual}; font-weight:bold;">{s}:</span> 
@@ -1574,4 +1568,5 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
