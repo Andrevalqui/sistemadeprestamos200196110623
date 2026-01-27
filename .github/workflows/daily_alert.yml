@@ -1,0 +1,31 @@
+name: Alerta Diaria de Vencimientos
+
+on:
+  schedule:
+    - cron: '0 13 * * *' # Corre todos los días a las 13:00 UTC (8:00 AM Perú)
+  workflow_dispatch: # Esto permite que tú lo ejecutes manualmente para probar
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v3
+        
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: Instalar dependencias
+        run: |
+          pip install supabase
+          
+      - name: Ejecutar Notificador
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets. secrets.SUPABASE_KEY }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_PASS: ${{ secrets.GMAIL_PASS }}
+          RECEPTOR: ${{ secrets.RECEPTOR }}
+        run: python notifier.py
