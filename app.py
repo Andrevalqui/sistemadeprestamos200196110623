@@ -1182,7 +1182,7 @@ if check_login():
                         
                         # --- LÓGICA DE RECUPERACIÓN DE DATOS (COMPATIBILIDAD) ---
                         # Buscamos si ya tiene un diccionario de distribución guardado
-                        distribucion = d.get('Distribucion_Socios', {})
+                        distribucion = d.get('Distribucion_Socios') or {}
                         
                         # Si no existe (es dato antiguo) o faltan socios nuevos, recalculamos defaults
                         # Si es dato antiguo con 'Porc_Socio1', intentamos usarlo
@@ -1249,7 +1249,7 @@ if check_login():
                             st.info(f"💰 Tasa a repartir: **{tasa_max}%**")
                             
                             # Recuperamos la distribución actual de ese cliente
-                            dist_actual_cli = item_cli.get('Distribucion_Socios', {})
+                            dist_actual_cli = item_cli.get('Distribucion_Socios') or {}
                             
                             nuevos_valores = {}
                             suma_actual = 0.0
@@ -1570,6 +1570,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
