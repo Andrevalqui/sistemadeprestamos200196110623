@@ -2,7 +2,7 @@ name: Alerta Diaria de Vencimientos
 
 on:
   schedule:
-    - cron: '10 4 * * *' # Corre todos los días a las 13:00 UTC (8:00 AM Perú)
+    - cron: '40 4 * * *' # Corre todos los días a las 13:00 UTC (8:00 AM Perú)
   workflow_dispatch: # Esto permite que tú lo ejecutes manualmente para probar
 
 jobs:
