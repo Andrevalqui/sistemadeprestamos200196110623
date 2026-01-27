@@ -2,7 +2,7 @@ name: Alerta Diaria de Vencimientos
 
 on:
   schedule:
-    - cron: '50 4 * * *' # 11:40 PM hora Perú
+    - cron: '0 13 * * *' # 08:00 AM hora Perú
   workflow_dispatch:
 
 jobs:
