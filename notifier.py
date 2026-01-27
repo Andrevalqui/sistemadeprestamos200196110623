@@ -69,33 +69,76 @@ def enviar_correo(clientes):
         msg = MIMEMultipart()
         msg['From'] = GMAIL_USER
         msg['To'] = RECEPTOR
-        msg['Subject'] = f"🏦 ALERTA: {len(clientes)} Vencimientos Críticos"
+        msg['Subject'] = f"🏦 REPORTE EJECUTIVO: {len(clientes)} Vencimientos Detectados"
 
         filas = ""
         # Ordenamos: primero los que tienen más días de mora
         for c in sorted(clientes, key=lambda x: x['dias']):
-            color = "#E74C3C" if c['dias'] < 0 else "#F39C12" if c['dias'] == 0 else "#2C3E50"
+            # Colores gerenciales según gravedad
+            color_fondo = "#FDEDEC" if c['dias'] < 0 else "#FEF9E7" if c['dias'] == 0 else "#F4F6F7"
+            color_texto = "#C0392B" if c['dias'] < 0 else "#9A7D0A" if c['dias'] == 0 else "#2C3E50"
             estado = f"MORA ({abs(c['dias'])} días)" if c['dias'] < 0 else "VENCE HOY" if c['dias'] == 0 else f"Faltan {c['dias']} días"
             
             filas += f"""
-            <tr style='border-bottom: 1px solid #ddd;'>
-                <td style='padding:8px;'>{c['nombre']}</td>
-                <td style='padding:8px;'>S/ {c['monto']:,.2f}</td>
-                <td style='padding:8px;'>{c['fecha']}</td>
-                <td style='padding:8px; color:{color}; font-weight:bold;'>{estado}</td>
+            <tr style="background-color: {color_fondo};">
+                <td style="padding: 15px; border-bottom: 1px solid #ddd; font-weight: bold; color: #1C1C1C;">{c['nombre']}</td>
+                <td style="padding: 15px; border-bottom: 1px solid #ddd; text-align: center; color: #1C1C1C;">S/ {c['monto']:,.2f}</td>
+                <td style="padding: 15px; border-bottom: 1px solid #ddd; text-align: center; color: #1C1C1C;">{c['fecha']}</td>
+                <td style="padding: 15px; border-bottom: 1px solid #ddd; text-align: center; color: {color_texto}; font-weight: 900; text-transform: uppercase; font-size: 12px;">{estado}</td>
             </tr>"""
 
         html = f"""
-        <html><body>
-            <h2 style='color:#D4AF37;'>Reporte Automático de Cobranza</h2>
-            <table border='1' style='border-collapse: collapse; width: 100%; font-family: sans-serif;'>
-                <tr style='background-color: #1a1a1a; color: white;'>
-                    <th>Cliente</th><th>Cuota</th><th>Fecha</th><th>Estado</th>
+        <html>
+        <body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: 'Segoe UI', Arial, sans-serif;">
+            <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 15px; overflow: hidden; margin-top: 40px; margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                <!-- HEADER LUXURY -->
+                <tr>
+                    <td align="center" style="background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%); padding: 40px 20px; border-bottom: 4px solid #D4AF37;">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2489/2489756.png" width="60" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); margin-bottom: 15px;">
+                        <h1 style="color: #D4AF37; margin: 0; text-transform: uppercase; letter-spacing: 4px; font-size: 24px; font-weight: 900;">Reporte de Cobranza</h1>
+                        <p style="color: #ffffff; margin-top: 5px; opacity: 0.8; font-size: 13px; text-transform: uppercase; letter-spacing: 2px;">Gestión de Activos & Créditos</p>
+                    </td>
                 </tr>
-                {filas}
+                
+                <!-- CONTENT -->
+                <tr>
+                    <td style="padding: 30px;">
+                        <p style="color: #2C3E50; font-size: 16px; margin-bottom: 25px;">Estimado Administrador,<br><br>Se ha realizado un escaneo automático del sistema y se han detectado <b>{len(clientes)}</b> vencimientos que requieren atención inmediata:</p>
+                        
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                            <thead>
+                                <tr style="background-color: #1a1a1a;">
+                                    <th style="color: #D4AF37; padding: 12px; font-size: 12px; text-align: left; text-transform: uppercase;">Cliente</th>
+                                    <th style="color: #D4AF37; padding: 12px; font-size: 12px; text-align: center; text-transform: uppercase;">Cuota</th>
+                                    <th style="color: #D4AF37; padding: 12px; font-size: 12px; text-align: center; text-transform: uppercase;">Vence</th>
+                                    <th style="color: #D4AF37; padding: 12px; font-size: 12px; text-align: center; text-transform: uppercase;">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filas}
+                            </tbody>
+                        </table>
+                        
+                        <div style="margin-top: 30px; padding: 20px; background-color: #FDFEFE; border: 1px dashed #D4AF37; border-radius: 10px; text-align: center;">
+                            <p style="color: #2C3E50; font-size: 14px; margin: 0;">Para gestionar estos pagos, acceda al portal administrativo:</p>
+                            <p style="margin-top: 15px;">
+                                <a href="https://sistemadeprestamos200196110623-tehmek4ykvshbumtmyzcjx.streamlit.app/" style="background: linear-gradient(90deg, #D4AF37 0%, #B8860B 100%); color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 13px; display: inline-block; box-shadow: 0 4px 15px rgba(212,175,55,0.3);">Abrir Sistema Financiero</a>
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+                
+                <!-- FOOTER -->
+                <tr>
+                    <td align="center" style="padding: 20px; background-color: #f9f9f9; border-top: 1px solid #eee;">
+                        <p style="color: #999; font-size: 11px; margin: 0;">ESTE ES UN MENSAJE AUTOMÁTICO GENERADO POR<br><b>ANDRE VALQUI SYSTEM v2.0 | ENCRIPTACIÓN DE GRADO BANCARIO</b></p>
+                        <p style="color: #999; font-size: 10px; margin-top: 5px;">© {datetime.now().year} Todos los derechos reservados.</p>
+                    </td>
+                </tr>
             </table>
-            <p style='font-size: 11px; color: grey;'>Enviado desde Sistema Valqui v2.0</p>
-        </body></html>"""
+        </body>
+        </html>
+        """
         
         msg.attach(MIMEText(html, 'html'))
         
@@ -103,10 +146,10 @@ def enviar_correo(clientes):
             server.starttls()
             server.login(GMAIL_USER, GMAIL_PASS)
             server.send_message(msg)
-        print_log("✅ ¡Correo enviado con éxito!")
+        print_log("✅ ¡Correo Ejecutivo enviado con éxito!")
         
     except Exception as e:
-        print_log(f"❌ Error al enviar el correo: {str(e)}")
+        print_log(f"❌ Error al enviar el correo: {str(e)}")check_and_notify()
 
 if __name__ == "__main__":
     check_and_notify()
