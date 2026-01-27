@@ -149,7 +149,7 @@ def enviar_correo(clientes):
         print_log("✅ ¡Correo Ejecutivo enviado con éxito!")
         
     except Exception as e:
-        print_log(f"❌ Error al enviar el correo: {str(e)}")check_and_notify()
+        print_log(f"❌ Error al enviar el correo: {str(e)}")
 
 if __name__ == "__main__":
     check_and_notify()
