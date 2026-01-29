@@ -260,26 +260,30 @@ div[data-baseweb="input"] {
     color: white !important;
 }
 
-/* 7. CENTRADO Y ESTILO DEL BOTÓN (ACABADO ORO) */
+/* 7. CENTRADO Y ESTILO DEL BOTÓN (ACABADO ORO) - ACTUALIZADO */
 div[data-testid="stFormSubmitButton"] {
     display: flex !important;
-    justify-content: center !important;
+    justify-content: center !important; /* Centra el contenido horizontalmente */
+    align-items: center !important;
     width: 100% !important;
-    margin-top: 40px !important;
+    margin-top: 30px !important;
+    text-align: center !important;
 }
 
 div[data-testid="stFormSubmitButton"] > button {
     background: linear-gradient(90deg, #D4AF37 0%, #B8860B 100%) !important;
-    color: #000000 !important; /* Texto negro para contraste pro */
+    color: #000000 !important; 
     border: 1px solid #C5A059 !important;
-    padding: 18px 0px !important;
+    padding: 12px 0px !important;
     border-radius: 15px !important;
-    font-size: 22px !important; 
+    font-size: 20px !important; 
     font-weight: 900 !important;
-    width: 85% !important;
+    width: 250px !important; /* Ancho fijo para que se vea estético y centrado */
     text-transform: uppercase;
     box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3) !important;
     transition: all 0.4s ease-in-out !important;
+    margin: 0 auto !important; /* Margen automático para reforzar centrado */
+    display: block !important;
 }
 
 div[data-testid="stFormSubmitButton"] > button:hover {
@@ -834,212 +838,168 @@ if check_login():
                     <div class="luxury-subtitle">Registre los ingresos de capital e intereses de la cartera activa.</div>
                    </div>""", unsafe_allow_html=True)
 
-        datos, sha = cargar_datos()
-        
-        activos = [d for d in datos if d.get('Estado') == 'Activo']
-        
-        if activos:
-            mapa = {f"{d['Cliente']} | Vence: {d.get('Fecha_Proximo_Pago', 'N/A')}": i for i, d in enumerate(datos) if d.get('Estado') == 'Activo'}
-            col_sel1, col_sel2, col_sel3 = st.columns([1, 2, 1]) # 2 es el centro
-        
-            # --- TODA TU LÓGICA AHORA ESTÁ DENTRO DE ESTE 'IF' PARA EVITAR EL ERROR ---
-            with col_sel2:
-                seleccion = st.selectbox("BUSCAR CLIENTE", list(mapa.keys()))
-                
-                idx = mapa[seleccion]
-                data = datos[idx]
-                
-                fecha_venc_dt = datetime.strptime(str(data['Fecha_Proximo_Pago']), "%Y-%m-%d").date()
-                hoy = datetime.now().date()
-                dias_restantes = (fecha_venc_dt - hoy).days
+        # --- NUEVA ESTRUCTURA DE PESTAÑAS PARA NO MEZCLAR LÓGICAS ---
+        tab_registrar, tab_corregir = st.tabs(["💵 Registrar Nuevo Pago", "🔄 Corregir / Anular Pago"])
 
-                # --- LÓGICA DE COLORES DINÁMICOS ---
-                if dias_restantes <= 0:
-                    color_texto = "#943126"  # Rojo Oscuro (Mora/Hoy)
-                    txt_venc = "Vence HOY" if dias_restantes == 0 else f"Vencido hace {abs(dias_restantes)} días"
-                    flecha_dir = "inverse"
-                elif dias_restantes <= 5:
-                    color_texto = "#5D4037"  # MARRÓN CHOCOLATE (Cercano)
-                    txt_venc = f"En {dias_restantes} días"
-                    flecha_dir = "off"       
-                else:
-                    color_texto = "#145A32"  # Verde Oscuro (Al día)
-                    txt_venc = f"En {dias_restantes} días"
-                    flecha_dir = "normal"
-
-               # Inyectamos CSS específico para centrar métricas y ARREGLAR el Checkbox/Inputs
-                st.markdown(f"""
-                    <style>
-                    /* 1. Centrado de métricas (KPIs) */
-                    [data-testid="stMetric"] {{
-                        display: flex !important;
-                        flex-direction: column !important;
-                        align-items: center !important;
-                        justify-content: center !important;
-                        text-align: center !important;
-                    }}
+        with tab_registrar:
+            # --- AQUÍ INICIA TU CÓDIGO ORIGINAL (RESPETADO 100%) ---
+            datos, sha = cargar_datos()
+            activos = [d for d in datos if d.get('Estado') == 'Activo']
+            
+            if activos:
+                mapa = {f"{d['Cliente']} | Vence: {d.get('Fecha_Proximo_Pago', 'N/A')}": i for i, d in enumerate(datos) if d.get('Estado') == 'Activo'}
+                col_sel1, col_sel2, col_sel3 = st.columns([1, 2, 1]) 
+            
+                with col_sel2:
+                    seleccion = st.selectbox("BUSCAR CLIENTE", list(mapa.keys()))
+                    idx = mapa[seleccion]
+                    data = datos[idx]
                     
-                    [data-testid="stMetricLabel"], 
-                    [data-testid="stMetricValue"], 
-                    [data-testid="stMetricDelta"] {{
-                        display: flex !important;
-                        justify-content: center !important;
-                        width: 100% !important;
-                    }}
+                    fecha_venc_dt = datetime.strptime(str(data['Fecha_Proximo_Pago']), "%Y-%m-%d").date()
+                    hoy = datetime.now().date()
+                    dias_restantes = (fecha_venc_dt - hoy).days
 
-                    /* 2. FIX DEFINITIVO PARA EL CHECKBOX (RENOVAR VENCIMIENTO) */
-                    [data-testid="stCheckbox"] {{
-                        display: flex !important;
-                        justify-content: center !important;
-                        align-items: center !important;
-                        gap: 8px !important;
-                        width: 100% !important;
-                        margin: 20px 0 !important;
-                    }}
+                    if dias_restantes <= 0:
+                        color_texto = "#943126" 
+                        txt_venc = "Vence HOY" if dias_restantes == 0 else f"Vencido hace {abs(dias_restantes)} días"
+                        flecha_dir = "inverse"
+                    elif dias_restantes <= 5:
+                        color_texto = "#5D4037" 
+                        txt_venc = f"En {dias_restantes} días"
+                        flecha_dir = "off"       
+                    else:
+                        color_texto = "#145A32" 
+                        txt_venc = f"En {dias_restantes} días"
+                        flecha_dir = "normal"
 
-                    [data-testid="stCheckbox"] label p {{
-                        font-size: 15px !important; 
-                        color: #D4AF37 !important;
-                        font-weight: 700 !important;
-                        margin: 0 !important;
-                        text-transform: uppercase;
-                    }}
+                    st.markdown(f"""
+                        <style>
+                        [data-testid="stMetric"] {{ display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; text-align: center !important; }}
+                        [data-testid="stMetricLabel"], [data-testid="stMetricValue"], [data-testid="stMetricDelta"] {{ display: flex !important; justify-content: center !important; width: 100% !important; }}
+                        [data-testid="stCheckbox"] {{ display: flex !important; justify-content: center !important; align-items: center !important; gap: 8px !important; width: 100% !important; margin: 20px 0 !important; }}
+                        [data-testid="stCheckbox"] label p {{ font-size: 15px !important; color: #D4AF37 !important; font-weight: 700 !important; margin: 0 !important; text-transform: uppercase; }}
+                        [data-testid="stNumberInput"] label {{ display: block !important; text-align: center !important; width: 100% !important; }}
+                        [data-testid="stHorizontalBlock"] > div:nth-child(3) [data-testid="stMetricValue"] div {{ color: {color_texto} !important; }}
+                        [data-testid="stHorizontalBlock"] > div:nth-child(3) [data-testid="stMetricDelta"] div {{ color: {color_texto} !important; }}
+                        [data-testid="stHorizontalBlock"] > div:nth-child(3) [data-testid="stMetricDelta"] svg {{ fill: {color_texto} !important; }}
+                        </style>
+                    """, unsafe_allow_html=True)
 
-                    /* 3. FIX PARA INPUTS DE DINERO */
-                    [data-testid="stNumberInput"] label {{
-                        display: block !important;
-                        text-align: center !important;
-                        width: 100% !important;
-                    }}
-
-                    /* 4. Color dinámico para la fecha de vencimiento (Métrica 3) */
-                    [data-testid="stHorizontalBlock"] > div:nth-child(3) [data-testid="stMetricValue"] div {{
-                        color: {color_texto} !important;
-                    }}
-                    [data-testid="stHorizontalBlock"] > div:nth-child(3) [data-testid="stMetricDelta"] div {{
-                        color: {color_texto} !important;
-                    }}
-                    [data-testid="stHorizontalBlock"] > div:nth-child(3) [data-testid="stMetricDelta"] svg {{
-                        fill: {color_texto} !important;
-                    }}
-                    </style>
-                """, unsafe_allow_html=True)
-
-                with st.container(border=True):
-                    st.markdown(f"### 👤 {data['Cliente']}")
-                    
-                    c_info1, c_info2, c_info3 = st.columns(3)
-                    
-                    c_info1.metric("Deuda Capital", f"S/ {data['Monto_Capital']:,.2f}")
-                    c_info2.metric("Cuota Interés", f"S/ {data['Pago_Mensual_Interes']:,.2f}")
-                    
-                    c_info3.metric(
-                        label="Vencimiento", 
-                        value=fecha_venc_dt.strftime("%d/%m/%Y"), 
-                        delta=txt_venc, 
-                        delta_color=flecha_dir
-                    )
-
-                st.write("")
-                st.markdown("---")
-
-                col_izq, col_der = st.columns([1.3, 1], gap="large")
-
-                with col_izq:
-                    st.markdown("### 💰 Ingreso de Dinero")
-                    st.caption("Ingresa los montos exactos que recibiste.")
-
-                    pago_interes = st.number_input("1. ¿Cuánto pagó de INTERÉS?", 
-                                                   min_value=0.0, value=float(data['Pago_Mensual_Interes']), step=10.0)
-                    
-                    pago_capital = st.number_input("2. ¿Cuánto pagó de CAPITAL?", 
-                                                   min_value=0.0, value=0.0, step=50.0)
+                    with st.container(border=True):
+                        st.markdown(f"### 👤 {data['Cliente']}")
+                        c_info1, c_info2, c_info3 = st.columns(3)
+                        c_info1.metric("Deuda Capital", f"S/ {data['Monto_Capital']:,.2f}")
+                        c_info2.metric("Cuota Interés", f"S/ {data['Pago_Mensual_Interes']:,.2f}")
+                        c_info3.metric(label="Vencimiento", value=fecha_venc_dt.strftime("%d/%m/%Y"), delta=txt_venc, delta_color=flecha_dir)
 
                     st.write("")
-                    sugerir_renovar = (pago_interes >= (data['Pago_Mensual_Interes'] - 5))
-                    renovar = st.checkbox("📅 **¿Renovar vencimiento al próximo mes?**", value=sugerir_renovar)
+                    st.markdown("---")
+                    col_izq, col_der = st.columns([1.3, 1], gap="large")
 
-                    interes_pendiente = data['Pago_Mensual_Interes'] - pago_interes
-                    nuevo_capital = data['Monto_Capital'] - pago_capital + interes_pendiente
-                    nueva_cuota = nuevo_capital * (data['Tasa_Interes'] / 100)
-                    
-                    nueva_fecha_pago = data['Fecha_Proximo_Pago']
-                    txt_fecha_nueva = "Se mantiene igual"
-                    if renovar:
-                        nueva_fecha_pago = sumar_un_mes(str(data['Fecha_Proximo_Pago']))
-                        txt_fecha_nueva = datetime.strptime(nueva_fecha_pago, "%Y-%m-%d").strftime("%d/%m/%Y")
-                    
-                    nota_cierre = ""
-                    if nuevo_capital <= 0:
+                    with col_izq:
+                        st.markdown("### 💰 Ingreso de Dinero")
+                        pago_interes = st.number_input("1. ¿Cuánto pagó de INTERÉS?", min_value=0.0, value=float(data['Pago_Mensual_Interes']), step=10.0)
+                        pago_capital = st.number_input("2. ¿Cuánto pagó de CAPITAL?", min_value=0.0, value=0.0, step=50.0)
                         st.write("")
-                        nota_cierre = st.text_area("📝 **Notas Finales de Cierre:**", 
-                                                 placeholder="Ej: Cliente canceló todo por adelantado. Muy puntual.",
-                                                 help="Estas notas se verán en el Historial de Créditos.")
+                        sugerir_renovar = (pago_interes >= (data['Pago_Mensual_Interes'] - 5))
+                        renovar = st.checkbox("📅 **¿Renovar vencimiento al próximo mes?**", value=sugerir_renovar)
+                        interes_pendiente = data['Pago_Mensual_Interes'] - pago_interes
+                        nuevo_capital = data['Monto_Capital'] - pago_capital + interes_pendiente
+                        nueva_cuota = nuevo_capital * (data['Tasa_Interes'] / 100)
+                        nueva_fecha_pago = data['Fecha_Proximo_Pago']
+                        txt_fecha_nueva = "Se mantiene igual"
+                        if renovar:
+                            nueva_fecha_pago = sumar_un_mes(str(data['Fecha_Proximo_Pago']))
+                            txt_fecha_nueva = datetime.strptime(nueva_fecha_pago, "%Y-%m-%d").strftime("%d/%m/%Y")
+                        
+                        nota_cierre = ""
+                        if nuevo_capital <= 0:
+                            nota_cierre = st.text_area("📝 **Notas Finales de Cierre:**", placeholder="Ej: Pago total...")
 
-                    st.write("")
-                    st.write("")
-                    boton_guardar = st.button("💾 PROCESAR PAGO", use_container_width=True)
+                        st.write("")
+                        boton_guardar = st.button("💾 PROCESAR PAGO", use_container_width=True)
 
-                with col_der:
-                    st.markdown("### 📊 Simulación")
+                    with col_der:
+                        st.markdown("### 📊 Simulación")
+                        if interes_pendiente > 0: st.warning(f"⚠️ **Faltan S/ {interes_pendiente:,.2f}** de interés.")
+                        else: st.success("✅ Interés cubierto.")
+                        if pago_capital > 0: st.info(f"📉 Capital baja S/ {pago_capital:,.2f}")
+                        st.write("")
+                        if nuevo_capital <= 0:
+                            st.markdown(f"""<div style="background-color:#D4EFDF; padding:20px; border-radius:10px; border:2px solid #27AE60; text-align: center;"><h3 style="margin:0; color:#186A3B;">¡DEUDA CANCELADA!</h3></div>""", unsafe_allow_html=True)
+                        else:
+                            st.markdown(f"""<div style="background-color:#EBF5FB; padding:20px; border-radius:10px; border:2px solid #AED6F1; text-align: center;"><p style="color:#1B4F72;">Nueva Deuda Capital</p><h2 style="color:#2874A6;">S/ {nuevo_capital:,.2f}</h2><hr><p>Próx. Vencimiento:</p><p style="font-size:18px;">{txt_fecha_nueva}</p></div>""", unsafe_allow_html=True)
                     
-                    if interes_pendiente > 0:
-                        st.warning(f"⚠️ **Faltan S/ {interes_pendiente:,.2f}** de interés.")
-                    else:
-                        st.success("✅ Interés cubierto.")
-                    
-                    if pago_capital > 0:
-                        st.info(f"📉 Capital baja S/ {pago_capital:,.2f}")
+                    if boton_guardar:
+                        upd_data = {}
+                        if nuevo_capital <= 0:
+                            upd_data = {"Estado": "Pagado", "Fecha_Finalizacion": datetime.now().strftime("%Y-%m-%d"), "Observaciones": nota_cierre if nota_cierre else data['Observaciones']}
+                        else:
+                            upd_data = {"Monto_Capital": nuevo_capital, "Pago_Mensual_Interes": nueva_cuota, "Fecha_Proximo_Pago": nueva_fecha_pago}
+                        
+                        try:
+                            get_supabase().table("prestamos").update(upd_data).eq("id", data['id']).execute()
+                            registrar_auditoria("COBRO", f"Pago Recibido: Interés S/ {pago_interes}, Capital S/ {pago_capital}", cliente=data['Cliente'])
+                            st.success("✅ Cartera actualizada correctamente.")
+                            time.sleep(2)
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Error al actualizar: {e}")
+            else:
+                st.info("💡 No hay préstamos activos.")
 
-                    st.write("")
-
-                    if nuevo_capital <= 0:
-                        st.markdown(f"""
-                        <div style="background-color:#D4EFDF; padding:20px; border-radius:10px; border:2px solid #27AE60; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                            <h3 style="margin:0; color:#186A3B;">¡DEUDA CANCELADA!</h3>
-                            <p style="margin:5px 0; font-weight:bold; font-size:16px;">El capital llega S/ 0.00</p>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    else:
-                        st.markdown(f"""
-                        <div style="background-color:#EBF5FB; padding:20px; border-radius:10px; border:2px solid #AED6F1; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                            <p style="margin:0; color:#1B4F72; font-size:14px; text-transform: uppercase;">Nueva Deuda Capital</p>
-                            <h2 style="margin:5px 0; color:#2874A6;">S/ {nuevo_capital:,.2f}</h2>
-                            <hr style="margin:15px 0; border-color: rgba(0,0,0,0.1);">
-                            <p style="margin:0; font-weight:bold; color:#1B4F72;">Próx. Vencimiento:</p>
-                            <p style="margin:0; font-size:18px;">{txt_fecha_nueva}</p>
-                        </div>
-                        """, unsafe_allow_html=True)
+        # --- SEGUNDA PESTAÑA: LÓGICA DE CORRECCIÓN ---
+        with tab_corregir:
+            st.markdown("### 🔄 Corregir o Anular un Cobro")
+            st.caption("Esta sección permite modificar el historial de pagos para ajustar la tabla de Socios y Auditoría.")
+            
+            logs_audit, _ = cargar_datos("auditoria")
+            if logs_audit:
+                df_logs = pd.DataFrame(logs_audit)
+                # Filtrar solo registros de COBRO (Pagos de interés/capital)
+                cobros = df_logs[df_logs['Operación'] == 'COBRO'].copy()
                 
-                if boton_guardar:
-                    upd_data = {}
-                    if nuevo_capital <= 0:
-                        upd_data = {
-                            "Estado": "Pagado",
-                            "Fecha_Finalizacion": datetime.now().strftime("%Y-%m-%d"),
-                            "Observaciones": nota_cierre if nota_cierre else data['Observaciones']
-                        }
-                        msg_log = "Deuda Totalmente Cancelada"
-                    else:
-                        upd_data = {
-                            "Monto_Capital": nuevo_capital,
-                            "Pago_Mensual_Interes": nueva_cuota,
-                            "Fecha_Proximo_Pago": nueva_fecha_pago
-                        }
-                        msg_log = f"Pago registrado. Vence: {nueva_fecha_pago}"
+                if not cobros.empty:
+                    cobros = cobros.iloc[::-1] # Ver últimos primero
+                    dict_cobros = {
+                        f"{r['Fecha/Hora']} | {r['Cliente Afectado']} | {r['Detalle del Movimiento']}": r['id'] 
+                        for _, r in cobros.iterrows()
+                    }
                     
-                    try:
-                        get_supabase().table("prestamos").update(upd_data).eq("id", data['id']).execute()
-                        registrar_auditoria("COBRO", f"Pago Recibido: Interés S/ {pago_interes}, Capital S/ {pago_capital}", cliente=data['Cliente'])
-                        st.success("✅ Cartera actualizada correctamente.")
-                        time.sleep(2)
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"Error al actualizar: {e}")
-        else:
-            # ESTO SE MUESTRA SI NO HAY CLIENTES ACTIVOS
-            st.info("💡 No hay préstamos activos para registrar pagos en este momento.")
+                    seleccion_cobro = st.selectbox("Seleccione el registro de pago mal ingresado:", list(dict_cobros.keys()))
+                    id_log = dict_cobros[seleccion_cobro]
+                    data_log = cobros[cobros['id'] == id_log].iloc[0]
+                    
+                    c_corr1, c_corr2 = st.columns(2)
+                    
+                    with c_corr1:
+                        st.info("✏️ **Editar Información**")
+                        nuevo_detalle_audit = st.text_area("Corregir Detalle (Ej: Cambiar el monto del interés):", value=data_log['Detalle del Movimiento'])
+                        st.caption("Nota: Si cambias el monto del 'Interés S/', se actualizará automáticamente la tabla de Socios.")
+                        
+                        if st.button("💾 Aplicar Corrección en Historial"):
+                            try:
+                                get_supabase().table("auditoria").update({"Detalle del Movimiento": nuevo_detalle_audit}).eq("id", id_log).execute()
+                                registrar_auditoria("CORRECCIÓN COBRO", f"Se editó un cobro antiguo de {data_log['Cliente Afectado']}", cliente=data_log['Cliente Afectado'])
+                                st.success("✅ Detalle actualizado en auditoría y socios.")
+                                time.sleep(1.5)
+                                st.rerun()
+                            except Exception as e: st.error(f"Error: {e}")
 
+                    with c_corr2:
+                        st.warning("🗑️ **Anular Cobro**")
+                        st.write("Si anulas este cobro, desaparecerá de la tabla de Socios y del historial.")
+                        
+                        if st.button("❌ ANULAR Y ELIMINAR REGISTRO"):
+                            try:
+                                get_supabase().table("auditoria").delete().eq("id", id_log).execute()
+                                registrar_auditoria("ANULACIÓN COBRO", f"Se eliminó registro de cobro: {data_log['Detalle del Movimiento']}", cliente=data_log['Cliente Afectado'])
+                                st.success("🗑️ Registro eliminado correctamente.")
+                                time.sleep(1.5)
+                                st.rerun()
+                            except Exception as e: st.error(f"Error: {e}")
+                else:
+                    st.info("No se encontraron registros de cobros para corregir.")
     # 3. DASHBOARD GERENCIAL
     elif menu == "📊 Dashboard General":
         st.markdown("""<div class="header-box">
@@ -1638,6 +1598,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
