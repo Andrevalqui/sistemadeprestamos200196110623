@@ -1048,6 +1048,7 @@ if check_login():
                </div>""", unsafe_allow_html=True)
         
         datos, sha = cargar_datos()
+        logs_audit, _ = cargar_datos("auditoria")
         
         if datos:
             df = pd.DataFrame(datos)
@@ -1138,7 +1139,8 @@ if check_login():
             with tab3:
                 st.markdown("### 📋 CARTERA DE CLIENTES ACTIVA")
                 df['Vence'] = pd.to_datetime(df['Fecha_Proximo_Pago']).dt.strftime('%d/%m/%Y')
-                st.dataframe(df[["Cliente", "Telefono", "Monto_Capital", "Pago_Mensual_Interes", "Vence", "Observaciones"]], use_container_width=True, hide_index=True)
+                df['% Interés'] = df['Tasa_Interes'].apply(lambda x: f"{x:.1f}%")
+                st.dataframe(df[["Cliente", "Telefono", "Monto_Capital", "% Interés", "Pago_Mensual_Interes", "Vence", "Observaciones"]], use_container_width=True, hide_index=True)
 
             # --- TAB 4: LÓGICA MULTI-SOCIOS ESCALABLE ---
             with tab4:
@@ -1212,6 +1214,54 @@ if check_login():
                         
                         tabla_resumen.append(fila_tabla)
                         opciones_clientes.append(f"{i} | {d['Cliente']} (Tasa: {tasa_cli}%)")
+
+                # --- NUEVA LÓGICA COMPLEMENTARIA PARA HISTORIAL ACUMULATIVO (SIN ELIMINAR TU LÓGICA) ---
+                tabla_historial_acumulada = []
+                acumulado_historico = {s: 0.0 for s in socios_seleccionados}
+
+                if logs_audit:
+                    df_audit_logs = pd.DataFrame(logs_audit)
+                    # Filtramos solo los registros de COBRO (Pagos realizados)
+                    pagos_reales = df_audit_logs[df_audit_logs['Operación'] == 'COBRO'].copy()
+                    
+                    for _, log in pagos_reales.iterrows():
+                        cli_log = log['Cliente Afectado']
+                        det = log['Detalle del Movimiento']
+                        fecha_registro = log['Fecha/Hora']
+                        
+                        # Extraer el monto de interés del texto del log
+                        try:
+                            interes_pagado = float(det.split("Interés S/ ")[1].split(",")[0])
+                        except:
+                            interes_pagado = 0.0
+
+                        # Buscar la distribución de socios que tiene el cliente
+                        c_data = next((item for item in datos if item['Cliente'] == cli_log), None)
+                        
+                        if c_data and interes_pagado > 0:
+                            dist = c_data.get('Distribucion_Socios') or {}
+                            t_total = float(c_data.get('Tasa_Interes', 1))
+                            
+                            fila_hist = {
+                                "Fecha de Pago": fecha_registro,
+                                "Cliente": cli_log,
+                                "Monto Recibido": interes_pagado
+                            }
+                            
+                            for s in socios_seleccionados:
+                                # Proporción: (Mi % / Tasa Total) * Lo que el cliente pagó realmente
+                                p_socio = float(dist.get(s, t_total / len(socios_seleccionados)))
+                                gan_socio = (p_socio / t_total) * interes_pagado
+                                
+                                # Actualizamos el acumulado con datos reales del historial
+                                acumulado_historico[s] += gan_socio
+                                fila_hist[f"$ {s}"] = gan_socio
+                            
+                            tabla_historial_acumulada.append(fila_hist)
+
+                # Reemplazamos el 'acumulado' de tus tarjetas por el 'acumulado_historico'
+                # para que las métricas superiores también sean acumulativas.
+                acumulado = acumulado_historico
 
                 # 3. TARJETAS DE TOTALES (DINÁMICAS PARA N SOCIOS)
                 st.markdown("#### 🌍 GANANCIAS TOTALES ACUMULADAS")
@@ -1312,16 +1362,27 @@ if check_login():
                                 st.button("💾 GUARDAR (Bloqueado)", disabled=True)
 
                     with c_view:
-                        st.markdown("#### 📊 Tabla de Detalle")
-                        # Configuración dinámica de columnas
-                        col_config = {f"$ {s}": st.column_config.NumberColumn(f"Ganancia {s.split()[0]}", format="S/ %.2f") for s in socios_seleccionados}
+                        st.markdown("#### 📊 Tabla de Detalle Histórico")
                         
-                        st.dataframe(
-                            pd.DataFrame(tabla_resumen),
-                            use_container_width=True,
-                            hide_index=True,
-                            column_config=col_config
-                        )
+                        if tabla_historial_acumulada:
+                            # Creamos el DataFrame desde el historial acumulado
+                            df_historial = pd.DataFrame(tabla_historial_acumulada)
+                            # Ordenamos para ver lo último que se pagó arriba
+                            df_historial = df_historial.iloc[::-1]
+
+                            # Configuración dinámica de columnas (Respetando tu estilo)
+                            col_config = {f"$ {s}": st.column_config.NumberColumn(f"Ganancia {s.split()[0]}", format="S/ %.2f") for s in socios_seleccionados}
+                            col_config["Monto Recibido"] = st.column_config.NumberColumn("Total Interés", format="S/ %.2f")
+                            col_config["Fecha de Pago"] = st.column_config.TextColumn("📅 Fecha de Pago")
+                            
+                            st.dataframe(
+                                df_historial,
+                                use_container_width=True,
+                                hide_index=True,
+                                column_config=col_config
+                            )
+                        else:
+                            st.info("No se han registrado cobros en el historial aún.")
                 else:
                     st.info("No hay clientes activos.")
         else:
@@ -1570,6 +1631,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
