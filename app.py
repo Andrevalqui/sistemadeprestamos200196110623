@@ -1197,8 +1197,14 @@ if check_login():
                                 distribucion = {socios_seleccionados[0]: p1, socios_seleccionados[1]: p2}
                             else:
                                 # Si no hay datos previos o son más de 2 socios, dividimos equitativamente
-                                pct_base = tasa_cli / len(socios_seleccionados)
-                                distribucion = {s: pct_base for s in socios_seleccionados}
+                                distribucion = {}
+                                for s in socios_seleccionados:
+                                    if "Bruno" in s:
+                                        distribucion[s] = 10.0
+                                    elif "Piera" in s:
+                                        distribucion[s] = 8.0
+                                    else:
+                                        distribucion[s] = tasa_cli / len(socios_seleccionados)
                         
                         # Guardamos datos calculados para la tabla visual
                         fila_tabla = {"Cliente": d['Cliente'], "Tasa Total": f"{tasa_cli}%"}
@@ -1306,8 +1312,9 @@ if check_login():
                             
                             # Generamos un INPUT por cada socio
                             for s in socios_seleccionados:
-                                # Valor por defecto (si no existe, dividimos equitativamente)
-                                val_def = float(dist_actual_cli.get(s, tasa_max / len(socios_seleccionados)))
+                                estandar_socio = 10.0 if "Bruno" in s else (8.0 if "Piera" in s else tasa_max / 2)
+                                
+                                val_def = float(dist_actual_cli.get(s, estandar_socio))
                                 
                                 val = st.number_input(f"% para {s}", min_value=0.0, max_value=tasa_max, value=val_def, step=0.1, key=f"input_{s}")
                                 nuevos_valores[s] = val
@@ -1631,6 +1638,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
