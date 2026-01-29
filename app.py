@@ -1294,8 +1294,8 @@ if check_login():
                     c_edit, c_view = st.columns([1, 2])
                     
                     with c_edit:
-                        st.markdown("#### 🛠️ Configurar Repartición")
-                        seleccion = st.selectbox("Cliente a editar:", opciones_clientes)
+                        st.markdown("#### 🛠️ Repartición Informativa")
+                        seleccion = st.selectbox("Consulta por Cliente para saber tu %:", opciones_clientes)
                         
                         if seleccion:
                             idx_real = int(seleccion.split(" | ")[0])
@@ -1638,6 +1638,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
