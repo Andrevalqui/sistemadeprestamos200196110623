@@ -1215,13 +1215,21 @@ if check_login():
                             }
                             
                             for s in socios_seleccionados:
+                                p_socio = dist.get(s)
+                                if p_socio is None:
+                                    s_upper = s.upper()
+                                    coincidencia = next((v for k, v in dist.items() if k.upper() in s_upper or s_upper in k.upper()), None)
+                                    
+                                    if coincidencia is not None:
+                                        p_socio = float(coincidencia)
+                                    else:
+                                        if "BRUNO" in s_upper: p_socio = 10.0
+                                        elif "PIERA" in s_upper: p_socio = 8.0
+                                        else: p_socio = t_total / len(socios_seleccionados)
                                 # Proporción: (Mi % / Tasa Total) * Lo que el cliente pagó realmente
-                                p_socio = float(dist.get(s, t_total / len(socios_seleccionados)))
-                                gan_socio = (p_socio / t_total) * interes_pagado
-                                
-                                # Actualizamos el acumulado con datos reales del historial
+                                gan_socio = (float(p_socio) / t_total) * interes_pagado
                                 acumulado_historico[s] += gan_socio
-                                fila_hist[f"$ {s}"] = gan_socio
+                                fila_hist[f"$ {s}"] = gan_socio                             
                             
                             tabla_historial_acumulada.append(fila_hist)
 
@@ -1598,6 +1606,7 @@ if check_login():
             """, unsafe_allow_html=True)
         else:
             st.info("No hay movimientos registrados en la plataforma.")
+
 
 
 
